@@ -693,6 +693,16 @@
             <input type="number" id="config-max-guild-members" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="เช่น 10 (ใส่ 0 คือไม่จำกัด)">
             <p class="text-xs text-gray-500 mt-1">ใส่ 0 หากไม่ต้องการจำกัดจำนวน</p>
         </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">⏳ สัญญากิลด์ขั้นต่ำ (ชั่วโมง)</label>
+            <input type="number" id="config-guild-cooldown" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500" placeholder="0">
+            <p class="text-xs text-gray-500 mt-1">ต้องอยู่ครบเวลานี้ ถึงจะออกได้ฟรี</p>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">💸 ค่าปรับผิดสัญญา (แต้ม)</label>
+            <input type="number" id="config-guild-fee" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500" placeholder="0">
+            <p class="text-xs text-gray-500 mt-1">หักแต้มทันทีถ้าหนีออกก่อนกำหนด</p>
+        </div>
     </div>
     <div class="mt-4 flex justify-end">
         <button onclick="saveGuildConfig()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold">บันทึกตั้งค่ากิลด์</button>
@@ -817,29 +827,7 @@
             </div>
         </div>
 
-        <div class="mt-4 pt-4 border-t border-gray-200/60">
-            <h3 class="font-bold text-red-800 mb-3 text-sm flex items-center gap-2">
-                📜 กฎระเบียบกิลด์ (สัญญาใจ)
-            </h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="text-xs text-red-700 font-bold mb-1 block">⏳ ต้องอยู่กิลด์อย่างน้อย (ชม.)</label>
-                    <div class="relative">
-                        <input type="number" id="guild-rule-cooldown" step="1" min="0" class="w-full pl-3 pr-8 py-2 border border-red-200 rounded-lg font-bold text-gray-700 focus:ring-2 focus:ring-red-500" placeholder="0">
-                        <span class="absolute right-3 top-2 text-xs text-gray-400 font-bold">ชม.</span>
-                    </div>
-                    <p class="text-[10px] text-gray-400 mt-1">ถ้าออกก่อนครบเวลา จะโดนปรับ</p>
-                </div>
-                <div>
-                    <label class="text-xs text-red-700 font-bold mb-1 block">💸 ค่าปรับผิดสัญญา (แต้ม)</label>
-                    <div class="relative">
-                            <input type="number" id="guild-rule-fee" step="1" min="0" class="w-full pl-3 pr-8 py-2 border border-red-200 rounded-lg font-bold text-red-600 focus:ring-2 focus:ring-red-500" placeholder="0">
-                            <span class="absolute right-3 top-2 text-xs text-gray-400 font-bold">แต้ม</span>
-                    </div>
-                    <p class="text-[10px] text-gray-400 mt-1">หักแต้มทันทีถ้าหนีออกก่อน</p>
-                </div>
-            </div>
-        </div>
+        
 
         <div class="p-4 border-t border-gray-200 bg-white shrink-0 flex justify-between items-center shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10">
              <button onclick="deleteGuild()" class="text-red-500 hover:bg-red-50 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
@@ -1747,7 +1735,12 @@ const appId = 'activeredpoint';
                      if (document.activeElement.id !== 'config-max-guild-members') {
                         document.getElementById('config-max-guild-members').value = config.max_guild_members || 0;
                      }
-                     
+                     if(document.getElementById('config-guild-cooldown')) {
+                        document.getElementById('config-guild-cooldown').value = config.guild_rule_cooldown || 0;
+                     }
+                    if(document.getElementById('config-guild-fee')) {
+                     document.getElementById('config-guild-fee').value = config.guild_rule_fee || 0;
+                    }
                      renderBankList(false); // Trigger update for teacher view
                 } else if (userRole === 'student') {
                      renderStudentDashboard(); // Trigger update for student view
@@ -5330,13 +5323,12 @@ const appId = 'activeredpoint';
         // 1. รับค่า Config
         const newName = document.getElementById('edit-guild-name').value.trim();
         const newIcon = document.getElementById('edit-guild-icon').value.trim();
+        
         if (!newName) return alert('กรุณาระบุชื่อกิลด์');
 
         const buffInterest = parseFloat(document.getElementById('guild-buff-interest').value) || 0;
         const buffDiscount = parseInt(document.getElementById('guild-buff-discount').value) || 0;
-        const ruleCooldown = parseInt(document.getElementById('guild-rule-cooldown').value) || 0;
-        const ruleFee = parseInt(document.getElementById('guild-rule-fee').value) || 0;
-
+        
         // เช็คโควตาสมาชิก
         const maxLimit = (config && config.max_guild_members) ? parseInt(config.max_guild_members) : 0;
         if (maxLimit > 0 && tempGuildSelection.size > maxLimit) {
@@ -5693,11 +5685,23 @@ const appId = 'activeredpoint';
         }
     };
 // ฟังก์ชันบันทึก Config กิลด์ (ฉบับสมบูรณ์)
-   window.saveGuildConfig = async () => {
+   // ==========================================
+    // บันทึกตั้งค่ากิลด์ (Global Config) 🌍
+    // ==========================================
+    window.saveGuildConfig = async () => {
         const maxMembers = parseInt(document.getElementById('config-max-guild-members').value) || 0;
+        
+        // รับค่ากฎใหม่
+        const ruleCooldown = parseInt(document.getElementById('config-guild-cooldown').value) || 0;
+        const ruleFee = parseInt(document.getElementById('config-guild-fee').value) || 0;
+
         try {
+            // บันทึกทีละตัว (หรือจะรวม object ก็ได้ แต่อันนี้ชัวร์สุด)
             await saveConfig('max_guild_members', maxMembers);
-            showToast('✅ บันทึกจำกัดสมาชิกเรียบร้อย');
+            await saveConfig('guild_rule_cooldown', ruleCooldown);
+            await saveConfig('guild_rule_fee', ruleFee);
+            
+            showToast('✅ บันทึกกฎกิลด์เรียบร้อย (มีผลทันที)');
         } catch (e) {
             alert('Error: ' + e.message);
         }
