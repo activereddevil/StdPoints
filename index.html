@@ -5407,10 +5407,10 @@ const appId = 'activeredpoint';
             // คนเข้าใหม่ -> เริ่มนับเวลา
             joiners.forEach(id => {
                 const sRef = doc(db, 'students', id);
-                batch.update(sRef, { 
+                batch.set(sRef, { 
                     guild_id: currentManageGuildId,
                     guild_joined_at: new Date()
-                });
+                }, { merge: true }); // ✅ ใส่ merge: true กัน Error
             });
 
             // คนออก -> ลบข้อมูล + หักแต้ม (ถ้ามี)
@@ -5426,7 +5426,7 @@ const appId = 'activeredpoint';
                     updates.points = increment(-ruleFee); 
                 }
                 
-                batch.update(sRef, updates);
+                batch.set(sRef, updates, { merge: true }); // ✅ ใส่ merge: true กัน Error
             });
 
             await batch.commit();
