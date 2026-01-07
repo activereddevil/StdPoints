@@ -5203,9 +5203,7 @@ const appId = 'activeredpoint';
         document.getElementById('guild-buff-interest').value = g.buff_interest || 0;
         document.getElementById('guild-buff-discount').value = g.buff_discount || 0;
 
-        // [New] โหลดค่ากฎระเบียบ
-        document.getElementById('guild-rule-cooldown').value = g.rule_cooldown || 0;
-        document.getElementById('guild-rule-fee').value = g.rule_fee || 0;
+        
 
         // 🧠 1. รีเซ็ตและจำค่าสมาชิกเดิมก่อนเริ่มแก้ไข
         tempGuildSelection.clear();
@@ -5328,6 +5326,9 @@ const appId = 'activeredpoint';
 
         const buffInterest = parseFloat(document.getElementById('guild-buff-interest').value) || 0;
         const buffDiscount = parseInt(document.getElementById('guild-buff-discount').value) || 0;
+
+        const ruleCooldown = parseInt(config.guild_rule_cooldown) || 0;
+        const ruleFee = parseInt(config.guild_rule_fee) || 0;
         
         // เช็คโควตาสมาชิก
         const maxLimit = (config && config.max_guild_members) ? parseInt(config.max_guild_members) : 0;
