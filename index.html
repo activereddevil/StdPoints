@@ -817,6 +817,30 @@
             </div>
         </div>
 
+        <div class="mt-4 pt-4 border-t border-gray-200/60">
+            <h3 class="font-bold text-red-800 mb-3 text-sm flex items-center gap-2">
+                📜 กฎระเบียบกิลด์ (สัญญาใจ)
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="text-xs text-red-700 font-bold mb-1 block">⏳ ต้องอยู่กิลด์อย่างน้อย (ชม.)</label>
+                    <div class="relative">
+                        <input type="number" id="guild-rule-cooldown" step="1" min="0" class="w-full pl-3 pr-8 py-2 border border-red-200 rounded-lg font-bold text-gray-700 focus:ring-2 focus:ring-red-500" placeholder="0">
+                        <span class="absolute right-3 top-2 text-xs text-gray-400 font-bold">ชม.</span>
+                    </div>
+                    <p class="text-[10px] text-gray-400 mt-1">ถ้าออกก่อนครบเวลา จะโดนปรับ</p>
+                </div>
+                <div>
+                    <label class="text-xs text-red-700 font-bold mb-1 block">💸 ค่าปรับผิดสัญญา (แต้ม)</label>
+                    <div class="relative">
+                            <input type="number" id="guild-rule-fee" step="1" min="0" class="w-full pl-3 pr-8 py-2 border border-red-200 rounded-lg font-bold text-red-600 focus:ring-2 focus:ring-red-500" placeholder="0">
+                            <span class="absolute right-3 top-2 text-xs text-gray-400 font-bold">แต้ม</span>
+                    </div>
+                    <p class="text-[10px] text-gray-400 mt-1">หักแต้มทันทีถ้าหนีออกก่อน</p>
+                </div>
+            </div>
+        </div>
+
         <div class="p-4 border-t border-gray-200 bg-white shrink-0 flex justify-between items-center shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10">
              <button onclick="deleteGuild()" class="text-red-500 hover:bg-red-50 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
                 🗑️ <span class="hidden sm:inline">ลบกิลด์</span>
@@ -5186,6 +5210,10 @@ const appId = 'activeredpoint';
         document.getElementById('guild-buff-interest').value = g.buff_interest || 0;
         document.getElementById('guild-buff-discount').value = g.buff_discount || 0;
 
+        // [New] โหลดค่ากฎระเบียบ
+        document.getElementById('guild-rule-cooldown').value = g.rule_cooldown || 0;
+        document.getElementById('guild-rule-fee').value = g.rule_fee || 0;
+
         // 🧠 1. รีเซ็ตและจำค่าสมาชิกเดิมก่อนเริ่มแก้ไข
         tempGuildSelection.clear();
         students.forEach(s => {
@@ -5293,81 +5321,116 @@ const appId = 'activeredpoint';
         renderGuildMembersSelect(); // รีเฟรชหน้าจอ (เพื่ออัปเดตสีพื้นหลัง)
     };
 
-   window.saveGuildData = async () => {
+   // ==========================================
+    // ฟังก์ชันบันทึกข้อมูลกิลด์ (เวอร์ชั่นอัปเกรด: มีระบบปรับเงิน 💸)
+    // ==========================================
+    window.saveGuildData = async () => {
         if(!currentManageGuildId) return;
 
-       // ✨ รับค่าชื่อและไอคอนใหม่
+        // 1. รับค่า Config จากฟอร์ม
         const newName = document.getElementById('edit-guild-name').value.trim();
         const newIcon = document.getElementById('edit-guild-icon').value.trim();
-
         if (!newName) return alert('กรุณาระบุชื่อกิลด์');
 
         const buffInterest = parseFloat(document.getElementById('guild-buff-interest').value) || 0;
         const buffDiscount = parseInt(document.getElementById('guild-buff-discount').value) || 0;
+        
+        // [New] รับค่ากฎระเบียบ
+        const ruleCooldown = parseInt(document.getElementById('guild-rule-cooldown').value) || 0;
+        const ruleFee = parseInt(document.getElementById('guild-rule-fee').value) || 0;
 
-        // เช็คโควตา (นับจาก Set โดยตรง แม่นยำกว่า)
+        // เช็คโควตาสมาชิกสูงสุด (ถ้ามี)
         const maxLimit = (config && config.max_guild_members) ? parseInt(config.max_guild_members) : 0;
         if (maxLimit > 0 && tempGuildSelection.size > maxLimit) {
-            alert(`❌ บันทึกไม่ได้! กิลด์นี้จำกัดสมาชิกไว้ที่ ${maxLimit} คน (คุณเลือกไว้ ${tempGuildSelection.size} คน)`);
+            alert(`❌ สมาชิกเกิน! กิลด์นี้รับได้สูงสุด ${maxLimit} คน (คุณเลือก ${tempGuildSelection.size} คน)`);
             return;
         }
 
         try {
-            const batchArray = [];
-            let currentBatch = writeBatch(db);
-            let opCount = 0;
+            // เตรียมตัวแปรคำนวณ
+            const currentMembers = students.filter(s => s.guild_id === currentManageGuildId);
+            const newMemberIds = Array.from(tempGuildSelection);
+            
+            // หาคนเข้าใหม่ และ คนที่กำลังจะออก
+            const joiners = newMemberIds.filter(id => !currentMembers.find(m => m.id === id));
+            const leavers = currentMembers.filter(m => !newMemberIds.includes(m.id));
+
+            // ตรวจสอบค่าปรับ (Penalty Check) 👮‍♂️
+            let penaltyMsg = "";
+            let penaltyTotal = 0;
+            const leaversWithPenalty = [];
+
+            if (ruleCooldown > 0 && ruleFee > 0) {
+                const now = Date.now();
+                const cooldownMs = ruleCooldown * 60 * 60 * 1000;
+
+                leavers.forEach(s => {
+                    // แปลง timestamp ของ firebase เป็น milliseconds
+                    const joinedAt = s.guild_joined_at ? (s.guild_joined_at.seconds * 1000) : 0;
+                    const timeDiff = now - joinedAt;
+                    
+                    // ถ้าเวลาเข้ากิลด์มีอยู่จริง และยังอยู่ไม่ครบสัญญา
+                    if (joinedAt > 0 && timeDiff < cooldownMs) {
+                        const hoursLeft = Math.ceil((cooldownMs - timeDiff) / (1000 * 60 * 60));
+                        penaltyMsg += `\n- ${s.full_name} (เหลือสัญญา ${hoursLeft} ชม.)`;
+                        penaltyTotal += ruleFee;
+                        leaversWithPenalty.push(s.id);
+                    }
+                });
+            }
+
+            // ถ้ามีคนต้องโดนปรับ ให้ถามครูก่อน
+            if (leaversWithPenalty.length > 0) {
+                const confirmMsg = `⚠️ มีนักเรียน ${leaversWithPenalty.length} คน ผิดสัญญาการอยู่ร่วมกิลด์!\n${penaltyMsg}\n\nจะถูกหักแต้มคนละ ${ruleFee} แต้ม รวม ${penaltyTotal} แต้ม\nยืนยันหรือไม่?`;
+                if (!confirm(confirmMsg)) return; 
+            }
+
+            // เริ่มการบันทึก (Batch)
+            const batch = writeBatch(db);
+            const guildRef = doc(db, 'artifacts', appId, 'public', 'data', 'guilds', currentManageGuildId);
 
             // อัปเดตข้อมูลกิลด์
-            const guildRef = doc(db, 'artifacts', appId, 'public', 'data', 'guilds', currentManageGuildId);
-            currentBatch.update(guildRef, {
-               name: newName,
-                icon: newIcon,
-                buff_interest: buffInterest,
-                buff_discount: buffDiscount
-            });
-            opCount++;
-
-            // อัปเดตสมาชิก (วนลูปนักเรียนทุกคน เพื่อเช็คกับ Set)
-            students.forEach(s => {
-                let needsUpdate = false;
-                let updateData = {};
-
-                const isSelectedInUI = tempGuildSelection.has(s.id); // ถูกเลือกใน UI ไหม?
-                const currentGuildId = s.guild_id; // กิลด์ปัจจุบันใน DB
-
-                // กรณี 1: ใน UI เลือกไว้ แต่ใน DB ยังไม่ได้อยู่กิลด์นี้ -> ย้ายเข้า/เพิ่ม
-                if (isSelectedInUI && currentGuildId !== currentManageGuildId) {
-                    updateData = { guild_id: currentManageGuildId };
-                    needsUpdate = true;
-                }
-                // กรณี 2: ใน UI ไม่ได้เลือก (เอาออก) แต่ใน DB ดันอยู่กิลด์นี้ -> เตะออก
-                else if (!isSelectedInUI && currentGuildId === currentManageGuildId) {
-                    updateData = { guild_id: deleteField() };
-                    needsUpdate = true;
-                }
-
-                if (needsUpdate) {
-                    const sRef = doc(db, 'artifacts', appId, 'public', 'data', 'students', s.id);
-                    currentBatch.update(sRef, updateData);
-                    opCount++;
-                    
-                    if (opCount >= 450) {
-                        batchArray.push(currentBatch.commit());
-                        currentBatch = writeBatch(db);
-                        opCount = 0;
-                    }
-                }
+            batch.update(guildRef, {
+                name: newName, icon: newIcon,
+                buff_interest: buffInterest, buff_discount: buffDiscount,
+                rule_cooldown: ruleCooldown, rule_fee: ruleFee
             });
 
-            if (opCount > 0) batchArray.push(currentBatch.commit());
-            await Promise.all(batchArray);
+            // จัดการคนเข้าใหม่ (เริ่มนับเวลาเข้ากิลด์)
+            joiners.forEach(id => {
+                const sRef = doc(db, 'students', id);
+                batch.update(sRef, { 
+                    guild_id: currentManageGuildId,
+                    guild_joined_at: new Date() // ใช้เวลาปัจจุบันของเครื่องครูบันทึกไปก่อน
+                });
+            });
 
-            showToast('บันทึกข้อมูลกิลด์และสมาชิกเรียบร้อย ✅');
+            // จัดการคนออก (ลบกิลด์ + หักแต้มถ้ามี)
+            leavers.forEach(s => {
+                const sRef = doc(db, 'students', s.id);
+                const updates = { 
+                    guild_id: null,
+                    guild_joined_at: null 
+                };
+                
+                if (leaversWithPenalty.includes(s.id)) {
+                    // ใช้ increment(-value) เพื่อหักแต้ม
+                    updates.points = increment(-ruleFee); 
+                }
+                
+                batch.update(sRef, updates);
+            });
+
+            await batch.commit();
+
             document.getElementById('manage-guild-modal').classList.add('hidden');
-
-        } catch (e) {
-            console.error(e);
-            alert('Error: ' + e.message);
+            showToast(`💾 บันทึกเรียบร้อย! (เข้า ${joiners.length}, ออก ${leavers.length})`, 'success');
+            
+            // รีโหลดข้อมูล (ถ้าจำเป็น) หรือรอ Realtime Listener ทำงาน
+            
+        } catch (err) {
+            console.error(err);
+            alert('เกิดข้อผิดพลาด: ' + err.message);
         }
     };
 
