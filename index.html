@@ -1351,6 +1351,38 @@
     </div>
 </div>
 
+<div id="guild-penalty-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-[110] p-4 font-sans">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full transform transition-all overflow-hidden relative">
+        
+        <div id="gp-header-bar" class="h-2 w-full bg-gray-200"></div>
+
+        <div class="p-6 text-center">
+            <div id="gp-icon-bg" class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl shadow-inner transition-colors">
+                <span id="gp-icon">⚠️</span>
+            </div>
+
+            <h3 id="gp-title" class="text-xl font-black text-gray-800 mb-1">หัวข้อแจ้งเตือน</h3>
+            <p id="gp-subtitle" class="text-sm text-gray-500 mb-4">รายละเอียด...</p>
+            
+            <div class="bg-gray-50 rounded-xl border border-gray-100 p-3 mb-4 text-left max-h-40 overflow-y-auto custom-scrollbar shadow-inner">
+                <ul id="gp-list" class="space-y-2 text-sm">
+                    </ul>
+            </div>
+            
+            <div id="gp-total-section" class="hidden mb-4 bg-orange-50 p-2 rounded-lg border border-orange-100">
+                <span class="text-xs text-orange-600 font-bold uppercase tracking-wider">ยอดรวมค่าปรับ</span>
+                <div class="text-2xl font-black text-orange-600 tracking-tight" id="gp-total-amount">0</div>
+                <span class="text-[10px] text-orange-400">แต้ม</span>
+            </div>
+
+            <p id="gp-footer-text" class="text-[10px] text-gray-400 mb-0">หมายเหตุ...</p>
+        </div>
+        
+        <div id="gp-actions" class="bg-gray-50 px-6 py-4 flex gap-3 border-t border-gray-100">
+            </div>
+    </div>
+</div>
+
   </div> <!-- End App -->
 
   <script type="module">
@@ -5318,6 +5350,118 @@ const appId = 'activeredpoint';
    // ==========================================
     // ฟังก์ชันบันทึกข้อมูลกิลด์ (Final Fix: จับเวลาแม่นยำ 🎯)
     // ==========================================
+   // ==========================================
+    // ฟังก์ชันบันทึกข้อมูลกิลด์ (เพิ่ม: บันทึกประวัติค่าปรับ 📝)
+    // ==========================================
+    // ==========================================
+    // ฟังก์ชันบันทึกกิลด์ (Final V.2: ดักจับคนย้ายค่าย 🔀)
+    // ==========================================
+    // ==========================================
+    // 🎨 Helper: ฟังก์ชันเรียก Modal แจ้งเตือนแบบสวย
+    // ==========================================
+    window.showGuildPenaltyModal = (type, dataList, feePerPerson, totalFee) => {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('guild-penalty-modal');
+            const headerBar = document.getElementById('gp-header-bar');
+            const iconBg = document.getElementById('gp-icon-bg');
+            const icon = document.getElementById('gp-icon');
+            const title = document.getElementById('gp-title');
+            const subtitle = document.getElementById('gp-subtitle');
+            const list = document.getElementById('gp-list');
+            const totalSection = document.getElementById('gp-total-section');
+            const totalAmount = document.getElementById('gp-total-amount');
+            const actions = document.getElementById('gp-actions');
+            const footer = document.getElementById('gp-footer-text');
+
+            // Reset Content
+            list.innerHTML = '';
+            
+            // 1. สร้างรายการรายชื่อ
+            dataList.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'flex justify-between items-center border-b border-gray-200 pb-1 last:border-0 last:pb-0';
+                
+                if (type === 'lock') {
+                    li.innerHTML = `
+                        <div class="flex flex-col">
+                            <span class="font-bold text-gray-700 text-xs">${item.name}</span>
+                            <span class="text-[10px] text-gray-400">เหลือสัญญา ${item.hours} ชม.</span>
+                        </div>
+                        <span class="text-xs font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded">ขาด ${item.missing}</span>
+                    `;
+                } else {
+                    li.innerHTML = `
+                        <span class="font-bold text-gray-700 text-xs">${item.name}</span>
+                        <span class="text-xs font-bold text-orange-500">-${feePerPerson}</span>
+                    `;
+                }
+                list.appendChild(li);
+            });
+
+            // 2. ปรับหน้าตาตามสถานะ (Lock vs Confirm)
+            if (type === 'lock') {
+                // 🔒 โหมดล็อก (ไปต่อไม่ได้)
+                headerBar.className = "h-2 w-full bg-red-500";
+                iconBg.className = "w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl shadow-inner bg-red-50 text-red-500";
+                icon.innerHTML = `<svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>`;
+                title.textContent = "ติดสัญญากิลด์!";
+                title.className = "text-xl font-black text-red-600 mb-1";
+                subtitle.textContent = "แต้มไม่พอจ่ายค่าปรับ ไม่สามารถย้ายได้";
+                totalSection.classList.add('hidden');
+                footer.textContent = "วิธีแก้: อยู่ต่อให้ครบสัญญา หรือหาแต้มมาเติม";
+
+                actions.innerHTML = `
+                    <button id="gp-btn-close" class="w-full py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-bold transition-colors">
+                        เข้าใจแล้ว
+                    </button>
+                `;
+                
+                document.getElementById('gp-btn-close').onclick = () => {
+                    modal.classList.add('hidden');
+                    resolve(false);
+                };
+
+            } else {
+                // 💸 โหมดถามยืนยัน (จ่ายค่าปรับ)
+                headerBar.className = "h-2 w-full bg-orange-500";
+                iconBg.className = "w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl shadow-inner bg-orange-50 text-orange-500";
+                icon.innerHTML = `<svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>`;
+                title.textContent = "ยืนยันการฉีกสัญญา";
+                title.className = "text-xl font-black text-gray-800 mb-1";
+                subtitle.textContent = `มีสมาชิก ${dataList.length} คน ต้องจ่ายค่าปรับเพื่อย้ายออก`;
+                
+                totalSection.classList.remove('hidden');
+                totalAmount.textContent = totalFee.toLocaleString();
+                footer.textContent = "⚠️ การตัดสินใจถือเป็นที่สิ้นสุด ไม่สามารถขอคืนแต้มได้";
+
+                actions.innerHTML = `
+                    <button id="gp-btn-cancel" class="flex-1 py-3 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-xl font-bold transition-colors">
+                        ยกเลิก
+                    </button>
+                    <button id="gp-btn-confirm" class="flex-1 py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl font-bold shadow-lg shadow-orange-200 transition-all transform active:scale-95 flex items-center justify-center gap-2">
+                        <span>💸</span> ยอมจ่าย & ย้าย
+                    </button>
+                `;
+
+                document.getElementById('gp-btn-cancel').onclick = () => {
+                    modal.classList.add('hidden');
+                    resolve(false);
+                };
+                document.getElementById('gp-btn-confirm').onclick = () => {
+                    modal.classList.add('hidden');
+                    resolve(true);
+                };
+            }
+
+            // เปิด Modal
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        });
+    };
+
+    // ==========================================
+    // ฟังก์ชันบันทึกกิลด์ (Final V.3: ใช้ Modal สวยๆ ✨)
+    // ==========================================
     window.saveGuildData = async () => {
         if(!currentManageGuildId) return;
 
@@ -5329,7 +5473,6 @@ const appId = 'activeredpoint';
         const buffInterest = parseFloat(document.getElementById('guild-buff-interest').value) || 0;
         const buffDiscount = parseInt(document.getElementById('guild-buff-discount').value) || 0;
 
-        // กฎ Global
         const ruleCooldown = parseInt(config.guild_rule_cooldown) || 0;
         const ruleFee = parseInt(config.guild_rule_fee) || 0;
 
@@ -5344,69 +5487,78 @@ const appId = 'activeredpoint';
             const currentMembers = students.filter(s => s.guild_id === currentManageGuildId);
             const newMemberIds = Array.from(tempGuildSelection);
             
-            const joiners = newMemberIds.filter(id => !currentMembers.find(m => m.id === id));
+            // หาคนเข้า/ย้ายมา และ คนออก
+            const joiners = newMemberIds.map(id => students.find(s => s.id === id)).filter(s => s && !currentMembers.find(m => m.id === s.id));
             const leavers = currentMembers.filter(m => !newMemberIds.includes(m.id));
 
-            // --- 🕵️‍♂️ ตรวจจับคนผิดสัญญา (Logic ใหม่ อ่านเวลาได้ทุกแบบ) ---
-            const lockedStudents = [];
-            const penaltyStudents = [];
+            // --- 🕵️‍♂️ ตรวจจับสัญญา (เตรียมข้อมูลสำหรับ Modal) ---
+            const lockedList = []; // เก็บ Object {name, missing, hours}
+            const penaltyList = []; // เก็บ Object {name, id}
             let penaltyTotal = 0;
 
-            if (ruleCooldown > 0 && ruleFee > 0) {
-                const now = Date.now();
-                const cooldownMs = ruleCooldown * 60 * 60 * 1000;
+            const now = Date.now();
+            const cooldownMs = ruleCooldown * 60 * 60 * 1000;
 
-                leavers.forEach(s => {
-                    // 🕒 แก้ไขตรงนี้: อ่านเวลาให้ครอบคลุมทุก format
-                    let joinedTime = 0;
-                    if (s.guild_joined_at) {
-                        if (typeof s.guild_joined_at.toMillis === 'function') {
-                             // แบบ 1: มาจาก Firebase (Timestamp)
-                            joinedTime = s.guild_joined_at.toMillis();
-                        } else if (s.guild_joined_at instanceof Date) {
-                             // แบบ 2: เพิ่งเพิ่มในหน้าจอ (Date Object)
-                            joinedTime = s.guild_joined_at.getTime();
-                        } else if (s.guild_joined_at.seconds) {
-                             // แบบ 3: Timestamp แบบดิบๆ
-                            joinedTime = s.guild_joined_at.seconds * 1000;
-                        }
+            const checkContract = (s) => {
+                if (ruleCooldown <= 0 || !s.guild_id) return; 
+
+                let joinedTime = 0;
+                if (s.guild_joined_at) {
+                    if (typeof s.guild_joined_at.toMillis === 'function') joinedTime = s.guild_joined_at.toMillis();
+                    else if (s.guild_joined_at instanceof Date) joinedTime = s.guild_joined_at.getTime();
+                    else if (s.guild_joined_at.seconds) joinedTime = s.guild_joined_at.seconds * 1000;
+                }
+
+                const timeDiff = now - joinedTime;
+                
+                if (joinedTime > 0 && timeDiff < cooldownMs) {
+                    const currentPoints = s.points || 0;
+                    const hoursLeft = Math.ceil((cooldownMs - timeDiff) / (1000 * 60 * 60));
+
+                    if (currentPoints < ruleFee) {
+                        // 🔒 ล็อก
+                        lockedList.push({
+                            name: s.full_name,
+                            missing: (ruleFee - currentPoints).toLocaleString(),
+                            hours: hoursLeft
+                        });
+                    } else {
+                        // 💸 โดนปรับ
+                        penaltyList.push({ name: s.full_name, id: s.id });
+                        penaltyTotal += ruleFee;
                     }
+                }
+            };
 
-                    const timeDiff = now - joinedTime;
-                    
-                    // ต้องมีเวลาเข้าที่ถูกต้อง (>0) และ เวลายังไม่ครบกำหนด
-                    if (joinedTime > 0 && timeDiff < cooldownMs) {
-                        const currentPoints = s.points || 0;
-                        const hoursLeft = Math.ceil((cooldownMs - timeDiff) / (1000 * 60 * 60));
+            // เช็คทั้งคนออก และคนย้ายเข้ามา (จากกิลด์อื่น)
+            leavers.forEach(s => checkContract(s));
+            joiners.forEach(s => {
+                if (s.guild_id && s.guild_id !== currentManageGuildId) {
+                    checkContract(s);
+                }
+            });
 
-                        if (currentPoints < ruleFee) {
-                            lockedStudents.push(`${s.full_name} (ขาด ${ruleFee - currentPoints} แต้ม / เหลือ ${hoursLeft} ชม.)`);
-                        } else {
-                            penaltyStudents.push(s.id);
-                            penaltyTotal += ruleFee;
-                        }
-                    }
-                });
+            // 🛑 ด่านที่ 1: Modal ล็อก (สีแดง)
+            if (lockedList.length > 0) {
+                await showGuildPenaltyModal('lock', lockedList);
+                return; // จบการทำงานทันทีถ้าผู้ใช้กดปิด Modal
             }
 
-            // ⛔ ด่านที่ 1: ติดล็อก
-            if (lockedStudents.length > 0) {
-                alert(`⛔ บันทึกไม่ได้! ติดสัญญาและแต้มไม่พอจ่าย:\n\n- ${lockedStudents.join('\n- ')}\n\nต้องอยู่ต่อหรือเติมแต้มก่อน`);
-                return;
+            // ⚠️ ด่านที่ 2: Modal ยืนยันจ่ายเงิน (สีส้ม)
+            if (penaltyList.length > 0) {
+                const confirmed = await showGuildPenaltyModal('confirm', penaltyList, ruleFee, penaltyTotal);
+                if (!confirmed) return; // ถ้ากดยกเลิก ก็จบการทำงาน
             }
 
-            // ⚠️ ด่านที่ 2: ถามยืนยัน
-            if (penaltyStudents.length > 0) {
-                const confirmMsg = `⚠️ มีนักเรียน ${penaltyStudents.length} คน จะฉีกสัญญา!\nโดนหักคนละ ${ruleFee} แต้ม (รวม ${penaltyTotal})\n\nยืนยันหรือไม่?`;
-                if (!confirm(confirmMsg)) return; 
-            }
+            // --- ผ่านด่านหมดแล้ว เริ่มบันทึก ---
+            const penaltyIds = penaltyList.map(p => p.id); // แปลงกลับเป็น Array of IDs เพื่อใช้เช็ค
 
-            // ⚡ Optimistic Update (อัปเดตจอทันที)
-            joiners.forEach(id => {
-                const s = students.find(x => x.id === id);
+            // Optimistic Update
+            joiners.forEach(s => {
                 if(s) {
                     s.guild_id = currentManageGuildId;
-                    s.guild_joined_at = new Date(); // ✅ ใส่เวลาทันที เพื่อให้ครั้งหน้าเช็คได้เลย
+                    s.guild_joined_at = new Date();
+                    if (penaltyIds.includes(s.id)) s.points = (s.points || 0) - ruleFee;
                 }
             });
             leavers.forEach(s => {
@@ -5414,15 +5566,13 @@ const appId = 'activeredpoint';
                 if(target) {
                     target.guild_id = null;
                     target.guild_joined_at = null;
-                    if (penaltyStudents.includes(s.id)) {
-                        target.points = (target.points || 0) - ruleFee;
-                    }
+                    if (penaltyIds.includes(s.id)) target.points = (target.points || 0) - ruleFee;
                 }
             });
             if(typeof renderGuildsDashboard === 'function') renderGuildsDashboard();
             if(typeof renderStudentList === 'function') renderStudentList(false);
 
-            // 4. บันทึกลง DB
+            // บันทึกลง DB
             const batch = writeBatch(db);
             const guildRef = doc(db, 'artifacts', appId, 'public', 'data', 'guilds', currentManageGuildId);
 
@@ -5431,20 +5581,50 @@ const appId = 'activeredpoint';
                 buff_interest: buffInterest, buff_discount: buffDiscount
             }, { merge: true });
 
-            joiners.forEach(id => {
-                const sRef = doc(db, 'students', id);
-                batch.set(sRef, { 
+            // คนเข้า
+            joiners.forEach(s => {
+                const sRef = doc(db, 'students', s.id);
+                const updates = { 
                     guild_id: currentManageGuildId,
                     guild_joined_at: new Date()
-                }, { merge: true });
+                };
+                
+                if (penaltyIds.includes(s.id)) {
+                    updates.points = increment(-ruleFee);
+                    const hRef = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
+                    batch.set(hRef, {
+                        student_id: s.id,
+                        student_name: s.full_name,
+                        action: 'ฉีกสัญญา (ย้ายค่าย)',
+                        amount: ruleFee,
+                        type: 'remove_points',
+                        reason: `ย้ายจากกิลด์เดิมมา ${newName} ก่อนกำหนด`,
+                        timestamp: serverTimestamp()
+                    });
+                }
+                
+                batch.set(sRef, updates, { merge: true });
             });
 
+            // คนออก
             leavers.forEach(s => {
                 const sRef = doc(db, 'students', s.id);
                 const updates = { guild_id: null, guild_joined_at: null };
-                if (penaltyStudents.includes(s.id)) {
+                
+                if (penaltyIds.includes(s.id)) {
                     updates.points = increment(-ruleFee); 
+                    const hRef = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
+                    batch.set(hRef, {
+                        student_id: s.id,
+                        student_name: s.full_name,
+                        action: 'ฉีกสัญญา (ลาออก)',
+                        amount: ruleFee,
+                        type: 'remove_points',
+                        reason: 'ออกจากกิลด์ก่อนกำหนด',
+                        timestamp: serverTimestamp()
+                    });
                 }
+                
                 batch.set(sRef, updates, { merge: true });
             });
 
@@ -5457,36 +5637,37 @@ const appId = 'activeredpoint';
             alert('เกิดข้อผิดพลาด: ' + err.message);
         }
     };
-
     // วางฟังก์ชันนี้ไว้ท้ายสุดของ Script 
-    // ==========================================
-    // ฟังก์ชันลบกิลด์ (แก้ช่องโหว่: ต้องเคลียร์คนก่อนลบ 🧹)
+   // ==========================================
+    // ฟังก์ชันลบกิลด์ (Safe Mode: ล็อก 2 ชั้น 🔒)
     // ==========================================
     window.deleteGuild = async () => {
         if(!currentManageGuildId) return;
 
-        // 1. เช็คจำนวนสมาชิกก่อนเลย
+        // 1. เช็คจำนวนสมาชิก
         const members = students.filter(s => s.guild_id === currentManageGuildId);
         
-        // 🛑 ถ้ายังมีคนอยู่ ห้ามลบ!
         if (members.length > 0) {
-            alert(`⚠️ ไม่สามารถลบกิลด์ได้!\n\nยังมีสมาชิกอยู่ ${members.length} คน (เด็กอาจใช้ช่องว่างนี้หนีค่าปรับ)\n\n👉 วิธีแก้ไข: กรุณากดปุ่ม "บันทึกสมาชิก" โดยติ๊กรายชื่อออกให้หมดก่อน เพื่อให้ระบบตรวจสอบสัญญาและหักแต้มตามกฎ`);
-            return;
-        }
-
-        // 2. ถ้ากิลด์ว่างแล้ว ค่อยถามยืนยัน
-        if(!confirm('ยืนยันลบกิลด์นี้ถาวร?')) return;
-        
-        try {
-            const guildRef = doc(db, 'artifacts', appId, 'public', 'data', 'guilds', currentManageGuildId);
-            await deleteDoc(guildRef);
-
-            document.getElementById('manage-guild-modal').classList.add('hidden');
-            showToast('🗑️ ลบกิลด์เรียบร้อย');
+            // 🛑 กรณีที่ 1: มีสมาชิกอยู่ -> แจ้งเตือนและจบการทำงานทันที!
+            alert(`⚠️ ไม่สามารถลบกิลด์ได้!\n\nยังมีสมาชิกอยู่ ${members.length} คน\nต้องเคลียร์คนออกให้หมดก่อนลบกิลด์ครับ`);
+            return; // หยุดตรงนี้แน่นอน ไม่ไหลลงไปข้างล่าง
+        } else {
+            // ✅ กรณีที่ 2: กิลด์ว่างเปล่า -> ถึงจะยอมให้ลบ
+            if(!confirm('ยืนยันลบกิลด์นี้ถาวร?')) return;
             
-        } catch (e) {
-            console.error(e);
-            alert('เกิดข้อผิดพลาด: ' + e.message);
+            try {
+                // ลบเอกสารกิลด์
+                const guildRef = doc(db, 'artifacts', appId, 'public', 'data', 'guilds', currentManageGuildId);
+                await deleteDoc(guildRef);
+
+                // ปิดหน้าต่างและแจ้งเตือน
+                document.getElementById('manage-guild-modal').classList.add('hidden');
+                showToast('🗑️ ลบกิลด์เรียบร้อย');
+                
+            } catch (e) {
+                console.error(e);
+                alert('เกิดข้อผิดพลาด: ' + e.message);
+            }
         }
     };
     // --- 🤖 AUTO GUILD BUFF SYSTEM ---
