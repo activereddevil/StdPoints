@@ -5315,22 +5315,26 @@ const appId = 'activeredpoint';
    // ==========================================
     // ฟังก์ชันบันทึกข้อมูลกิลด์ (เวอร์ชั่น: Hard Lock 🔒)
     // ==========================================
+   // ==========================================
+    // ฟังก์ชันบันทึกข้อมูลกิลด์ (ฉบับแก้ไข: Global Rules ✅)
+    // ==========================================
     window.saveGuildData = async () => {
         if(!currentManageGuildId) return;
 
-        // 1. รับค่า Config
+        // 1. รับค่า Config พื้นฐานจากหน้าจอ
         const newName = document.getElementById('edit-guild-name').value.trim();
         const newIcon = document.getElementById('edit-guild-icon').value.trim();
-        
         if (!newName) return alert('กรุณาระบุชื่อกิลด์');
 
         const buffInterest = parseFloat(document.getElementById('guild-buff-interest').value) || 0;
         const buffDiscount = parseInt(document.getElementById('guild-buff-discount').value) || 0;
 
+        // 🔴 จุดสำคัญ: ดึงค่ากฎระเบียบจาก Global Config (แก้ Error ตรงนี้)
+        // ต้องประกาศตัวแปรชื่อ ruleCooldown และ ruleFee ให้ชัดเจนตรงนี้ครับ
         const ruleCooldown = parseInt(config.guild_rule_cooldown) || 0;
         const ruleFee = parseInt(config.guild_rule_fee) || 0;
-        
-        // เช็คโควตาสมาชิก
+
+        // 2. เช็คโควตาสมาชิกสูงสุด
         const maxLimit = (config && config.max_guild_members) ? parseInt(config.max_guild_members) : 0;
         if (maxLimit > 0 && tempGuildSelection.size > maxLimit) {
             alert(`❌ สมาชิกเกิน! กิลด์นี้รับได้สูงสุด ${maxLimit} คน (คุณเลือก ${tempGuildSelection.size} คน)`);
@@ -5338,15 +5342,16 @@ const appId = 'activeredpoint';
         }
 
         try {
+            // เตรียมข้อมูลสำหรับคำนวณ
             const currentMembers = students.filter(s => s.guild_id === currentManageGuildId);
             const newMemberIds = Array.from(tempGuildSelection);
             
             const joiners = newMemberIds.filter(id => !currentMembers.find(m => m.id === id));
             const leavers = currentMembers.filter(m => !newMemberIds.includes(m.id));
 
-            // 👮‍♂️ ตรวจสอบสัญญา (Contract Check)
-            const lockedStudents = [];     // คนที่ "ไปไหนไม่ได้" (ติดสัญญา + แต้มไม่พอ)
-            const penaltyStudents = [];    // คนที่ "ต้องจ่ายค่าปรับ" (ติดสัญญา + แต้มพอ)
+            // 3. ตรวจสอบกฎเหล็ก (Contract Check) 👮‍♂️
+            const lockedStudents = [];
+            const penaltyStudents = [];
             let penaltyTotal = 0;
 
             if (ruleCooldown > 0 && ruleFee > 0) {
@@ -5357,16 +5362,16 @@ const appId = 'activeredpoint';
                     const joinedAt = s.guild_joined_at ? (s.guild_joined_at.seconds * 1000) : 0;
                     const timeDiff = now - joinedAt;
                     
-                    // เช็คว่าสัญญาหมดหรือยัง?
+                    // เช็คว่าอยู่ครบสัญญาหรือยัง?
                     if (joinedAt > 0 && timeDiff < cooldownMs) {
                         const currentPoints = s.points || 0;
                         const hoursLeft = Math.ceil((cooldownMs - timeDiff) / (1000 * 60 * 60));
 
                         if (currentPoints < ruleFee) {
-                            // 🔒 กรณี 1: แต้มไม่พอจ่าย -> ล็อกตัว! ห้ามออก!
-                            lockedStudents.push(`${s.full_name} (ขาด ${ruleFee - currentPoints} แต้ม / เหลือสัญญา ${hoursLeft} ชม.)`);
+                            // ล็อกตัว: แต้มไม่พอจ่ายค่าปรับ
+                            lockedStudents.push(`${s.full_name} (ขาด ${ruleFee - currentPoints} แต้ม / เหลือ ${hoursLeft} ชม.)`);
                         } else {
-                            // 💸 กรณี 2: แต้มพอจ่าย -> โดนปรับ
+                            // จ่ายได้: เตรียมหักแต้ม
                             penaltyStudents.push(s.id);
                             penaltyTotal += ruleFee;
                         }
@@ -5374,56 +5379,69 @@ const appId = 'activeredpoint';
                 });
             }
 
-            // ⛔ STOP! ถ้ามีคนติดล็อก
+            // ⛔ ด่านที่ 1: ห้ามบันทึกถ้ามีคนติดล็อก
             if (lockedStudents.length > 0) {
-                alert(`⛔ ไม่สามารถบันทึกได้!\nมีนักเรียนติดสัญญาและแต้มไม่พอจ่ายค่าปรับ:\n\n- ${lockedStudents.join('\n- ')}\n\nวิธีแก้ไข: ต้องให้อยู่กิลด์ต่อจนครบเวลา หรือเติมแต้มให้พอก่อน`);
-                return; // หยุดการทำงานทันที
+                alert(`⛔ บันทึกไม่ได้! มีนักเรียนติดสัญญาและแต้มไม่พอจ่ายค่าปรับ:\n\n- ${lockedStudents.join('\n- ')}\n\nวิธีแก้: ต้องให้อยู่ต่อ หรือเติมแต้มให้พอก่อน`);
+                return;
             }
 
-            // ⚠️ CONFIRM! สำหรับคนที่ต้องจ่ายค่าปรับ
+            // ⚠️ ด่านที่ 2: ยืนยันการหักแต้ม
             if (penaltyStudents.length > 0) {
-                const confirmMsg = `⚠️ มีนักเรียน ${penaltyStudents.length} คน จะฉีกสัญญากิลด์!\nและจะถูกหักแต้มคนละ ${ruleFee} แต้ม (รวม ${penaltyTotal})\n\nยืนยันให้พวกเขาย้ายออกหรือไม่?`;
+                const confirmMsg = `⚠️ มีนักเรียน ${penaltyStudents.length} คน จะฉีกสัญญา!\nต้องจ่ายค่าปรับคนละ ${ruleFee} แต้ม (รวม ${penaltyTotal})\n\nยืนยันหรือไม่?`;
                 if (!confirm(confirmMsg)) return; 
             }
 
-            // --- เริ่มบันทึกข้อมูล (เมื่อผ่านด่านตรวจหมดแล้ว) ---
+            // ⚡ อัปเดตหน้าจอทันที (Optimistic UI)
+            joiners.forEach(id => {
+                const s = students.find(x => x.id === id);
+                if(s) s.guild_id = currentManageGuildId;
+            });
+            leavers.forEach(s => {
+                const target = students.find(x => x.id === s.id);
+                if(target) {
+                    target.guild_id = null;
+                    if (penaltyStudents.includes(s.id)) {
+                        target.points = (target.points || 0) - ruleFee;
+                    }
+                }
+            });
+            if(typeof renderGuildsDashboard === 'function') renderGuildsDashboard();
+            if(typeof renderStudentList === 'function') renderStudentList(false);
+
+
+            // 4. บันทึกลง Firebase (Batch)
             const batch = writeBatch(db);
             const guildRef = doc(db, 'artifacts', appId, 'public', 'data', 'guilds', currentManageGuildId);
 
-            // อัปเดตข้อมูลกิลด์
-            batch.update(guildRef, {
+            // อัปเดตข้อมูลกิลด์ (ไม่บันทึก ruleCooldown/Fee ลงกิลด์แล้ว เพราะใช้ Global)
+            batch.set(guildRef, {
                 name: newName, icon: newIcon,
-                buff_interest: buffInterest, buff_discount: buffDiscount,
-                rule_cooldown: ruleCooldown, rule_fee: ruleFee
-            });
+                buff_interest: buffInterest, buff_discount: buffDiscount
+            }, { merge: true });
 
-            // คนเข้าใหม่ -> เริ่มนับเวลา
+            // คนเข้า
             joiners.forEach(id => {
                 const sRef = doc(db, 'students', id);
                 batch.set(sRef, { 
                     guild_id: currentManageGuildId,
                     guild_joined_at: new Date()
-                }, { merge: true }); // ✅ ใส่ merge: true กัน Error
+                }, { merge: true });
             });
 
-            // คนออก -> ลบข้อมูล + หักแต้ม (ถ้ามี)
+            // คนออก
             leavers.forEach(s => {
                 const sRef = doc(db, 'students', s.id);
                 const updates = { 
                     guild_id: null,
                     guild_joined_at: null 
                 };
-                
-                // หักแต้มเฉพาะคนที่โดนปรับ (ซึ่งเราเช็คมาแล้วว่าแต้มพอแน่ๆ)
                 if (penaltyStudents.includes(s.id)) {
                     updates.points = increment(-ruleFee); 
                 }
-                
-                batch.set(sRef, updates, { merge: true }); // ✅ ใส่ merge: true กัน Error
+                batch.set(sRef, updates, { merge: true });
             });
 
             await batch.commit();
-
             document.getElementById('manage-guild-modal').classList.add('hidden');
             showToast(`💾 บันทึกเรียบร้อย!`, 'success');
             
