@@ -237,9 +237,7 @@
                                    <span class="text-xs text-green-500">(+ดอกเบี้ย <span id="std-dash-interest">0</span>)</span>
                                 </div>
                             </div>
-                            <button onclick="openBankModal()" class="w-full mt-1 bg-green-600 hover:bg-green-700 text-white text-xs py-1.5 rounded-lg font-bold shadow-sm transition-all transform active:scale-95 flex items-center justify-center gap-2">
-                                <span>🏦</span> ฝาก / ถอน
-                            </button>
+                           
                        </div>
                         <div class="bg-red-50 px-6 py-3 rounded-xl border border-red-100">
                             <span class="block text-xs text-red-600 uppercase font-bold tracking-wider">การ์ดแดง</span>
@@ -261,6 +259,7 @@
         </div>
 
         <!-- ============ HOME TAB (Teacher List) ============ -->
+         
         <div id="content-home" class="tab-content hidden h-full flex flex-col">
             <div class="mb-6 flex gap-3 flex-wrap shrink-0">
                 <button onclick="showAddStudentModal()" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2">
@@ -1606,6 +1605,7 @@ const appId = 'activeredpoint';
         if (userRole === 'teacher') {
             roleDisplay.textContent = 'สถานะ: ครู (Admin)';
             tabsHtml = `
+                <button onclick="switchTab('classroom')" id="tab-classroom" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">🏫 จัดการห้องเรียน</button>
                 <button onclick="switchTab('home')" id="tab-home" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-red-500 text-red-600">รายชื่อนักเรียน</button>
                 <button onclick="switchTab('guilds')" id="tab-guilds" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">🏰 กิลด์</button>
                 <button onclick="switchTab('quests')" id="tab-quests" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">ภารกิจ</button>
@@ -1956,13 +1956,11 @@ const appId = 'activeredpoint';
         const filter = document.getElementById('search-input').value.toLowerCase();
         
         let filtered = students.filter(s => {
-            // 🔍 [NEW] ดึงชื่อกิลด์มาตรวจสอบ
             const gName = s.guild_id ? (guilds.find(g => g.id === s.guild_id)?.name || '') : '';
-            
             return s.full_name.toLowerCase().includes(filter) || 
             s.student_id.includes(filter) ||
             (s.class_name && s.class_name.toLowerCase().includes(filter)) ||
-            gName.toLowerCase().includes(filter); // ✅ เพิ่มเงื่อนไขค้นหาชื่อกิลด์
+            gName.toLowerCase().includes(filter);
         });
 
         if (sortState.student.col) {
@@ -1974,25 +1972,37 @@ const appId = 'activeredpoint';
         
         // Sync Select All checkbox
         const allOnPageSelected = paginatedData.length > 0 && paginatedData.every(s => selectedStudentIds.has(s.id));
-        document.getElementById('select-all').checked = allOnPageSelected;
+        const selectAllCheckbox = document.getElementById('select-all');
+        if(selectAllCheckbox) selectAllCheckbox.checked = allOnPageSelected;
 
         tbody.innerHTML = paginatedData.map(s => {
-            // --- ✨ ส่วนที่แก้ไข: ประกาศตัวแปร guildBadge ก่อน return ---
             let guildBadge = '';
             if (s.guild_id) {
                 const g = guilds.find(x => x.id === s.guild_id);
                 if (g) {
                     guildBadge = `
-                    <span class="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 shadow-sm cursor-help" title="สมาชิกกิลด์ ${g.name}">
+                    <span class="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 shadow-sm" title="สมาชิกกิลด์ ${g.name}">
                         <span class="text-xs">${g.icon}</span> ${g.name}
                     </span>`;
                 }
             }
-            // --------------------------------------------------------
 
+            // ✨ [NEW] เช็คว่าแถวนี้ถูกเลือกหรือไม่?
+            const isSelected = selectedStudentIds.has(s.id);
+            
+            // ✨ [NEW] กำหนดสไตล์: ถ้าเลือก -> สีเขียว, ถ้าไม่เลือก -> สีปกติ
+            const rowClass = isSelected 
+                ? 'bg-green-50 border-l-4 border-l-green-500' // สีตอนเลือก
+                : 'hover:bg-gray-50 border-l-4 border-l-transparent'; // สีปกติ
+
+            // 🟢 เปลี่ยน <tr> ให้กดได้ทั้งแถว (onclick)
             return `
-            <tr class="hover:bg-gray-50 group transition-colors">
-                <td class="px-4 py-5"><input type="checkbox" class="student-check w-4 h-4 rounded border-gray-300 text-red-600" value="${s.id}" ${selectedStudentIds.has(s.id) ? 'checked' : ''} onchange="toggleSelectStudent('${s.id}')"></td>
+            <tr onclick="toggleSelectStudent('${s.id}')" class="cursor-pointer transition-all border-b last:border-b-0 group ${rowClass}">
+                <td class="px-4 py-5 text-center w-16">
+                    <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center mx-auto transition-colors ${isSelected ? 'bg-green-500 border-green-500 text-white shadow-sm' : 'border-gray-300 bg-white group-hover:border-gray-400'}">
+                        ${isSelected ? '✓' : ''}
+                    </div>
+                </td>
                 <td class="px-4 py-5 text-gray-600 font-mono">${s.student_id}</td>
                 
                 <td class="px-4 py-5 font-medium text-gray-900">
@@ -2014,7 +2024,6 @@ const appId = 'activeredpoint';
                         ${Math.floor(s.red_cards)}
                     </span>
                 </td>
-                
             </tr>
             `;
         }).join('');
@@ -2705,6 +2714,7 @@ const appId = 'activeredpoint';
             selectedStudentIds.add(id);
         }
         updateBulkUI();
+        renderStudentList(false);
     };
 
     // Header "Select All" Handler (Toggles current page)
@@ -2971,15 +2981,13 @@ const appId = 'activeredpoint';
                     // ---------------------
                 }
                 else if (slotType === 'buff_discount') {
-                    data.value = parseInt(slot.querySelector('.slot-value').value) || 0;
-                    data.duration = parseInt(slot.querySelector('.slot-duration').value) || 60;
-                    
+                    data.value = parseInt(slot.querySelector('.input-buff_discount .slot-value').value) || 0;
+                    data.duration = parseInt(slot.querySelector('.input-buff_discount .slot-duration').value) || 60;
                     if (data.value <= 0) { alert('ส่วนลดต้องมากกว่า 0%'); isValid = false; return; }
                 }
                 else if (slotType === 'buff_points') {
-                    data.value = parseInt(slot.querySelector('.slot-value').value) || 0;
-                    data.duration = parseInt(slot.querySelector('.slot-duration').value) || 24;
-                    
+                    data.value = parseInt(slot.querySelector('.input-buff_points .slot-value').value) || 0;
+                    data.duration = parseInt(slot.querySelector('.input-buff_points .slot-duration').value) || 24;
                     if (data.value <= 0) { alert('ค่าบูสต์แต้มต้องมากกว่า 0%'); isValid = false; return; }
                 }
                 else if (slotType === 'reward_ref') {
@@ -4393,7 +4401,8 @@ const appId = 'activeredpoint';
                 <div class="input-salt hidden">
                     <input type="text" class="border rounded w-full px-2 py-1 slot-text" value="เกลือจ้า! ไม่ได้อะไรเลย" placeholder="ข้อความเยาะเย้ย">
                 </div>
-                <div class="input-interest hidden space-y-1">
+
+            <div class="input-interest hidden space-y-1">
                   <div class="flex gap-2 items-center">
                     <span>ดอกเบี้ย</span> <input type="number" step="0.001" min="0.001" class="border rounded w-24 px-2 py-1 slot-rate font-bold text-green-600" placeholder="%"> %
                   </div>
@@ -4401,7 +4410,9 @@ const appId = 'activeredpoint';
                     <span>นาน</span> <input type="number" step="0.1" min="0.1" class="border rounded w-20 px-2 py-1 slot-hours" placeholder="ชม."> ชั่วโมง
                 </div>
                 <p class="text-[10px] text-gray-400">* 24 ชม. = 1 วัน</p>
-                <div class="input-buff_points hidden space-y-1">
+            </div>
+
+            <div class="input-buff_points hidden space-y-1">
                 <div class="flex gap-2 items-center">
                         <span>เพิ่ม</span> <input type="number" min="1" class="border rounded w-20 px-2 py-1 slot-value font-bold text-blue-500" placeholder="%"> %
                         </div>
@@ -4485,6 +4496,7 @@ const appId = 'activeredpoint';
                 </div>
                 <p class="text-[10px] text-gray-400">* 24 ชม. = 1 วัน</p>
                 </div>
+
                 <div class="input-buff_points hidden space-y-1">
                     <div class="flex gap-2 items-center">
                     <span>เพิ่ม</span> <input type="number" min="1" class="border rounded w-20 px-2 py-1 slot-value font-bold text-blue-500" placeholder="%"> %
@@ -4492,6 +4504,7 @@ const appId = 'activeredpoint';
                 <div class="flex gap-2 items-center">
                     <span>นาน</span> <input type="number" min="1" class="border rounded w-20 px-2 py-1 slot-duration" placeholder="ชม." value="1"> ชั่วโมง
                 </div>
+            </div>
                 
             </div>
         `;
@@ -4522,8 +4535,8 @@ const appId = 'activeredpoint';
                 div.querySelector('.slot-duration').value = data.duration;
             }
             else if (data.type === 'buff_points') {
-                div.querySelector('.slot-value').value = data.value;       // คืนค่า %
-                div.querySelector('.slot-duration').value = data.duration; // คืนค่าเวลา
+                div.querySelector('.input-buff_points .slot-value').value = data.value;
+                div.querySelector('.input-buff_points .slot-duration').value = data.duration;
             }
         }
         updateEditTotalChance();
@@ -4621,15 +4634,16 @@ const appId = 'activeredpoint';
                     if (data.hours <= 0) { alert('ระยะเวลาดอกเบี้ยพิเศษต้องมากกว่า 0'); isValid = false; return; }
                 }
                 else if (slotType === 'buff_discount') {
-                    data.value = parseInt(slot.querySelector('.slot-value').value) || 0;
-                    data.duration = parseInt(slot.querySelector('.slot-duration').value) || 60;
+                    // ✅ ระบุ .input-buff_discount
+                    data.value = parseInt(slot.querySelector('.input-buff_discount .slot-value').value) || 0;
+                    data.duration = parseInt(slot.querySelector('.input-buff_discount .slot-duration').value) || 60;
                     
                     if (data.value <= 0) { alert('ส่วนลดต้องมากกว่า 0%'); isValid = false; return; }
                 }
 
                 else if (slotType === 'buff_points') {
-                    data.value = parseInt(slot.querySelector('.slot-value').value) || 0;
-                    data.duration = parseInt(slot.querySelector('.slot-duration').value) || 24;
+                    data.value = parseInt(slot.querySelector('.input-buff_points .slot-value').value) || 0;
+                    data.duration = parseInt(slot.querySelector('.input-buff_points .slot-duration').value) || 24;
     
                     if (data.value <= 0) { alert('ค่าบูสต์แต้มต้องมากกว่า 0%'); isValid = false; return; }
                 }
