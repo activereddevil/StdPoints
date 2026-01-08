@@ -6753,27 +6753,23 @@ const appId = 'activeredpoint';
     };
 
     // ✅ โค้ดที่ถูกต้อง (ใส่แทนที่เดิม)
-window.renderClassroom = () => {
-    // 1. ถ้า Dropdown เลือกห้องยังว่างอยู่ ให้เติมตัวเลือก
+    window.renderClassroom = () => {
+    // 1. สร้างตัวเลือกห้องเรียนใน Dropdown (ถ้ายังไม่มี)
     const select = document.getElementById('qa-class-select');
     if (select && select.children.length <= 1) {
-        initQuickAnswerUI();
+        // เรียกฟังก์ชันดึงรายชื่อห้องจากตัวแปร students
+        if (typeof initQuickAnswerUI === 'function') {
+            initQuickAnswerUI();
+        }
     }
     
-    // 2. ถ้ามีการเลือกห้องค้างไว้ ให้วาด Grid ใหม่ด้วย
-    if (currentQAClass) {
+    // 2. ถ้ามีการเลือกห้องค้างไว้ ให้วาดการ์ดนักเรียนใหม่ด้วย
+    if (typeof currentQAClass !== 'undefined' && currentQAClass && typeof renderQuickAnswerGrid === 'function') {
         renderQuickAnswerGrid();
     }
 };
     
-    // และอย่าลืมเรียก subscribeToGameState() ในฟังก์ชัน subscribeToData() หลักของแอป
-    // เพิ่มบรรทัดนี้ลงไปใน subscribeToData():
-    // subscribeToGameState(null); // เริ่มฟังแบบ Global ไว้ก่อน (สำหรับนักเรียน)
-
-   
-
-    // ต้อง import runTransaction เพิ่มที่ด้านบนสุดของไฟล์ด้วยนะครับ
-    // import { ..., runTransaction } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+ 
   </script>
  </body>
 </html>
