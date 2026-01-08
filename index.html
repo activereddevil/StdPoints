@@ -5323,13 +5323,15 @@ const appId = 'activeredpoint';
     window.renderGuildMembersSelect = () => {
         const container = document.getElementById('guild-member-selection');
         const search = document.getElementById('search-student-guild').value.toLowerCase().trim();
+        
         // 1. กรองข้อมูล
         let filtered = students.filter(s => 
             s.full_name.toLowerCase().includes(search) || 
             s.student_id.includes(search) ||
             (s.class_name && s.class_name.toLowerCase().includes(search))
         );
-        // 2. 🔥 เรียงลำดับ 3 ชั้น (Selected -> Room -> Name)
+        
+        // 2. เรียงลำดับ (Selected -> Room -> Name)
         filtered.sort((a, b) => {
             const aSelected = tempGuildSelection.has(a.id);
             const bSelected = tempGuildSelection.has(b.id);
@@ -5345,6 +5347,11 @@ const appId = 'activeredpoint';
         // 3. วาดลงหน้าจอ
         let currentClass = null;
         let html = '';
+        
+        // 🕒 เตรียมตัวแปรคำนวณ Cooldown [NEW]
+        const ruleCooldown = (config && config.guild_rule_cooldown) ? parseInt(config.guild_rule_cooldown) : 0;
+        const now = Date.now();
+        const cooldownMs = ruleCooldown * 60 * 60 * 1000;
         
         filtered.forEach(s => {
             const isSelected = tempGuildSelection.has(s.id);
@@ -5364,12 +5371,32 @@ const appId = 'activeredpoint';
             const hasOtherGuild = s.guild_id && !isInThisGuild;
             const guildName = hasOtherGuild ? (guilds.find(g => g.id === s.guild_id)?.name || 'Unknown') : '';
 
+            // ⏳ คำนวณเวลาที่เหลือ (Cooldown Badge) [NEW]
+            let cooldownBadge = '';
+            if (ruleCooldown > 0 && s.guild_id) {
+                 let joinedTime = 0;
+                 // แปลงเวลาให้ชัวร์
+                 if (s.guild_joined_at) {
+                    if (typeof s.guild_joined_at.toMillis === 'function') joinedTime = s.guild_joined_at.toMillis();
+                    else if (s.guild_joined_at instanceof Date) joinedTime = s.guild_joined_at.getTime();
+                    else if (s.guild_joined_at.seconds) joinedTime = s.guild_joined_at.seconds * 1000;
+                 }
+
+                 if (joinedTime > 0) {
+                     const timeDiff = now - joinedTime;
+                     if (timeDiff < cooldownMs) {
+                         const remainingHrs = Math.ceil((cooldownMs - timeDiff) / (1000 * 60 * 60));
+                         // สร้างป้ายเตือน
+                         cooldownBadge = `<div class="mt-1"><span class="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded border border-amber-200 inline-block font-bold">⏳ สัญญาเหลือ ${remainingHrs} ชม.</span></div>`;
+                     }
+                 }
+            }
+
             // ไฮไลท์สี
             const activeClass = isSelected 
                 ? 'bg-green-50 border-green-500 ring-2 ring-green-200 shadow-md' 
                 : 'hover:bg-gray-50 border-gray-200';
 
-            // ✨ จุดที่แก้ไข: ปรับ Layout ให้ป้ายย้ายกิลด์ลงมาบรรทัดใหม่
             html += `
             <label class="flex items-start p-3 border rounded-lg cursor-pointer transition-all ${activeClass}">
                 <div class="flex items-start gap-3 w-full overflow-hidden">
@@ -5393,7 +5420,8 @@ const appId = 'activeredpoint';
                                 </span>
                             </div>` : ''
                         }
-                    </div>
+                        
+                        ${cooldownBadge} </div>
                 </div>
             </label>`;
         });
