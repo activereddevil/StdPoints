@@ -4521,6 +4521,10 @@ const appId = 'activeredpoint';
                 div.querySelector('.slot-value').value = data.value;
                 div.querySelector('.slot-duration').value = data.duration;
             }
+            else if (data.type === 'buff_points') {
+                div.querySelector('.slot-value').value = data.value;       // คืนค่า %
+                div.querySelector('.slot-duration').value = data.duration; // คืนค่าเวลา
+            }
         }
         updateEditTotalChance();
     };
