@@ -1955,11 +1955,16 @@ const appId = 'activeredpoint';
         const tbody = document.getElementById('student-list');
         const filter = document.getElementById('search-input').value.toLowerCase();
         
-        let filtered = students.filter(s => 
-            s.full_name.toLowerCase().includes(filter) || 
+        let filtered = students.filter(s => {
+            // 🔍 [NEW] ดึงชื่อกิลด์มาตรวจสอบ
+            const gName = s.guild_id ? (guilds.find(g => g.id === s.guild_id)?.name || '') : '';
+            
+            return s.full_name.toLowerCase().includes(filter) || 
             s.student_id.includes(filter) ||
-            s.class_name.toLowerCase().includes(filter)
-        );
+            (s.class_name && s.class_name.toLowerCase().includes(filter)) ||
+            gName.toLowerCase().includes(filter); // ✅ เพิ่มเงื่อนไขค้นหาชื่อกิลด์
+        });
+
         if (sortState.student.col) {
             filtered = sortList(filtered, sortState.student.col, sortState.student.asc);
         }
@@ -2650,7 +2655,7 @@ const appId = 'activeredpoint';
 
                 // ถ้าเป็นการ "เพิ่มแต้ม" ให้เช็คบัฟกิลด์
                 if (type === 'add') {
-                    finalAmount = calculateBuffedPoints(s.guild_id, amount);
+                    finalAmount = calculateBuffedPoints(s, amount);
                     if (finalAmount > amount) {
                         logAction += ` (Boost ${finalAmount - amount})`;
                     }
@@ -2970,6 +2975,12 @@ const appId = 'activeredpoint';
                     data.duration = parseInt(slot.querySelector('.slot-duration').value) || 60;
                     
                     if (data.value <= 0) { alert('ส่วนลดต้องมากกว่า 0%'); isValid = false; return; }
+                }
+                else if (slotType === 'buff_points') {
+                    data.value = parseInt(slot.querySelector('.slot-value').value) || 0;
+                    data.duration = parseInt(slot.querySelector('.slot-duration').value) || 24;
+                    
+                    if (data.value <= 0) { alert('ค่าบูสต์แต้มต้องมากกว่า 0%'); isValid = false; return; }
                 }
                 else if (slotType === 'reward_ref') {
                     data.reward_id = slot.querySelector('.slot-reward-id').value;
@@ -4341,7 +4352,9 @@ const appId = 'activeredpoint';
                     <option value="points">💰 สุ่มแต้ม</option>
                     <option value="red_card">🟥 ลดใบแดง</option>
                     <option value="interest">📈 ดอกเบี้ยพิเศษ</option>
-                    <option value="buff_discount">🏷️ บัฟส่วนลดร้านค้า</option> <option value="reward_ref">🎁 ของในร้าน</option>
+                    <option value="buff_discount">🏷️ บัฟส่วนลดร้านค้า</option> 
+                    <option value="buff_points">🚀 บูสต์แต้ม (Multiplier)</option>
+                    <option value="reward_ref">🎁 ของในร้าน</option>
                     <option value="text">💬 ข้อความ/กำหนดเอง</option>
                     <option value="salt">🧂 เกลือ (ไม่ได้อะไรเลย)</option> 
                 </select>
@@ -4388,6 +4401,14 @@ const appId = 'activeredpoint';
                     <span>นาน</span> <input type="number" step="0.1" min="0.1" class="border rounded w-20 px-2 py-1 slot-hours" placeholder="ชม."> ชั่วโมง
                 </div>
                 <p class="text-[10px] text-gray-400">* 24 ชม. = 1 วัน</p>
+                <div class="input-buff_points hidden space-y-1">
+                <div class="flex gap-2 items-center">
+                        <span>เพิ่ม</span> <input type="number" min="1" class="border rounded w-20 px-2 py-1 slot-value font-bold text-blue-500" placeholder="%"> %
+                        </div>
+                        <div class="flex gap-2 items-center">
+                            <span>นาน</span> <input type="number" min="1" class="border rounded w-20 px-2 py-1 slot-duration" placeholder="ชม." value="1"> ชั่วโมง
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -4416,7 +4437,9 @@ const appId = 'activeredpoint';
                     <option value="points">💰 สุ่มแต้ม</option>
                     <option value="red_card">🟥 ลดใบแดง</option>
                     <option value="interest">📈 ดอกเบี้ยพิเศษ</option>
-                    <option value="buff_discount">🏷️ บัฟส่วนลดร้านค้า</option> <option value="reward_ref">🎁 ของในร้าน</option>
+                    <option value="buff_discount">🏷️ บัฟส่วนลดร้านค้า</option>
+                    <option value="buff_points">🚀 บูสต์แต้ม (Multiplier)</option>
+                     <option value="reward_ref">🎁 ของในร้าน</option>
                     <option value="text">💬 ข้อความ/กำหนดเอง</option>
                     <option value="salt">🧂 เกลือ (ไม่ได้อะไรเลย)</option>
                 </select>
@@ -4462,6 +4485,14 @@ const appId = 'activeredpoint';
                 </div>
                 <p class="text-[10px] text-gray-400">* 24 ชม. = 1 วัน</p>
                 </div>
+                <div class="input-buff_points hidden space-y-1">
+                    <div class="flex gap-2 items-center">
+                    <span>เพิ่ม</span> <input type="number" min="1" class="border rounded w-20 px-2 py-1 slot-value font-bold text-blue-500" placeholder="%"> %
+                    </div>
+                <div class="flex gap-2 items-center">
+                    <span>นาน</span> <input type="number" min="1" class="border rounded w-20 px-2 py-1 slot-duration" placeholder="ชม." value="1"> ชั่วโมง
+                </div>
+                
             </div>
         `;
         container.appendChild(div);
@@ -4590,6 +4621,13 @@ const appId = 'activeredpoint';
                     data.duration = parseInt(slot.querySelector('.slot-duration').value) || 60;
                     
                     if (data.value <= 0) { alert('ส่วนลดต้องมากกว่า 0%'); isValid = false; return; }
+                }
+
+                else if (slotType === 'buff_points') {
+                    data.value = parseInt(slot.querySelector('.slot-value').value) || 0;
+                    data.duration = parseInt(slot.querySelector('.slot-duration').value) || 24;
+    
+                    if (data.value <= 0) { alert('ค่าบูสต์แต้มต้องมากกว่า 0%'); isValid = false; return; }
                 }
                 else if (slotType === 'reward_ref') {
                     data.reward_id = slot.querySelector('.slot-reward-id').value;
@@ -4895,6 +4933,21 @@ const appId = 'activeredpoint';
                     resultTitle = `ได้บัตรส่วนลด ${discountVal}%`;
                     resultSub = `เก็บไว้ใช้ตอนจะซื้อของนะ (นาน ${durationMinutes} นาที)`;
                 }
+
+                else if (wonSlot.type === 'buff_points') {
+                        const val = parseInt(wonSlot.value) || 10;
+                        const dur = parseInt(wonSlot.duration) || 24;
+                        
+                        newCard.name = `บัตรบูสต์แต้ม x${1 + (val/100)} (${dur} ชม.)`; // หรือเขียนว่า +% ก็ได้
+                        newCard.type = 'instant_buff_points'; // ✨ Type ใหม่
+                        newCard.image = '🚀';
+                        newCard.value = val;
+                        newCard.duration = dur;
+                        
+                        resultIcon = '🚀';
+                        resultTitle = `ได้บัตรบูสต์แต้ม +${val}%`;
+                        resultSub = `ใช้แล้วแต้มพุ่งกระฉูด! (นาน ${dur} ชม.)`;
+                    }
                 else if (wonSlot.type === 'salt') {
                     newCard.name = null;
                     resultIcon = '🧂';
@@ -4984,6 +5037,20 @@ const appId = 'activeredpoint';
                 
                 logMsg = `ใช้บัตรส่วนลด: ลด ${val}% นาน ${dur} ชั่วโมง`;
                 alertMsg = `เริ่มใช้ส่วนลด ${val}% เรียบร้อย! รีบไปช้อปเลย! (หมดเวลา: ${endTime.toLocaleTimeString()})`;
+            }
+            else if (inventoryItem.type === 'instant_buff_points') {
+                const val = parseInt(inventoryItem.value) || 10;
+                const dur = parseInt(inventoryItem.duration) || 1;
+                
+                const endTime = new Date(Date.now() + dur * 60 * 60 * 1000);
+                
+                batch.update(sRef, {
+                    buff_points_val: val,      // บันทึก %
+                    buff_points_end: endTime   // บันทึกเวลาหมดอายุ
+                });
+                
+                logMsg = `ใช้บัตรบูสต์แต้ม: เพิ่ม ${val}% นาน ${dur} ชั่วโมง`;
+                alertMsg = `🚀 เปิดใช้งานบูสต์แต้ม +${val}% เรียบร้อย! (หมดเวลา: ${endTime.toLocaleTimeString()})`;
             }
             else {
                 logMsg = `ใช้งานไอเทม: ${itemName}`;
@@ -6083,13 +6150,35 @@ const appId = 'activeredpoint';
     };
 
     // 2. ฟังก์ชันคำนวณแต้มที่ได้จริง (รวม Boost)
-    window.calculateBuffedPoints = (guildId, basePoints) => {
+   // 2. ฟังก์ชันคำนวณแต้มที่ได้จริง (รวม Boost กิลด์ + ส่วนตัว) 🚀
+   window.calculateBuffedPoints = (student, basePoints) => {
         const points = parseInt(basePoints);
         if (isNaN(points) || points <= 0) return 0;
         
-        const buffs = getGuildActiveBuffs(guildId);
-        if (buffs.point_boost > 0) {
-            const bonus = Math.floor(points * (buffs.point_boost / 100));
+        let multiplier = 0; // เปอร์เซ็นต์ตัวคูณรวม
+
+        // 1. บัฟจากกิลด์
+        if (student.guild_id) {
+            const guildBuffs = getGuildActiveBuffs(student.guild_id);
+            if (guildBuffs.point_boost > 0) {
+                multiplier += guildBuffs.point_boost;
+            }
+        }
+
+        // 2. บัฟส่วนตัว (จากไอเทม/กาชา) [NEW] ✨
+        if (student.buff_points_end) {
+            let endTime = student.buff_points_end;
+            if (typeof endTime.toMillis === 'function') endTime = endTime.toMillis();
+            else if (endTime instanceof Date) endTime = endTime.getTime();
+
+            if (Date.now() < endTime) {
+                multiplier += (parseInt(student.buff_points_val) || 0);
+            }
+        }
+
+        // คำนวณยอดรวม
+        if (multiplier > 0) {
+            const bonus = Math.floor(points * (multiplier / 100));
             return points + bonus;
         }
         return points;
