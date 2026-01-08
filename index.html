@@ -5459,6 +5459,9 @@ const appId = 'activeredpoint';
     // ==========================================
     // ฟังก์ชันบันทึกกิลด์ (Strict Check 🛡️)
     // ==========================================
+   // ==========================================
+    // ฟังก์ชันบันทึกกิลด์ (ฉบับแก้ Path ผิดซอย 🛣️✅)
+    // ==========================================
     window.saveGuildData = async () => {
         if(!currentManageGuildId) return;
 
@@ -5467,6 +5470,8 @@ const appId = 'activeredpoint';
         const newIcon = document.getElementById('edit-guild-icon').value.trim();
         const buffInterest = parseFloat(document.getElementById('guild-buff-interest').value) || 0;
         const buffDiscount = parseInt(document.getElementById('guild-buff-discount').value) || 0;
+        
+        // กฎ Global (Safe Check)
         const ruleCooldown = (config && config.guild_rule_cooldown) ? parseInt(config.guild_rule_cooldown) : 0;
         const ruleFee = (config && config.guild_rule_fee) ? parseInt(config.guild_rule_fee) : 0;
 
@@ -5481,6 +5486,7 @@ const appId = 'activeredpoint';
             const currentMembers = students.filter(s => s.guild_id === currentManageGuildId);
             const newMemberIds = Array.from(tempGuildSelection);
             
+            // หาคนเข้า/ย้ายมา และ คนออก
             const joiners = newMemberIds.map(id => students.find(s => s.id === id)).filter(s => s && !currentMembers.find(m => m.id === s.id));
             const leavers = currentMembers.filter(m => !newMemberIds.includes(m.id));
 
@@ -5517,35 +5523,28 @@ const appId = 'activeredpoint';
             // 🛑 ด่าน 1: ติดล็อก
             if (lockedList.length > 0) {
                 await showGuildPenaltyModal('lock', lockedList);
-                console.log('Action Blocked: Locked Students');
-                return; // หยุดทำงานทันที
+                return;
             }
 
             // ⚠️ ด่าน 2: ถามยืนยัน
             if (penaltyList.length > 0) {
-                console.log('Showing Penalty Confirmation...');
                 const confirmed = await showGuildPenaltyModal('confirm', penaltyList, ruleFee, penaltyTotal);
-                
-                console.log('User Decision:', confirmed);
-                
-                // 🛑 เช็คแบบเข้มข้น: ถ้าไม่ใช่ true ให้หยุดทันที!
-                if (confirmed !== true) {
-                    console.log('Action Cancelled by User');
-                    return; // หยุดทำงานตรงนี้แน่นอน 100%
-                }
+                if (confirmed !== true) return;
             }
 
-            // --- ถ้าหลุดมาถึงตรงนี้ แปลว่ายืนยันแล้ว -> บันทึกได้ ---
-            console.log('Saving Data to Firebase...');
+            // --- เริ่มบันทึก ---
             const penaltyIds = penaltyList.map(p => p.id);
             const batch = writeBatch(db);
             const guildRef = doc(db, 'artifacts', appId, 'public', 'data', 'guilds', currentManageGuildId);
 
             batch.set(guildRef, { name: newName, icon: newIcon, buff_interest: buffInterest, buff_discount: buffDiscount }, { merge: true });
 
+            // 1. จัดการคนเข้า (Joiners)
             joiners.forEach(s => {
-                const sRef = doc(db, 'students', s.id);
+                // 🔴 แก้ Path ตรงนี้ครับ (ใส่ path ยาวๆ ให้ครบ)
+                const sRef = doc(db, 'artifacts', appId, 'public', 'data', 'students', s.id);
                 const updates = { guild_id: currentManageGuildId, guild_joined_at: new Date() };
+                
                 if (penaltyIds.includes(s.id)) {
                     updates.points = increment(-ruleFee);
                     const hRef = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
@@ -5554,9 +5553,12 @@ const appId = 'activeredpoint';
                 batch.set(sRef, updates, { merge: true });
             });
 
+            // 2. จัดการคนออก (Leavers)
             leavers.forEach(s => {
-                const sRef = doc(db, 'students', s.id);
+                // 🔴 แก้ Path ตรงนี้ด้วยครับ
+                const sRef = doc(db, 'artifacts', appId, 'public', 'data', 'students', s.id);
                 const updates = { guild_id: null, guild_joined_at: null };
+                
                 if (penaltyIds.includes(s.id)) {
                     updates.points = increment(-ruleFee); 
                     const hRef = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
