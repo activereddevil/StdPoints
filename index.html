@@ -1643,6 +1643,7 @@ const appId = 'activeredpoint';
             if (userRole === 'teacher') renderBankList(false); // Updated to pass false to prevent page reset on interval
             if (userRole === 'student') renderStudentDashboard();
         }, 30000); 
+        subscribeToGameState(null);
     }
 
     function setupNavigation() {
@@ -6760,6 +6761,10 @@ const appId = 'activeredpoint';
         // เรียกของใหม่ (Buzzer)
         if (document.getElementById('qa-class-select').children.length <= 1) {
             initQuickAnswerUI();
+        }
+        const select = document.getElementById('qa-class-select');
+        if (select && select.children.length <= 1) {
+            initQuickAnswerUI(); 
         }
     };
     
