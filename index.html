@@ -260,7 +260,7 @@
 
         <!-- ============ HOME TAB (Teacher List) ============ -->
         <div id="content-classroom" class="tab-content hidden h-full flex flex-col space-y-4">
-            <div class="mt-8 border-t pt-6">
+            
                 <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                     <div>
                         <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
@@ -6752,33 +6752,25 @@ const appId = 'activeredpoint';
         }
     };
 
-    // อย่าลืม! เรียก initQuickAnswerUI() ตอนเปิดหน้า Classroom
-    // แก้ไขฟังก์ชัน renderClassroom เดิมเล็กน้อย ให้เรียก init นี้ด้วยถ้ายังไม่มี option
-    const originalRenderClassroom = window.renderClassroom;
-    window.renderClassroom = () => {
-        originalRenderClassroom(); // เรียกของเดิม (เช็คชื่อ)
-        
-        // เรียกของใหม่ (Buzzer)
-        if (document.getElementById('qa-class-select').children.length <= 1) {
-            initQuickAnswerUI();
-        }
-        const select = document.getElementById('qa-class-select');
-        if (select && select.children.length <= 1) {
-            initQuickAnswerUI(); 
-        }
-    };
+    // ✅ โค้ดที่ถูกต้อง (ใส่แทนที่เดิม)
+window.renderClassroom = () => {
+    // 1. ถ้า Dropdown เลือกห้องยังว่างอยู่ ให้เติมตัวเลือก
+    const select = document.getElementById('qa-class-select');
+    if (select && select.children.length <= 1) {
+        initQuickAnswerUI();
+    }
+    
+    // 2. ถ้ามีการเลือกห้องค้างไว้ ให้วาด Grid ใหม่ด้วย
+    if (currentQAClass) {
+        renderQuickAnswerGrid();
+    }
+};
     
     // และอย่าลืมเรียก subscribeToGameState() ในฟังก์ชัน subscribeToData() หลักของแอป
     // เพิ่มบรรทัดนี้ลงไปใน subscribeToData():
     // subscribeToGameState(null); // เริ่มฟังแบบ Global ไว้ก่อน (สำหรับนักเรียน)
 
-    // เพื่อให้ง่าย ผมจะ Hook เข้าไปใน initAppUI
-    const originalInitAppUI = window.initAppUI;
-    window.initAppUI = async () => {
-        await originalInitAppUI();
-        // เริ่มฟัง State ไว้เลย ถ้านักเรียน Login อยู่ ปุ่มจะได้เด้งขึ้นมาเอง
-        subscribeToGameState(null); 
-    };
+   
 
     // ต้อง import runTransaction เพิ่มที่ด้านบนสุดของไฟล์ด้วยนะครับ
     // import { ..., runTransaction } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
