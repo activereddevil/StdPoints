@@ -2095,6 +2095,23 @@ const appId = 'activeredpoint';
                     <span class="text-[10px] font-bold text-green-700">+${(finalRate - baseRate).toFixed(2)}%</span>
                 </div>`;
             }
+            // --- 🎒 ส่วนที่เพิ่มใหม่: คำนวณไอคอนกระเป๋า ---
+            const inv = s.inventory || []; 
+            const totalItems = inv.length;
+            const unopenedBoxCount = inv.filter(i => i.type === 'gacha_box').length;
+
+            let itemBadge = '';
+            if (totalItems > 0) {
+                if (unopenedBoxCount > 0) {
+                    // 🎁 มีกล่องสุ่มรอเปิด (สีม่วง + กระพริบ)
+                    itemBadge = `<span class="ml-1 inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 border border-purple-200 font-bold animate-pulse cursor-help" title="มีกล่องสุ่มรอเปิด ${unopenedBoxCount} กล่อง">🎁 ${unopenedBoxCount}</span>`;
+                } else {
+                    // 🎒 มีไอเทมทั่วไป (สีฟ้า)
+                    itemBadge = `<span class="ml-1 inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600 border border-indigo-100 cursor-help" title="มีไอเทมในตัว ${totalItems} ชิ้น">🎒 ${totalItems}</span>`;
+                }
+            }
+            // ---------------------------------------------
+
 
             // คำนวณตัวเลขเงิน
             const pendingInterest = calculatePendingInterest(s);
@@ -2116,8 +2133,8 @@ const appId = 'activeredpoint';
                 
                 <td class="px-2 py-3">
                     <div class="flex flex-col">
-                        <span class="font-bold text-gray-800 text-sm flex items-center gap-1">
-                            ${s.full_name} ${guildBadge}
+                        <span class="font-bold text-gray-800 text-sm flex items-center flex-wrap gap-1">
+                            ${s.full_name} ${guildBadge} ${itemBadge}
                         </span>
                         <div class="mt-0.5">${rateTag}</div>
                     </div>
@@ -2975,7 +2992,23 @@ const appId = 'activeredpoint';
                     if (data.min >= data.max) { alert(`ค่า Min (${data.min}) ต้องน้อยกว่า Max (${data.max})`); isValid = false; return; }
                     // ---------------------
 
-                } else if (slotType === 'red_card') {
+                } 
+                else if (slotType === 'points_fix') {
+                // 1. ดึงค่าแต้มที่ระบุ
+                data.amount = parseInt(slot.querySelector('.slot-fix-amount').value) || 0;
+                
+                // 2. ดึง URL รูปภาพ (ถ้ามี)
+                const imgInput = slot.querySelector('.slot-fix-image');
+                data.image = imgInput ? imgInput.value.trim() : '';
+
+                // 3. ตรวจสอบความถูกต้อง
+                if (data.amount <= 0) { 
+                    alert('จำนวนแต้มต้องมากกว่า 0'); 
+                    isValid = false; 
+                    return; 
+                }
+            }
+                else if (slotType === 'red_card') {
                     data.amount = parseInt(slot.querySelector('.slot-amount').value) || 1;
                     if(data.amount < 1) { alert('จำนวนใบแดงต้อง >= 1'); isValid = false; return; }
 
@@ -4388,8 +4421,11 @@ const appId = 'activeredpoint';
                     <span>จาก</span> <input type="number" min="0" class="border rounded w-20 px-2 py-1 slot-min" placeholder="Min">
                     <span>ถึง</span> <input type="number" min="0" class="border rounded w-20 px-2 py-1 slot-max" placeholder="Max"> แต้ม
                 </div>
-                <div class="input-points_fix hidden flex gap-2 items-center">
-                    <span>ได้รับ</span> <input type="number" min="1" class="border rounded w-24 px-2 py-1 slot-fix-amount font-bold text-green-600" placeholder="จำนวน"> แต้ม
+                <div class="input-points_fix hidden flex flex-col gap-2">
+                    <div class="flex gap-2 items-center">
+                        <span>ได้รับ</span> <input type="number" min="1" class="border rounded w-24 px-2 py-1 slot-fix-amount font-bold text-green-600" placeholder="จำนวน"> แต้ม
+                    </div>
+                    <input type="text" class="border rounded w-full px-2 py-1 slot-fix-image" placeholder="URL รูปภาพคูปอง (ถ้ามี ใส่ลิ้งค์รูปตรงนี้)">
                 </div>
 
                 <div class="input-red_card hidden flex gap-2 items-center">
@@ -4479,8 +4515,11 @@ const appId = 'activeredpoint';
                     <span>จาก</span> <input type="number" min="0" class="border rounded w-20 px-2 py-1 slot-min" placeholder="Min">
                     <span>ถึง</span> <input type="number" min="0" class="border rounded w-20 px-2 py-1 slot-max" placeholder="Max"> แต้ม
                 </div>
-                <div class="input-points_fix hidden flex gap-2 items-center">
-                    <span>ได้รับ</span> <input type="number" min="1" class="border rounded w-24 px-2 py-1 slot-fix-amount font-bold text-green-600" placeholder="จำนวน"> แต้ม
+                <div class="input-points_fix hidden flex flex-col gap-2">
+                    <div class="flex gap-2 items-center">
+                        <span>ได้รับ</span> <input type="number" min="1" class="border rounded w-24 px-2 py-1 slot-fix-amount font-bold text-green-600" placeholder="จำนวน"> แต้ม
+                    </div>
+                    <input type="text" class="border rounded w-full px-2 py-1 slot-fix-image" placeholder="URL รูปภาพคูปอง (ถ้ามี)">
                 </div>
 
                 <div class="input-red_card hidden flex gap-2 items-center">
@@ -4540,6 +4579,7 @@ const appId = 'activeredpoint';
             // ✨ โหลดข้อมูล Fix
             else if (data.type === 'points_fix') {
                 div.querySelector('.slot-fix-amount').value = data.amount;
+                div.querySelector('.slot-fix-image').value = data.image || '';
             }
             else if (data.type === 'red_card') {
                 div.querySelector('.slot-amount').value = data.amount;
@@ -4652,10 +4692,22 @@ const appId = 'activeredpoint';
                     }
 
                 } 
+
                 else if (slotType === 'points_fix') {
-                    data.amount = parseInt(slot.querySelector('.slot-fix-amount').value) || 0;
-                    if (data.amount <= 0) { alert('จำนวนแต้มต้องมากกว่า 0'); isValid = false; return; }
+                // 1. ดึงค่าแต้มที่ระบุ
+                data.amount = parseInt(slot.querySelector('.slot-fix-amount').value) || 0;
+                
+                // 2. ดึง URL รูปภาพ (ถ้ามี)
+                const imgInput = slot.querySelector('.slot-fix-image');
+                data.image = imgInput ? imgInput.value.trim() : '';
+
+                // 3. ตรวจสอบความถูกต้อง
+                if (data.amount <= 0) { 
+                    alert('จำนวนแต้มต้องมากกว่า 0'); 
+                    isValid = false; 
+                    return; 
                 }
+            }
                 else if (slotType === 'red_card') {
                     data.amount = parseInt(slot.querySelector('.slot-amount').value) || 1;
                     if (data.amount < 1) { alert('จำนวนใบแดงต้องอย่างน้อย 1 ใบ'); isValid = false; return; }
@@ -4754,7 +4806,8 @@ const appId = 'activeredpoint';
                 image: reward.image,
                 type: reward.type === 'gacha_custom' ? 'gacha_box' : 'general_item',
                 effect: reward.effect,
-                acquired_at: Date.now()
+                acquired_at: Date.now(),
+                gacha_pool: reward.gacha_pool || null
             }));
             batch.update(sRef, { inventory: arrayUnion(...newItems) });
             
@@ -4881,17 +4934,27 @@ const appId = 'activeredpoint';
 
         let logMsg = "";
         
-        // ตรวจสอบว่าเป็น Gacha หรือไม่
-        const masterReward = rewards.find(r => r.id === inventoryItem.reward_id);
-        const isGacha = masterReward && masterReward.type === 'gacha_custom' && masterReward.gacha_pool;
+       // 🔥🔥 [แก้ใหม่] เช็ค Gacha จากตัวไอเทมโดยตรง (ไม่ต้องพึ่งร้านค้า) 🔥🔥
+       let pool = inventoryItem.gacha_pool;
+        
+        // Backward Compatibility: รองรับกล่องรุ่นเก่า (ที่ไม่มี pool ติดตัว) ให้ไปดึงจาก Shop เหมือนเดิม
+        if (!pool) {
+             const masterReward = rewards.find(r => r.id === inventoryItem.reward_id);
+             if (masterReward && masterReward.type === 'gacha_custom') {
+                 pool = masterReward.gacha_pool;
+             }
+        }
 
-        if (isGacha) {
+        // ถ้ามี Pool (ไม่ว่าจะจากตัวมันเอง หรือจากร้าน) ถือว่าเป็น Gacha
+        if (pool && pool.length > 0) {
             // --- โหมดเปิดกล่องสุ่ม ---
             logMsg = `เปิดกล่องสุ่ม: ${itemName}`;
             const roll = Math.random() * 100;
             let cumulative = 0;
             let wonSlot = null;
-            for (let slot of masterReward.gacha_pool) {
+            
+            // ใช้ pool ที่เราดึงมา (ไม่ใช่ masterReward.gacha_pool)
+            for (let slot of pool) { 
                 cumulative += slot.chance;
                 if (roll < cumulative) { wonSlot = slot; break; }
             }
@@ -5012,7 +5075,7 @@ const appId = 'activeredpoint';
                     newCard.name = `คูปอง ${pts} แต้ม`;
                     newCard.type = 'instant_points'; // ใช้ Type เดิมของแต้มได้เลย
                     newCard.value = pts;
-                    newCard.image = '💎';
+                    newCard.image = wonSlot.image ? wonSlot.image : '💎';
                     resultIcon = '💎';
                     resultTitle = `รับไปเลย! ${pts} แต้ม`;
                     resultSub = 'การ์ดแต้มถูกเก็บเข้ากระเป๋าแล้ว';
@@ -6725,8 +6788,8 @@ const appId = 'activeredpoint';
                             image: reward.image,
                             type: 'gacha_box', // ระบุประเภทว่าเป็นกล่องสุ่ม
                             effect: reward.effect || 'none',
-                            acquired_at: now
-                            
+                            acquired_at: now,
+                            gacha_pool: reward.gacha_pool || null
                         }));
 
                         // 1. ยัดใส่กระเป๋านักเรียน (Inventory)
