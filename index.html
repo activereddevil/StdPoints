@@ -229,16 +229,23 @@
                             <span id="std-dash-points" class="text-3xl font-bold text-blue-700">0</span>
                         </div>
                          <!-- Bank & Interest Display -->
-                         <div class="bg-green-50 px-6 py-3 rounded-xl border border-green-100 flex flex-col justify-between">
+                         <div class="bg-green-50 px-6 py-3 rounded-xl border border-green-100 flex flex-col justify-between relative overflow-hidden group">
                             <div>
-                                <span class="block text-xs text-green-600 uppercase font-bold tracking-wider">แต้มในธนาคาร (รวมถอนได้)</span>
-                                <div class="flex items-baseline gap-2 mb-1">
+                                <span class="block text-xs text-green-600 uppercase font-bold tracking-wider mb-1">🏦 ธนาคารโรงเรียน</span>
+                                <div class="flex items-baseline gap-2">
                                    <span id="std-dash-bank" class="text-3xl font-bold text-green-700">0</span>
-                                   <span class="text-xs text-green-500">(+ดอกเบี้ย <span id="std-dash-interest">0</span>)</span>
+                                   <span class="text-xs text-green-500 font-medium">(ดอกเบี้ยรอรับ <span id="std-dash-interest">0</span>)</span>
                                 </div>
                             </div>
-                           
-                       </div>
+                            
+                            <div class="mt-3 flex gap-2">
+                                <button onclick="openBankModal(currentStudentData.id)" class="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs py-2 rounded-lg font-bold shadow-sm transition-all active:scale-95 flex items-center justify-center gap-1">
+                                    <span>💸</span> ฝาก/ถอน
+                                </button>
+                            </div>
+                        
+                            <div class="absolute -right-4 -bottom-4 text-green-200/50 text-6xl select-none pointer-events-none">฿</div>
+                        </div>
                         <div class="bg-red-50 px-6 py-3 rounded-xl border border-red-100">
                             <span class="block text-xs text-red-600 uppercase font-bold tracking-wider">การ์ดแดง</span>
                             <span id="std-dash-red" class="text-3xl font-bold text-red-700">0</span>
@@ -1693,7 +1700,7 @@ const appId = 'activeredpoint';
                 <button onclick="switchTab('home')" id="tab-home" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-red-500 text-red-600">รายชื่อนักเรียน</button>
                 <button onclick="switchTab('guilds')" id="tab-guilds" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">🏰 กิลด์</button>
                 <button onclick="switchTab('quests')" id="tab-quests" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">ภารกิจ</button>
-                <button onclick="switchTab('bank')" id="tab-bank" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">ธนาคาร</button>
+                
                 <button onclick="switchTab('history')" id="tab-history" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">ประวัติ</button>
                 <button onclick="switchTab('rewards')" id="tab-rewards" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">รางวัล</button>
                 <button onclick="switchTab('punishment')" id="tab-punishment" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">บทลงโทษ</button>
@@ -2188,6 +2195,7 @@ const appId = 'activeredpoint';
    // Exposed to window for inline HTML calls
     window.renderBankList = (resetPage = true) => {
         // 1. ถ้าเป็นการพิมพ์ค้นหาใหม่ ให้รีเซ็ตกลับไปหน้า 1
+        if (!document.getElementById('bank-student-list')) return;
         if (resetPage) paginationState.bank = 1;
 
         const tbody = document.getElementById('bank-student-list'); 
@@ -4656,12 +4664,20 @@ const appId = 'activeredpoint';
     };
 
     // เพิ่มส่วนนี้เพื่อคำนวณ % รวม 
-    window.updateTotalChance = () => {
+   // ฟังก์ชันคำนวณ % รวม (สำหรับหน้าเพิ่มรางวัล) - แก้ไขบั๊กนับรวมหน้า Edit
+   window.updateTotalChance = () => {
         let total = 0;
-        document.querySelectorAll('.slot-chance').forEach(el => total += (parseFloat(el.value) || 0));
+        // ระบุเจาะจงว่าหาเฉพาะในกล่อง "gacha-slots-list" (หน้าเพิ่ม) เท่านั้น
+        const container = document.getElementById('gacha-slots-list');
+        if (container) {
+            container.querySelectorAll('.slot-chance').forEach(el => total += (parseFloat(el.value) || 0));
+        }
+        
         const display = document.getElementById('gacha-total-chance');
-        display.textContent = total;
-        display.className = total === 100 ? 'font-bold text-green-600' : 'font-bold text-red-600';
+        if (display) {
+            display.textContent = total;
+            display.className = total === 100 ? 'font-bold text-green-600' : 'font-bold text-red-600';
+        }
     };
 
     // Modified Add Reward (Overwrite the old one or update it)
