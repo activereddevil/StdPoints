@@ -238,11 +238,7 @@
                                 </div>
                             </div>
                             
-                            <div class="mt-3 flex gap-2">
-                                <button onclick="openBankModal(currentStudentData.id)" class="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs py-2 rounded-lg font-bold shadow-sm transition-all active:scale-95 flex items-center justify-center gap-1">
-                                    <span>💸</span> ฝาก/ถอน
-                                </button>
-                            </div>
+                            
                         
                             <div class="absolute -right-4 -bottom-4 text-green-200/50 text-6xl select-none pointer-events-none">฿</div>
                         </div>
@@ -2823,20 +2819,22 @@ const appId = 'activeredpoint';
 
 
     // ฟังก์ชันยกเลิกการเลือก (ปุ่มใหม่)
-    window.cancelBulkSelection = () => {
-        selectedStudentIds.clear(); // ล้าง Set
+   // ✅ ฟังก์ชันยกเลิกการเลือก (แก้ไขให้รองรับหน้าจอใหม่)
+   window.cancelBulkSelection = () => {
+        // 1. ล้างรายชื่อที่จำไว้ใน Set
+        selectedStudentIds.clear(); 
         
-        // เอาติ๊กถูกออกทั้งหมดในหน้าปัจจุบัน
-        document.querySelectorAll('.student-check').forEach(checkbox => {
-            checkbox.checked = false;
-        });
-        
-        // เอาติ๊กถูกออกจาก "เลือกทั้งหมด"
+        // 2. เอาติ๊กถูกออกจาก "ปุ่มเลือกทั้งหมด" ด้านบน
         const selectAllCheckbox = document.getElementById('select-all');
         if(selectAllCheckbox) selectAllCheckbox.checked = false;
 
-        // อัปเดต UI (ซึ่งจะซ่อนแถบเองเพราะ count = 0)
+        // 3. อัปเดตแถบเมนูด้านบน (มันจะซ่อนตัวเองเพราะจำนวนเป็น 0)
         updateBulkUI();
+
+        // ✨ 4. สั่งวาดตารางใหม่ (Re-render) เพื่อให้สีเขียวๆ หายไปทันที
+        if (typeof renderStudentList === 'function') {
+            renderStudentList(false); // false = ไม่ต้องรีเซ็ตไปหน้า 1 (อยู่ที่หน้าเดิม)
+        }
     };
     
     // Rewards
@@ -3509,6 +3507,9 @@ const appId = 'activeredpoint';
 
         const nameDisplay = document.getElementById('bank-student-name');
         if(nameDisplay) nameDisplay.textContent = s.full_name;
+
+        const walletDisplay = document.getElementById('bank-wallet-display');
+        if(walletDisplay) walletDisplay.textContent = Math.floor(s.points).toLocaleString();
         
         // คำนวณยอดเงิน
         const currentBank = s.bank_points || 0;
@@ -4909,8 +4910,8 @@ const appId = 'activeredpoint';
                     newCard.name = `คูปอง ${pts} แต้ม`;
                     newCard.type = 'instant_points';
                     newCard.value = pts;
-                    newCard.image = '🪙';
-                    resultIcon = '🪙';
+                    newCard.image = '💸';
+                    resultIcon = '💸';
                     resultTitle = `ยินดีด้วย! ${pts} แต้ม`;
                     resultSub = 'การ์ดแต้มถูกเก็บเข้ากระเป๋าแล้ว';
 
