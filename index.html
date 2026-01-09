@@ -4357,7 +4357,6 @@ const appId = 'activeredpoint';
     window.addGachaSlot = () => {
         const container = document.getElementById('gacha-slots-list');
         
-        // สร้างรายการตัวเลือกรางวัลสำหรับ Dropdown
         let rewardOptions = rewards
             .filter(r => r.type !== 'gacha_custom') 
             .map(r => `<option value="${r.id}">${r.name}</option>`)
@@ -4368,8 +4367,8 @@ const appId = 'activeredpoint';
         div.innerHTML = `
             <div class="flex gap-2 mb-2">
                 <select class="border rounded text-sm px-2 py-1 bg-gray-50 flex-1 slot-type" onchange="updateSlotInputs(this)">
-                    <option value="points">💰 สุ่มแต้ม</option>
-                    <option value="red_card">🟥 ลดใบแดง</option>
+                    <option value="points">💰 สุ่มแต้ม (ช่วง Min-Max)</option>
+                    <option value="points_fix">💎 สุ่มแต้ม (Fix ค่าเดียว)</option> <option value="red_card">🟥 ลดใบแดง</option>
                     <option value="interest">📈 ดอกเบี้ยพิเศษ</option>
                     <option value="buff_discount">🏷️ บัฟส่วนลดร้านค้า</option> 
                     <option value="buff_points">🚀 บูสต์แต้ม (Multiplier)</option>
@@ -4378,7 +4377,7 @@ const appId = 'activeredpoint';
                     <option value="salt">🧂 เกลือ (ไม่ได้อะไรเลย)</option> 
                 </select>
                 <div class="flex items-center gap-1 w-24">
-                    <input type="number" class="border rounded text-sm px-2 py-1 w-full text-center font-bold text-blue-600 slot-chance" placeholder="%" oninput="updateTotalChance()">
+                    <input type="number" step="0.01" class="border rounded text-sm px-2 py-1 w-full text-center font-bold text-blue-600 slot-chance" placeholder="%" oninput="updateTotalChance()">
                     <span class="text-xs text-gray-400">%</span>
                 </div>
                 <button type="button" onclick="this.parentElement.parentElement.remove(); updateTotalChance()" class="text-red-400 hover:text-red-600">×</button>
@@ -4389,6 +4388,10 @@ const appId = 'activeredpoint';
                     <span>จาก</span> <input type="number" min="0" class="border rounded w-20 px-2 py-1 slot-min" placeholder="Min">
                     <span>ถึง</span> <input type="number" min="0" class="border rounded w-20 px-2 py-1 slot-max" placeholder="Max"> แต้ม
                 </div>
+                <div class="input-points_fix hidden flex gap-2 items-center">
+                    <span>ได้รับ</span> <input type="number" min="1" class="border rounded w-24 px-2 py-1 slot-fix-amount font-bold text-green-600" placeholder="จำนวน"> แต้ม
+                </div>
+
                 <div class="input-red_card hidden flex gap-2 items-center">
                     <span>ลด</span> <input type="number" class="border rounded w-20 px-2 py-1 slot-amount" value="1"> ใบ
                 </div>
@@ -4413,23 +4416,22 @@ const appId = 'activeredpoint';
                     <input type="text" class="border rounded w-full px-2 py-1 slot-text" value="เกลือจ้า! ไม่ได้อะไรเลย" placeholder="ข้อความเยาะเย้ย">
                 </div>
 
-            <div class="input-interest hidden space-y-1">
-                  <div class="flex gap-2 items-center">
-                    <span>ดอกเบี้ย</span> <input type="number" step="0.001" min="0.001" class="border rounded w-24 px-2 py-1 slot-rate font-bold text-green-600" placeholder="%"> %
-                  </div>
-                <div class="flex gap-2 items-center">
-                    <span>นาน</span> <input type="number" step="0.1" min="0.1" class="border rounded w-20 px-2 py-1 slot-hours" placeholder="ชม."> ชั่วโมง
+                <div class="input-interest hidden space-y-1">
+                    <div class="flex gap-2 items-center">
+                        <span>ดอกเบี้ย</span> <input type="number" step="0.001" min="0.001" class="border rounded w-24 px-2 py-1 slot-rate font-bold text-green-600" placeholder="%"> %
+                    </div>
+                    <div class="flex gap-2 items-center">
+                        <span>นาน</span> <input type="number" step="0.1" min="0.1" class="border rounded w-20 px-2 py-1 slot-hours" placeholder="ชม."> ชั่วโมง
+                    </div>
+                    <p class="text-[10px] text-gray-400">* 24 ชม. = 1 วัน</p>
                 </div>
-                <p class="text-[10px] text-gray-400">* 24 ชม. = 1 วัน</p>
-            </div>
 
-            <div class="input-buff_points hidden space-y-1">
-                <div class="flex gap-2 items-center">
+                <div class="input-buff_points hidden space-y-1">
+                    <div class="flex gap-2 items-center">
                         <span>เพิ่ม</span> <input type="number" min="1" class="border rounded w-20 px-2 py-1 slot-value font-bold text-blue-500" placeholder="%"> %
-                        </div>
-                        <div class="flex gap-2 items-center">
-                            <span>นาน</span> <input type="number" min="1" class="border rounded w-20 px-2 py-1 slot-duration" placeholder="ชม." value="1"> ชั่วโมง
-                        </div>
+                    </div>
+                    <div class="flex gap-2 items-center">
+                        <span>นาน</span> <input type="number" min="1" class="border rounded w-20 px-2 py-1 slot-duration" placeholder="ชม." value="1"> ชั่วโมง
                     </div>
                 </div>
             </div>
@@ -4456,8 +4458,8 @@ const appId = 'activeredpoint';
         div.innerHTML = `
             <div class="flex gap-2 mb-2">
                 <select class="border rounded text-sm px-2 py-1 bg-gray-50 flex-1 slot-type" onchange="updateEditSlotInputs(this)">
-                    <option value="points">💰 สุ่มแต้ม</option>
-                    <option value="red_card">🟥 ลดใบแดง</option>
+                    <option value="points">💰 สุ่มแต้ม (ช่วง Min-Max)</option>
+                    <option value="points_fix">💎 สุ่มแต้ม (Fix ค่าเดียว)</option> <option value="red_card">🟥 ลดใบแดง</option>
                     <option value="interest">📈 ดอกเบี้ยพิเศษ</option>
                     <option value="buff_discount">🏷️ บัฟส่วนลดร้านค้า</option>
                     <option value="buff_points">🚀 บูสต์แต้ม (Multiplier)</option>
@@ -4466,7 +4468,7 @@ const appId = 'activeredpoint';
                     <option value="salt">🧂 เกลือ (ไม่ได้อะไรเลย)</option>
                 </select>
                 <div class="flex items-center gap-1 w-24">
-                    <input type="number" class="border rounded text-sm px-2 py-1 w-full text-center font-bold text-blue-600 slot-chance" placeholder="%" oninput="updateEditTotalChance()">
+                    <input type="number" step="0.01" class="border rounded text-sm px-2 py-1 w-full text-center font-bold text-blue-600 slot-chance" placeholder="%" oninput="updateEditTotalChance()">
                     <span class="text-xs text-gray-400">%</span>
                 </div>
                 <button type="button" onclick="this.parentElement.parentElement.remove(); updateEditTotalChance()" class="text-red-400 hover:text-red-600">×</button>
@@ -4477,6 +4479,10 @@ const appId = 'activeredpoint';
                     <span>จาก</span> <input type="number" min="0" class="border rounded w-20 px-2 py-1 slot-min" placeholder="Min">
                     <span>ถึง</span> <input type="number" min="0" class="border rounded w-20 px-2 py-1 slot-max" placeholder="Max"> แต้ม
                 </div>
+                <div class="input-points_fix hidden flex gap-2 items-center">
+                    <span>ได้รับ</span> <input type="number" min="1" class="border rounded w-24 px-2 py-1 slot-fix-amount font-bold text-green-600" placeholder="จำนวน"> แต้ม
+                </div>
+
                 <div class="input-red_card hidden flex gap-2 items-center">
                     <span>ลด</span> <input type="number" class="border rounded w-20 px-2 py-1 slot-amount" value="1"> ใบ
                 </div>
@@ -4530,17 +4536,21 @@ const appId = 'activeredpoint';
             if (data.type === 'points') {
                 div.querySelector('.slot-min').value = data.min;
                 div.querySelector('.slot-max').value = data.max;
-            } else if (data.type === 'red_card') {
+            } 
+            // ✨ โหลดข้อมูล Fix
+            else if (data.type === 'points_fix') {
+                div.querySelector('.slot-fix-amount').value = data.amount;
+            }
+            else if (data.type === 'red_card') {
                 div.querySelector('.slot-amount').value = data.amount;
             } else if (data.type === 'interest') {
                 div.querySelector('.slot-rate').value = data.rate;
                 div.querySelector('.slot-hours').value = data.hours;
             } else if (data.type === 'reward_ref') {
                 div.querySelector('.slot-reward-id').value = data.reward_id;
-            } else if (data.type === 'text' || data.type === 'salt') { // รวม salt ด้วย
+            } else if (data.type === 'text' || data.type === 'salt') {
                 div.querySelector('.slot-text').value = data.text;
             } 
-            // ✅ เพิ่ม Logic โหลดข้อมูลส่วนลด
             else if (data.type === 'buff_discount') {
                 div.querySelector('.slot-value').value = data.value;
                 div.querySelector('.slot-duration').value = data.duration;
@@ -4641,7 +4651,12 @@ const appId = 'activeredpoint';
                         isValid = false; return;
                     }
 
-                } else if (slotType === 'red_card') {
+                } 
+                else if (slotType === 'points_fix') {
+                    data.amount = parseInt(slot.querySelector('.slot-fix-amount').value) || 0;
+                    if (data.amount <= 0) { alert('จำนวนแต้มต้องมากกว่า 0'); isValid = false; return; }
+                }
+                else if (slotType === 'red_card') {
                     data.amount = parseInt(slot.querySelector('.slot-amount').value) || 1;
                     if (data.amount < 1) { alert('จำนวนใบแดงต้องอย่างน้อย 1 ใบ'); isValid = false; return; }
 
@@ -4991,6 +5006,16 @@ const appId = 'activeredpoint';
                     resultTitle = wonSlot.text || 'เกลือเต็มๆ!';
                     resultSub = 'เสียใจด้วยนะ รอบหน้าเอาใหม่';
                     soundSalt.play();
+                }
+                else if (wonSlot.type === 'points_fix') {
+                    const pts = wonSlot.amount;
+                    newCard.name = `คูปอง ${pts} แต้ม`;
+                    newCard.type = 'instant_points'; // ใช้ Type เดิมของแต้มได้เลย
+                    newCard.value = pts;
+                    newCard.image = '💎';
+                    resultIcon = '💎';
+                    resultTitle = `รับไปเลย! ${pts} แต้ม`;
+                    resultSub = 'การ์ดแต้มถูกเก็บเข้ากระเป๋าแล้ว';
                 }
 
                 if (newCard.name) {
@@ -6701,6 +6726,7 @@ const appId = 'activeredpoint';
                             type: 'gacha_box', // ระบุประเภทว่าเป็นกล่องสุ่ม
                             effect: reward.effect || 'none',
                             acquired_at: now
+                            
                         }));
 
                         // 1. ยัดใส่กระเป๋านักเรียน (Inventory)
