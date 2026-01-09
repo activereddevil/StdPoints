@@ -292,7 +292,7 @@
                 <div id="qa-student-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                     <div class="col-span-full text-center text-gray-400 py-10">กรุณาเลือกห้องเรียนเพื่อเริ่มกิจกรรม</div>
                 </div>
-            </div>
+            
             
             <div id="student-buzzer-modal" class="fixed inset-0 z-[200] bg-black/90 hidden flex flex-col items-center justify-center p-6 backdrop-blur-md">
                 <h2 class="text-white text-3xl font-bold mb-8 animate-bounce">⚡ เตรียมตัว...</h2>
@@ -305,7 +305,8 @@
                 <p class="text-gray-300 mt-8 text-center">ใครเร็วกว่าคนนั้นได้ตอบ!</p>
             </div>
             
-        </div> 
+        
+    </div>
 
 
         <div id="content-home" class="tab-content hidden h-full flex flex-col">
@@ -357,7 +358,10 @@
 
         <div class="flex gap-1 p-1 bg-slate-800 rounded-lg border border-slate-700" id="single-action-group">
             <button onclick="handleStickySingleAction('shop')" class="btn-single bg-amber-500 hover:bg-amber-600 text-white px-3 py-2 rounded-md font-bold shadow-sm flex items-center gap-2 transition-all">
-                🎁 <span class="hidden lg:inline">แลกของ</span>
+                💰 <span class="hidden lg:inline">แลกของ</span>
+            </button>
+            <button onclick="showBulkGiveRewardModal()" class="btn-action bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-md font-bold shadow-sm flex items-center gap-2" title="แจกของขวัญ/กล่องสุ่ม">
+                🎁 <span class="hidden lg:inline">แจกของ</span>
             </button>
             <button onclick="handleStickySingleAction('inventory')" class="btn-single bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-2 rounded-md font-bold shadow-sm flex items-center gap-2 transition-all">
                 🎒 <span class="hidden lg:inline">กระเป๋า</span>
@@ -365,6 +369,7 @@
             <button onclick="handleStickySingleAction('edit')" class="btn-single bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-2 rounded-md font-bold shadow-sm flex items-center gap-2 transition-all">
                 ✏️ <span class="hidden lg:inline">แก้ไข</span>
             </button>
+            
         </div>
 
         <button onclick="confirmBulkDelete()" class="bg-gray-700 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-bold shadow-sm transition-colors flex items-center gap-2 ml-2">
@@ -1426,6 +1431,36 @@
         </div>
         
         <div id="gp-actions" type="button" class="bg-gray-50 px-6 py-4 flex gap-3 border-t border-gray-100">
+        </div>
+    </div>
+</div>
+
+<div id="bulk-give-reward-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-[60] p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 flex flex-col max-h-[85vh]">
+        <div class="text-center mb-4 shrink-0">
+            <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2 text-2xl">🎁</div>
+            <h2 class="text-xl font-bold text-gray-800">แจกของขวัญฟรี</h2>
+            <p class="text-xs text-gray-500">เลือกของที่ต้องการแจกให้นักเรียนที่เลือก (ไม่หักแต้ม)</p>
+            <div id="bulk-give-preview" class="text-xs text-purple-600 bg-purple-50 p-2 rounded-lg mt-2 border border-purple-100 truncate">...</div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto custom-scrollbar border rounded-xl p-2 bg-gray-50 mb-4 space-y-2" id="bulk-give-list">
+            </div>
+
+        <div class="bg-purple-50 p-3 rounded-lg border border-purple-100 flex items-center justify-between shrink-0 mb-4">
+            <label class="text-sm font-bold text-purple-800 flex items-center gap-2">
+                📦 แจกคนละ (ชิ้น):
+            </label>
+            <div class="flex items-center bg-white rounded-lg border border-purple-200 shadow-sm">
+                <button onclick="adjustBulkGiveQty(-1)" class="w-10 py-1 text-purple-600 hover:bg-purple-50 font-bold text-lg rounded-l-lg transition-colors">-</button>
+                <input type="number" id="bulk-give-qty" value="1" min="1" class="w-16 text-center font-bold text-purple-700 outline-none border-x border-purple-100 py-1" onchange="if(this.value<1)this.value=1">
+                <button onclick="adjustBulkGiveQty(1)" class="w-10 py-1 text-purple-600 hover:bg-purple-50 font-bold text-lg rounded-r-lg transition-colors">+</button>
+            </div>
+        </div>
+
+        <div class="flex gap-3 pt-2 shrink-0">
+            <button onclick="document.getElementById('bulk-give-reward-modal').classList.add('hidden')" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 py-2 rounded-lg font-bold">ยกเลิก</button>
+            <button onclick="confirmBulkGiveReward()" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg shadow-md font-bold">ยืนยันแจก</button>
         </div>
     </div>
 </div>
@@ -6752,22 +6787,36 @@ const appId = 'activeredpoint';
         }
     };
 
-    // ✅ โค้ดที่ถูกต้อง (ใส่แทนที่เดิม)
-    window.renderClassroom = () => {
-    // 1. สร้างตัวเลือกห้องเรียนใน Dropdown (ถ้ายังไม่มี)
-    const select = document.getElementById('qa-class-select');
-    if (select && select.children.length <= 1) {
-        // เรียกฟังก์ชันดึงรายชื่อห้องจากตัวแปร students
-        if (typeof initQuickAnswerUI === 'function') {
-            initQuickAnswerUI();
-        }
-    }
+   // --- 🛠️ FIX: แก้ไขฟังก์ชันโหลดห้องเรียน ---
     
-    // 2. ถ้ามีการเลือกห้องค้างไว้ ให้วาดการ์ดนักเรียนใหม่ด้วย
-    if (typeof currentQAClass !== 'undefined' && currentQAClass && typeof renderQuickAnswerGrid === 'function') {
-        renderQuickAnswerGrid();
-    }
-};
+    // 1. สร้างฟังก์ชัน renderClassroom ใหม่ (แบบสะอาด ไม่มี Error)
+    window.renderClassroom = () => {
+        // เช็คว่า Dropdown ห้องเรียนยังว่างอยู่ไหม? ถ้าว่างให้เติมข้อมูล
+        const select = document.getElementById('qa-class-select');
+        if (select && select.children.length <= 1) {
+            if(typeof initQuickAnswerUI === 'function') {
+                initQuickAnswerUI();
+            }
+        }
+        
+        // ถ้ามีการเลือกห้องค้างไว้ ให้วาดหน้าจอแย่งตอบใหม่ด้วย
+        if (typeof renderQuickAnswerGrid === 'function' && select.value) {
+            renderQuickAnswerGrid();
+        }
+    };
+
+    // 2. เชื่อมต่อกับปุ่มเมนู (Hook switchTab)
+    // เพื่อให้พอกดแท็บ "จัดการห้องเรียน" แล้วมันเรียกฟังก์ชันข้างบนทำงาน
+    const oldSwitchTab = window.switchTab;
+    window.switchTab = (tabName) => {
+        // เรียกฟังก์ชันเดิมเพื่อให้สลับหน้าตามปกติ
+        if (typeof oldSwitchTab === 'function') oldSwitchTab(tabName);
+        
+        // ถ้ากดแท็บ classroom ให้เรียก renderClassroom ทำงาน
+        if (tabName === 'classroom') {
+            window.renderClassroom();
+        }
+    };
     
  
   </script>
