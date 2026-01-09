@@ -285,7 +285,7 @@
                 </div>
                 <div class="text-3xl opacity-50">📈</div>
             </div>
-        </div>    
+      
             
             <div id="bulk-actions" class="hidden fixed top-0 left-0 w-full bg-slate-900/95 backdrop-blur-sm text-white p-3 z-40 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4 transition-all duration-300 animate-slide-in-top border-b border-slate-700">
     
@@ -891,17 +891,27 @@
    <!-- Bank Action Modal -->
    <div id="bank-action-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-xl shadow-xl max-w-sm w-full p-6">
-        <h3 id="bank-modal-title" class="text-xl font-bold text-gray-900 mb-2">ทำรายการธนาคาร</h3>
-        
+        <h3 id="bank-modal-title" class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <span>🏦</span> ทำรายการธนาคาร
+        </h3>
         <input type="hidden" id="bank-student-id">
-        <div class="flex justify-between items-end mb-4 border-b pb-2">
-            <div>
-                <span class="text-xs text-gray-500 block">บัญชีของ:</span>
-                <span id="bank-student-name" class="font-bold text-indigo-600 text-lg">-</span>
+        
+        <div class="bg-gray-50 rounded-xl p-3 mb-4 border border-gray-200">
+            <div class="flex justify-between items-center mb-2 border-b border-gray-200 pb-2">
+                <span class="text-xs text-gray-500 font-bold">บัญชีของ</span>
+                <span id="bank-student-name" class="font-bold text-indigo-700 text-lg">-</span>
             </div>
-            <div class="text-right">
-                <span class="text-xs text-gray-500 block">ยอดในธนาคาร:</span>
-                <span id="bank-balance-display" class="font-bold text-green-600 text-lg">0</span>
+            
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-white p-2 rounded-lg border border-blue-100 text-center shadow-sm">
+                    <span class="text-[10px] text-blue-500 uppercase font-bold block mb-1">💵 แต้มในมือ</span>
+                    <span id="bank-wallet-display" class="text-xl font-bold text-blue-700 block">0</span>
+                </div>
+                
+                <div class="bg-white p-2 rounded-lg border border-green-100 text-center shadow-sm">
+                    <span class="text-[10px] text-green-600 uppercase font-bold block mb-1">🏦 ในธนาคาร (รวม)</span>
+                    <span id="bank-balance-display" class="text-xl font-bold text-green-700 block">0</span>
+                </div>
             </div>
         </div>
 
