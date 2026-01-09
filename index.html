@@ -2115,6 +2115,9 @@ const appId = 'activeredpoint';
                         ${Math.floor(s.red_cards)}
                     </span>
                 </td>
+                <button onclick="openBankModal('${s.id}')" class="flex-1 py-2 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1" title="ฝาก/ถอน">
+            <span>🏦</span> ธุรกรรม
+                </button>
             </tr>
             `;
         }).join('');
@@ -2193,132 +2196,8 @@ const appId = 'activeredpoint';
 
    
    // Exposed to window for inline HTML calls
-    window.renderBankList = (resetPage = true) => {
-        // 1. ถ้าเป็นการพิมพ์ค้นหาใหม่ ให้รีเซ็ตกลับไปหน้า 1
-        if (!document.getElementById('bank-student-list')) return;
-        if (resetPage) paginationState.bank = 1;
-
-        const tbody = document.getElementById('bank-student-list'); 
-        if (!tbody) return;
-
-        const searchInput = document.getElementById('bank-search-input');
-        const search = searchInput ? searchInput.value.toLowerCase() : '';
-        
-        // 2. 🔍 กรองนักเรียน (เพิ่มค้นหาด้วย "ชั้นเรียน" กลับมาแล้ว!)
-        let filtered = students.filter(s => 
-            s.full_name.toLowerCase().includes(search) || 
-            s.student_id.includes(search) ||
-            (s.class_name && s.class_name.toLowerCase().includes(search)) // <-- เพิ่มบรรทัดนี้
-        );
-
-        // 3. เรียงลำดับ
-        if (sortState && sortState.bank && sortState.bank.col) {
-            filtered = sortList(filtered, sortState.bank.col, sortState.bank.asc);
-        }
-
-        // 4. 📄 ตัดแบ่งหน้า (Pagination Logic)
-        const { data: paginatedData } = getPaginatedData(filtered, paginationState.bank);
-
-        // ค่าดอกเบี้ยพื้นฐาน
-        const baseRate = (config && config.interest_rate) ? config.interest_rate : 1.0;
-
-        // 5. แสดงผล (ใช้ paginatedData แทน filtered เพื่อโชว์แค่ 10-20 คนต่อหน้า)
-        tbody.innerHTML = paginatedData.map((s, index) => {
-            // --- 🧮 คำนวณหาดอกเบี้ยและตัวเลขต่างๆ ---
-            
-            // A. บัฟกิลด์
-            let guildBonus = 0;
-            let guildName = '';
-            if (s.guild_id) {
-                const g = guilds.find(x => x.id === s.guild_id);
-                if (g) {
-                    guildName = g.name;
-                    if (g.buff_interest) guildBonus = parseFloat(g.buff_interest);
-                }
-            }
-
-            // B. บัฟส่วนตัว
-            let activeSpecialRate = null;
-            if (s.special_interest_end) {
-                let endTime = s.special_interest_end;
-                if (typeof endTime.toMillis === 'function') endTime = endTime.toMillis();
-                else if (endTime instanceof Date) endTime = endTime.getTime();
-
-                if (Date.now() < endTime) {
-                    activeSpecialRate = parseFloat(s.special_interest_rate);
-                }
-            }
-
-            // C. สรุปเรทจริง
-            let finalRate = (activeSpecialRate !== null) ? activeSpecialRate : (baseRate + guildBonus);
-            
-            // D. คำนวณยอดเงิน
-            const pendingInterest = calculatePendingInterest(s);
-            const totalWithdrawable = (s.bank_points || 0) + pendingInterest;
-
-            // --- 🏷️ สร้างป้าย Tag (เรทพิเศษ) ---
-            let rateTag = '';
-            if (finalRate > baseRate) {
-                let icon = '🔥';
-                let sourceText = '';
-
-                if (activeSpecialRate !== null) {
-                    icon = '🌟';
-                    sourceText = 'บัฟส่วนตัว';
-                } else if (guildBonus > 0) {
-                    icon = '🛡️';
-                    sourceText = `กิลด์ ${guildName}`;
-                }
-
-                rateTag = `
-                <div class="inline-flex items-center gap-1 ml-2 px-2 py-0.5 rounded-full bg-green-50 border border-green-200 shadow-sm transform hover:scale-105 transition-transform cursor-help" title="${sourceText}">
-                    <span class="text-[10px]">${icon}</span>
-                    <span class="text-[10px] font-bold text-green-700">${finalRate.toFixed(2)}%</span>
-                </div>`;
-            }
-
-            // --- 🎨 ส่วนแสดงผล (Render HTML) ครบ 8 คอลัมน์ ---
-            return `
-            <tr class="hover:bg-gray-50 transition-colors border-b last:border-b-0">
-                <td class="px-4 py-3 text-left font-mono text-gray-600">${s.student_id}</td>
-                
-                <td class="px-4 py-3 font-bold text-gray-700">
-                    <div class="flex items-center">
-                        ${s.full_name}
-                        ${rateTag}
-                    </div>
-                </td>
-                
-                <td class="px-4 py-3 text-left text-gray-600">${s.class_name || '-'}</td>
-                
-                <td class="px-4 py-3 text-center text-gray-500">${Math.floor(s.points).toLocaleString()}</td>
-                
-                <td class="px-4 py-3 text-right font-mono text-indigo-900 font-bold">
-                    ${(s.bank_points || 0).toLocaleString()}
-                </td>
-                
-                <td class="px-4 py-3 text-right font-mono text-green-600">
-                    +${Math.floor(pendingInterest).toLocaleString()}
-                </td>
-                
-                <td class="px-4 py-3 text-right font-bold text-emerald-700">
-                    ${Math.floor(totalWithdrawable).toLocaleString()}
-                </td>
-                
-                <td class="px-4 py-3 text-center">
-                   <button onclick="openBankModal('${s.id}')" class="text-indigo-600 hover:bg-indigo-100 p-2 rounded-lg transition-colors text-sm font-bold flex items-center justify-center gap-1 mx-auto">
-                        🏦 ธุรกรรม
-                   </button>
-                </td>
-            </tr>
-            `;
-        }).join('');
-
-        // 6. 🎮 สร้างปุ่มกดเปลี่ยนหน้า (Render Controls)
-        const paginationContainer = document.getElementById('pagination-bank');
-        if (paginationContainer) {
-            paginationContainer.innerHTML = renderPaginationControls(filtered.length, 'bank');
-        }
+   window.renderBankList = () => {
+        return;
     };
 
     function renderRewards() {
