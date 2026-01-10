@@ -311,10 +311,10 @@
                 ➖ <span class="hidden lg:inline">แต้ม</span>
             </button>
             <div class="flex gap-1 p-1 bg-slate-800 rounded-lg border border-slate-700 ml-2">
-                <button onclick="handleBulkWarning(1)" class="btn-action bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-md font-bold shadow-sm flex items-center gap-2" title="แจกใบเตือน">
+                <button onclick="showBulkWarningModal('add')" class="btn-action bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-md font-bold shadow-sm flex items-center gap-2" title="แจกใบเตือน">
                     ⚠️ <span class="hidden lg:inline">+เตือน</span>
                 </button>
-                <button onclick="handleBulkWarning(-1)" class="btn-action bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-md font-bold shadow-sm flex items-center gap-2" title="ลดใบเตือน">
+                <button onclick="showBulkWarningModal('remove')" class="btn-action bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-md font-bold shadow-sm flex items-center gap-2" title="ลดใบเตือน">
                     🛡️ <span class="hidden lg:inline">-เตือน</span>
                 </button>
             </div>
@@ -1429,6 +1429,37 @@
     </div>
 </div>
 
+<div id="bulk-warning-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 transform transition-all scale-100">
+        <div class="text-center mb-6">
+            <div id="bw-icon-bg" class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner">⚠️</div>
+            <h3 id="bulk-warning-title" class="text-xl font-bold text-gray-900">จัดการใบเตือน</h3>
+            <p id="bulk-warning-subtitle" class="text-gray-500 text-sm mt-1">...</p>
+        </div>
+        
+        <input type="hidden" id="bulk-warning-type"> <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">จำนวนใบเตือน (ใบ)</label>
+                <div class="flex items-center border border-gray-300 rounded-xl overflow-hidden">
+                    <button onclick="adjustWarningInput(-1)" class="px-4 py-3 bg-gray-50 hover:bg-gray-100 border-r text-gray-600 font-bold">-</button>
+                    <input type="number" id="bulk-warning-amount" value="1" min="1" class="w-full text-center py-3 outline-none font-bold text-lg text-gray-800" onchange="if(this.value<1)this.value=1">
+                    <button onclick="adjustWarningInput(1)" class="px-4 py-3 bg-gray-50 hover:bg-gray-100 border-l text-gray-600 font-bold">+</button>
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">เหตุผล / หมายเหตุ</label>
+                <input type="text" id="bulk-warning-reason" placeholder="เช่น คุยเสียงดัง, ช่วยงานครู..." class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-yellow-400 outline-none transition-all">
+            </div>
+        </div>
+
+        <div class="flex gap-3 mt-8">
+            <button onclick="document.getElementById('bulk-warning-modal').classList.add('hidden')" class="flex-1 py-3 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl font-bold transition-colors">ยกเลิก</button>
+            <button onclick="confirmBulkWarning()" id="btn-confirm-warning" class="flex-1 py-3 text-white bg-yellow-500 hover:bg-yellow-600 rounded-xl font-bold shadow-lg transition-transform active:scale-95">ยืนยัน</button>
+        </div>
+    </div>
+</div>
+
   </div> <!-- End App -->
 
   <script type="module">
@@ -2164,10 +2195,8 @@ const appId = 'activeredpoint';
                 </td>
                 <td class="px-2 py-3 text-center">
                     <div class="flex flex-col items-center justify-center">
-                        <div class="flex items-center gap-1">
-                            <button onclick="adjustWarning('${s.id}', -1)" class="w-6 h-6 rounded bg-gray-100 text-gray-400 hover:bg-gray-200">-</button>
-                            <span class="font-bold text-yellow-600 w-4">${s.warning_cards || 0}</span>
-                            <button onclick="adjustWarning('${s.id}', 1)" class="w-6 h-6 rounded bg-yellow-100 text-yellow-600 hover:bg-yellow-200 hover:scale-110 transition-transform">+</button>
+                        <div class="flex items-center justify-center">
+                            <span class="font-bold text-yellow-600 text-lg">${s.warning_cards || 0}</span>
                         </div>
                         ${(s.pending_points || 0) > 0 ? `<div class="text-[10px] text-red-500 font-bold mt-1 bg-red-50 px-1 rounded border border-red-100">🔒 อายัด ${s.pending_points}</div>` : ''}
                     </div>
@@ -6998,77 +7027,140 @@ const appId = 'activeredpoint';
         }
     };
 
-    // --- ⚡ ฟังก์ชันจัดการใบเตือนแบบกลุ่ม (Sticky Bar) ---
-    window.handleBulkWarning = async (amount) => {
+   // --- ⚠️ BULK WARNING WITH MODAL ---
+
+    // 1. ปรับตัวเลขใน Modal
+    window.adjustWarningInput = (delta) => {
+        const input = document.getElementById('bulk-warning-amount');
+        let val = parseInt(input.value) || 1;
+        val = Math.max(1, val + delta);
+        input.value = val;
+    };
+
+    // 2. เปิด Modal
+    window.showBulkWarningModal = (type) => {
         if (selectedStudentIds.size === 0) return alert('กรุณาเลือกนักเรียนก่อนครับ');
 
-        const actionName = amount > 0 ? 'แจกใบเตือน' : 'ลดใบเตือน';
-        const confirmMsg = `ยืนยัน ${actionName} ให้กับนักเรียน ${selectedStudentIds.size} คน?`;
+        const isAdd = type === 'add';
+        
+        // ตั้งค่า UI
+        document.getElementById('bulk-warning-type').value = type;
+        document.getElementById('bulk-warning-amount').value = 1;
+        document.getElementById('bulk-warning-reason').value = '';
+        
+        document.getElementById('bulk-warning-title').textContent = isAdd ? 'แจกใบเตือน' : 'ลดใบเตือน';
+        document.getElementById('bulk-warning-subtitle').textContent = `ทำรายการให้นักเรียน ${selectedStudentIds.size} คน`;
+        
+        // เปลี่ยนสีตามประเภท
+        const iconBg = document.getElementById('bw-icon-bg');
+        const confirmBtn = document.getElementById('btn-confirm-warning');
+        
+        if (isAdd) {
+            iconBg.className = "w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner bg-yellow-100 text-yellow-600";
+            confirmBtn.className = "flex-1 py-3 text-white bg-yellow-500 hover:bg-yellow-600 rounded-xl font-bold shadow-lg";
+            iconBg.innerHTML = '⚠️';
+        } else {
+            iconBg.className = "w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner bg-green-100 text-green-600";
+            confirmBtn.className = "flex-1 py-3 text-white bg-green-600 hover:bg-green-700 rounded-xl font-bold shadow-lg";
+            iconBg.innerHTML = '🛡️';
+        }
 
-        showConfirmModal(actionName, confirmMsg, async () => {
-            const batch = writeBatch(db);
-            const timestamp = serverTimestamp();
-            let count = 0;
-            let releasedCount = 0; // นับจำนวนคนที่พ้นโทษ
+        document.getElementById('bulk-warning-modal').classList.remove('hidden');
+        document.getElementById('bulk-warning-modal').classList.add('flex');
+    };
 
-            selectedStudentIds.forEach(id => {
-                const s = students.find(x => x.id === id);
-                if (!s) return;
+    // 3. ยืนยันการทำรายการ (บันทึกประวัติ + Logic คืนแต้ม)
+    window.confirmBulkWarning = async () => {
+        const type = document.getElementById('bulk-warning-type').value;
+        const amountInput = parseInt(document.getElementById('bulk-warning-amount').value) || 1;
+        const reason = document.getElementById('bulk-warning-reason').value.trim();
+        const isAdd = type === 'add';
 
-                const sRef = doc(db, 'artifacts', appId, 'public', 'data', 'students', s.id);
-                const currentWarnings = s.warning_cards || 0;
-                
-                // คำนวณใบเตือนใหม่ (ห้ามติดลบ)
-                const newWarnings = Math.max(0, currentWarnings + amount);
-                
-                // ถ้าค่าไม่เปลี่ยน (เช่น เป็น 0 อยู่แล้ว แล้วกดลบ) ก็ข้ามไป
-                if (newWarnings === currentWarnings) return;
+        // ปิด Modal
+        document.getElementById('bulk-warning-modal').classList.add('hidden');
+        document.getElementById('bulk-warning-modal').classList.remove('flex');
 
-                const updates = { warning_cards: newWarnings };
+        showToast('กำลังบันทึกข้อมูล... ⏳');
 
-                // 🔓 เช็คเงื่อนไข: ถ้าใบเตือนหมด -> คืนแต้มที่อายัด!
-                if (newWarnings === 0 && (s.pending_points || 0) > 0) {
-                    const returnPoints = s.pending_points;
-                    updates.points = increment(returnPoints);
-                    updates.pending_points = 0;
-                    
-                    // Log การคืนแต้ม
-                    const hRef = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
-                    batch.set(hRef, {
-                        student_id: s.id,
-                        student_name: s.full_name,
-                        action: 'พ้นโทษแบน (คืนแต้มอายัด)',
-                        amount: returnPoints,
-                        type: 'add_points',
-                        timestamp: timestamp
-                    });
-                    releasedCount++;
-                }
+        const batch = writeBatch(db);
+        const timestamp = serverTimestamp();
+        let count = 0;
+        let releasedCount = 0;
 
-                batch.update(sRef, updates);
-                count++;
+        // คำนวณค่าที่จะบวก/ลบ (ถ้าลบใบเตือน ให้ค่าติดลบ)
+        const changeAmount = isAdd ? amountInput : -amountInput;
+
+        selectedStudentIds.forEach(id => {
+            const s = students.find(x => x.id === id);
+            if (!s) return;
+
+            const sRef = doc(db, 'artifacts', appId, 'public', 'data', 'students', s.id);
+            const currentWarnings = s.warning_cards || 0;
+            
+            // คำนวณใบเตือนใหม่ (ห้ามต่ำกว่า 0)
+            const newWarnings = Math.max(0, currentWarnings + changeAmount);
+            
+            // ถ้าค่าไม่เปลี่ยน (เช่น เป็น 0 อยู่แล้ว แล้วกดลบ) ก็ข้ามไป
+            if (newWarnings === currentWarnings) return;
+
+            const updates = { warning_cards: newWarnings };
+            const hRef = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
+
+            // 📝 1. บันทึกประวัติใบเตือน
+            batch.set(hRef, {
+                student_id: s.id,
+                student_name: s.full_name,
+                action: isAdd ? `โดนใบเตือน (${amountInput} ใบ)` : `ลบใบเตือน (${amountInput} ใบ)`,
+                amount: amountInput, // บันทึกจำนวนใบเตือนลงไป
+                reason: reason || (isAdd ? 'พฤติกรรมไม่เหมาะสม' : 'ทำความดีชดเชย'),
+                type: 'warning_card_log', // Type ใหม่สำหรับ log นี้โดยเฉพาะ
+                timestamp: timestamp
             });
 
-            if (count > 0) {
-                try {
-                    await batch.commit();
-                    let msg = `✅ ${actionName} สำเร็จ ${count} คน`;
-                    if (releasedCount > 0) msg += ` (และพ้นโทษ ${releasedCount} คน)`;
-                    showToast(msg);
-                    
-                    // เคลียร์การเลือกและรีเฟรช
-                    selectedStudentIds.clear();
-                    updateBulkUI();
-                    renderStudentList(false);
-                } catch (e) {
-                    console.error(e);
-                    alert('เกิดข้อผิดพลาด: ' + e.message);
-                }
-            } else {
-                showToast('ไม่มีการเปลี่ยนแปลงข้อมูล');
+            // 🔓 2. เช็คเงื่อนไขพิเศษ: ถ้าใบเตือนหมด -> คืนแต้มที่อายัด!
+            if (newWarnings === 0 && (s.pending_points || 0) > 0) {
+                const returnPoints = s.pending_points;
+                updates.points = increment(returnPoints);
+                updates.pending_points = 0;
+                
+                // Log การคืนแต้ม (แยกอีกบรรทัดให้ชัดเจน)
+                const hRef2 = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
+                batch.set(hRef2, {
+                    student_id: s.id,
+                    student_name: s.full_name,
+                    action: 'พ้นโทษแบน (คืนแต้มอายัด)',
+                    amount: returnPoints,
+                    type: 'add_points',
+                    reason: 'ใบเตือนเหลือ 0',
+                    timestamp: timestamp
+                });
+                releasedCount++;
             }
+
+            batch.update(sRef, updates);
+            count++;
         });
+
+        if (count > 0) {
+            try {
+                await batch.commit();
+                let msg = `✅ บันทึกสำเร็จ ${count} คน`;
+                if (releasedCount > 0) msg += ` (พ้นโทษ ${releasedCount} คน)`;
+                showToast(msg);
+                
+                // เคลียร์การเลือก
+                selectedStudentIds.clear();
+                updateBulkUI();
+                renderStudentList(false);
+            } catch (e) {
+                console.error(e);
+                alert('เกิดข้อผิดพลาด: ' + e.message);
+            }
+        } else {
+            showToast('ไม่มีการเปลี่ยนแปลงข้อมูล (ใบเตือนเป็น 0 อยู่แล้ว)');
+        }
     };
+   
  
   </script>
  </body>
