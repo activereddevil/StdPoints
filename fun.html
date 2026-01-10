@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>อาณาจักรความสนุก | Realm of Fun</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <style>
+        body { font-family: 'Sarabun', sans-serif !important; }
+        
+        /* พื้นหลังแฟนตาซีหน่อยๆ ให้สมกับเป็นอาณาจักรความสนุก */
+        .bg-realm {
+            background-color: #f3f4f6;
+            background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                              radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+                              radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+            background-repeat: no-repeat;
+            background-size: 100% 400px; /* ไล่สีแค่ส่วนบน */
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 bg-realm min-h-screen text-gray-800">
+
+    <header class="max-w-7xl mx-auto px-4 py-6 mb-8">
+        <div class="flex justify-between items-center text-white">
+            <div class="flex items-center gap-4 animate__animated animate__fadeInLeft">
+                <div class="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-4xl shadow-lg border border-white/20 backdrop-blur-md">
+                    🏰
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold text-shadow">อาณาจักรความสนุก</h1>
+                    <p class="text-indigo-200 text-sm">Realm of Fun & Activities</p>
+                </div>
+            </div>
+            
+            <a href="index.html" class="flex items-center gap-2 px-5 py-2.5 bg-white/10 hover:bg-white/20 rounded-xl transition-all border border-white/20 backdrop-blur-md font-bold text-sm animate__animated animate__fadeInRight">
+                <span>🔙</span> กลับสู่ระบบธนาคาร
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 pb-12">
+        
+        <div id="connection-status" class="mb-6 text-center text-white/60 text-xs">
+            กำลังเชื่อมต่อฐานข้อมูล... ⏳
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <div class="glass-card rounded-2xl p-6 shadow-xl game-card transition-all cursor-pointer group relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity text-8xl select-none">🎡</div>
+                <div class="relative z-10">
+                    <div class="w-16 h-16 bg-gradient-to-br from-pink-500 to-rose-500 rounded-2xl flex items-center justify-center text-3xl text-white shadow-lg mb-4">
+                        🎲
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">วงล้อวัดดวง</h3>
+                    <p class="text-sm text-gray-500 mb-4">สุ่มผู้โชคดี แจกแต้ม หรือแจกใบเตือน! พร้อมเอฟเฟกต์สุดตื่นเต้น</p>
+                    <button class="w-full py-2 bg-indigo-50 text-indigo-600 rounded-lg font-bold group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                        เข้าเล่นเลย
+                    </button>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-2xl p-6 shadow-xl game-card transition-all cursor-pointer group relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity text-8xl select-none">⏱️</div>
+                <div class="relative z-10">
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center text-3xl text-white shadow-lg mb-4">
+                        💣
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">ภารกิจจับเวลา</h3>
+                    <p class="text-sm text-gray-500 mb-4">จับเวลาทำกิจกรรมหน้าห้อง พร้อมเสียงระเบิดเมื่อหมดเวลา!</p>
+                    <button class="w-full py-2 bg-indigo-50 text-indigo-600 rounded-lg font-bold group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                        เข้าเล่นเลย
+                    </button>
+                </div>
+            </div>
+
+            <div onclick="openGeniusGame()" class="glass-card rounded-2xl p-6 shadow-xl game-card transition-all cursor-pointer group relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity text-8xl select-none">🎓</div>
+                <div class="relative z-10">
+                    <div class="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center text-3xl text-white shadow-lg mb-4">
+                        💡
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">ห้องเรียนอัจฉริยะ</h3>
+                    <p class="text-sm text-gray-500 mb-4">ตอบคำถามไต่บันไดสะสมแต้ม 10 ระดับ ใครจะไปถึงจุดสูงสุด!</p>
+                    <button class="w-full py-2 bg-indigo-50 text-indigo-600 rounded-lg font-bold group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                        เข้าเล่นเลย
+                    </button>
+                </div>
+            </div>
+
+
+        </div>
+    </main>
+
+    <div id="game-genius-modal" class="hidden fixed inset-0 z-50 bg-slate-900 text-white overflow-hidden flex flex-col font-['Sarabun']">
+        
+        <div class="h-16 bg-slate-800 flex items-center justify-between px-6 border-b border-slate-700 shadow-lg shrink-0">
+            <div class="flex items-center gap-3">
+                <span class="text-3xl">🎓</span>
+                <h2 class="text-xl font-bold text-yellow-400">ห้องเรียนอัจฉริยะ</h2>
+            </div>
+            <button onclick="closeGeniusGame()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-bold transition-colors">
+                ❌ ออกจากเกม
+            </button>
+        </div>
+
+        <div class="flex-1 flex overflow-hidden">
+            
+            <div class="w-64 bg-slate-800/50 border-r border-slate-700 p-4 flex flex-col justify-end gap-1 overflow-y-auto shrink-0">
+                <div class="text-center text-xs text-slate-400 mb-2 font-bold uppercase tracking-widest">Rewards Ladder</div>
+                <div id="genius-ladder" class="flex flex-col-reverse gap-1">
+                    </div>
+            </div>
+
+            <div class="flex-1 relative flex flex-col items-center justify-center p-8 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-900 via-slate-900 to-black">
+                
+                <div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 40px 40px;"></div>
+
+                <div id="genius-stage-start" class="text-center max-w-2xl w-full animate__animated animate__fadeIn">
+                    <h1 class="text-4xl md:text-5xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-300 to-yellow-300">พร้อมท้าทายไหม?</h1>
+                    <p class="text-slate-300 mb-8 text-lg">เลือกตัวแทนนักเรียน แล้วมาพิชิต 10 คำถามเพื่อแต้มสูงสุด!</p>
+                    
+                    <div class="bg-white/10 p-6 rounded-2xl backdrop-blur-md border border-white/20 mb-8">
+                        <label class="block text-left text-sm font-bold text-indigo-300 mb-2">เลือกนักเรียน/กลุ่มผู้ท้าชิง:</label>
+                        <select id="genius-player-select" class="w-full bg-slate-900 border border-indigo-500 rounded-xl px-4 py-3 text-white outline-none focus:ring-2 focus:ring-indigo-400">
+                            <option value="">-- เลือกผู้เล่น --</option>
+                            </select>
+                    </div>
+
+                    <button onclick="startGeniusGame()" class="px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl font-bold text-xl shadow-[0_0_30px_rgba(16,185,129,0.4)] hover:scale-105 transition-transform">
+                        🚀 เริ่มเกมเลย!
+                    </button>
+                </div>
+
+                <div id="genius-stage-play" class="hidden w-full max-w-4xl flex flex-col h-full justify-between py-4">
+                    
+                    <div class="text-center">
+                        <span id="q-category" class="inline-block px-4 py-1 bg-indigo-600 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg mb-4">หมวดทั่วไป</span>
+                        <div class="flex justify-center gap-2 mb-2">
+                            <div class="w-20 h-1 bg-yellow-500 rounded-full"></div>
+                            <div class="w-3 h-1 bg-yellow-500/30 rounded-full"></div>
+                            <div class="w-3 h-1 bg-yellow-500/30 rounded-full"></div>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 flex items-center justify-center">
+                        <div class="w-full">
+                            <h2 id="q-text" class="text-3xl md:text-5xl font-bold text-center leading-tight drop-shadow-2xl text-white">
+                                คำถามกำลังโหลด...
+                            </h2>
+                        </div>
+                    </div>
+
+                    <div id="q-answer-box" class="hidden mb-8 text-center animate__animated animate__fadeInUp">
+                        <div class="inline-block bg-white/10 backdrop-blur-md border border-green-400/50 rounded-xl px-8 py-4">
+                            <p class="text-sm text-green-300 font-bold uppercase mb-1">คำตอบที่ถูกต้อง</p>
+                            <h3 id="q-answer-text" class="text-2xl font-bold text-white">...</h3>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 md:gap-8 max-w-2xl mx-auto w-full">
+                        <button id="btn-reveal" onclick="revealAnswer()" class="col-span-2 py-4 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold text-xl shadow-lg border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 transition-all">
+                            👁️ เฉลยคำตอบ
+                        </button>
+                        
+                        <button id="btn-wrong" onclick="judgeAnswer(false)" class="hidden py-4 bg-red-600 hover:bg-red-500 rounded-xl font-bold text-xl shadow-lg border-b-4 border-red-800 active:border-b-0 active:translate-y-1 transition-all">
+                            ❌ ตอบผิด
+                        </button>
+                        <button id="btn-correct" onclick="judgeAnswer(true)" class="hidden py-4 bg-green-600 hover:bg-green-500 rounded-xl font-bold text-xl shadow-lg border-b-4 border-green-800 active:border-b-0 active:translate-y-1 transition-all">
+                            ✅ ถูกต้อง!
+                        </button>
+                    </div>
+                </div>
+
+                <div id="genius-stage-end" class="hidden text-center max-w-2xl w-full animate__animated animate__zoomIn">
+                    <div class="mb-6 text-8xl">🏆</div>
+                    <h2 class="text-4xl font-bold mb-2">จบเกมแล้ว!</h2>
+                    <p class="text-xl text-indigo-300 mb-8">
+                        ผู้เล่น <span id="end-player-name" class="font-bold text-white">...</span> ทำได้
+                    </p>
+                    
+                    <div class="bg-gradient-to-br from-yellow-500 to-orange-600 p-1 rounded-3xl shadow-2xl mb-8 transform hover:scale-105 transition-transform duration-500">
+                        <div class="bg-slate-900 rounded-[22px] px-10 py-8">
+                            <div class="text-sm text-yellow-500 font-bold uppercase tracking-widest mb-2">TOTAL REWARD</div>
+                            <div id="end-score" class="text-6xl font-black text-white tracking-tighter">0</div>
+                            <div class="text-sm text-slate-500 font-bold mt-2">POINTS</div>
+                        </div>
+                    </div>
+
+                    <button onclick="resetGeniusGame()" class="px-8 py-3 bg-white text-indigo-900 rounded-full font-bold shadow-lg hover:bg-indigo-50 transition-colors">
+                        🔄 เล่นใหม่อีกครั้ง
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, doc, getDocs, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+        // ⚠️⚠️⚠️ วาง firebaseConfig ของคุณที่นี่ (ก๊อปจาก index.html มาเลย) ⚠️⚠️⚠️
+        const firebaseConfig = {apiKey: "AIzaSyCt1hOqcgf8fGmPVtvrPztwzMQZvlrETfY",
+  authDomain: "pointmgmt-b8b87.firebaseapp.com",
+  projectId: "pointmgmt-b8b87",
+  storageBucket: "pointmgmt-b8b87.firebasestorage.app",
+  messagingSenderId: "966337707500",
+  appId: "1:966337707500:web:e4762479cb69abe7abd4c9"};
+        
+        // --- เริ่มต้นระบบ ---
+         const app = initializeApp(firebaseConfig);
+         const db = getFirestore(app);
+        
+        // ทดสอบเชื่อมต่อ (เมื่อใส่ Config แล้วให้เอาคอมเมนต์ออก)
+        
+        const statusEl = document.getElementById('connection-status');
+        try {
+            // ลองดึงข้อมูลเล่นๆ เพื่อเช็ค
+            const appId = 'activeredpoint'; // ID เดิม
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'students'), (snapshot) => {
+                statusEl.innerHTML = `🟢 เชื่อมต่อแล้ว! พบนักเรียน ${snapshot.size} คน`;
+                statusEl.classList.remove('text-white/60');
+                statusEl.classList.add('text-green-300', 'font-bold');
+            });
+        } catch (e) {
+            statusEl.textContent = '🔴 เชื่อมต่อล้มเหลว: ' + e.message;
+        }
+        
+    // --- 🎮 GENIUS GAME LOGIC ---
+
+    // 1. Config & Data
+    const geniusLadder = [
+        100, 200, 300, 500,    // Level 1-4 (ชั้นประถมต้น)
+        1000, 2000, 4000,      // Level 5-7 (ชั้นประถมปลาย)
+        8000, 15000, 30000     // Level 8-10 (ชั้นมัธยม/บอส)
+    ];
+
+    // 🏆 คลังข้อสอบ (คุณออฟเพิ่มตรงนี้ได้เลยครับ!)
+    const questionBank = [
+        { c: 'คณิตศาสตร์', q: '5 x 5 + 5 เท่ากับเท่าไหร่?', a: '30' },
+        { c: 'คณิตศาสตร์', q: 'มุมภายในของรูปสามเหลี่ยมรวมกันได้กี่องศา?', a: '180 องศา' },
+        { c: 'ภาษาไทย', q: 'พยัญชนะไทยมีทั้งหมดกี่ตัว?', a: '44 ตัว' },
+        { c: 'ภาษาไทย', q: 'คำว่า "นาฬิกา" เป็นคำยืมจากภาษาอะไร?', a: 'ภาษาบาลี' },
+        { c: 'วิทยาศาสตร์', q: 'ดาวเคราะห์ดวงใดอยู่ใกล้ดวงอาทิตย์ที่สุด?', a: 'ดาวพุธ' },
+        { c: 'วิทยาศาสตร์', q: 'น้ำเดือดที่อุณหภูมิกี่องศาเซลเซียส?', a: '100 องศา' },
+        { c: 'ภาษาอังกฤษ', q: 'คำว่า "Cat" แปลว่าอะไร?', a: 'แมว' },
+        { c: 'ภาษาอังกฤษ', q: 'Past Tense ของ "Go" คือคำว่าอะไร?', a: 'Went' },
+        { c: 'สังคมศึกษา', q: 'ประเทศไทยมีกี่ฤดู (อย่างเป็นทางการ)?', a: '3 ฤดู' },
+        { c: 'สังคมศึกษา', q: 'จังหวัดที่อยู่เหนือสุดของไทยคือจังหวัดอะไร?', a: 'เชียงราย' },
+        { c: 'ความรู้รอบตัว', q: 'แมนยูฯ มีฉายาในภาษาไทยว่าอะไร?', a: 'ปีศาจแดง' },
+        { c: 'เชาวน์ปัญญา', q: 'เดือนอะไรมี 28 วัน?', a: 'ทุกเดือน' }
+    ];
+
+    let currentLevel = 0;
+    let currentQuestion = null;
+    let currentPlayerId = null;
+    let currentPlayerName = '';
+
+    // 2. Main Functions
+    window.openGeniusGame = async () => {
+        // โหลดรายชื่อนักเรียนใส่ Dropdown (ดึงจาก Firebase)
+        const select = document.getElementById('genius-player-select');
+        select.innerHTML = '<option value="">-- กำลังโหลด... --</option>';
+        
+        try {
+            const snapshot = await getDocs(collection(db, 'artifacts', activeredpoint, 'public', 'data', 'students')); // *แก้ appId ให้ตรงกับของจริง*
+            // หมายเหตุ: เนื่องจากในไฟล์ fun.html เราอาจไม่ได้ประกาศ students เป็น global
+            // เราดึงสดใหม่ๆ เลยชัวร์กว่าสำหรับหน้านี้
+            
+            let options = '<option value="">-- เลือกผู้เล่น --</option>';
+            snapshot.forEach(doc => {
+                const s = doc.data();
+                options += `<option value="${s.id}">${s.full_name} (${s.student_id})</option>`;
+            });
+            select.innerHTML = options;
+        } catch (e) {
+            console.error(e); // ถ้าดึงไม่ได้ อาจต้องใช้ข้อมูล Mockup หรือแจ้งเตือน
+            select.innerHTML = '<option value="">(ไม่สามารถโหลดรายชื่อได้)</option>';
+        }
+
+        document.getElementById('game-genius-modal').classList.remove('hidden');
+        resetGeniusGame();
+    };
+
+    window.closeGeniusGame = () => {
+        document.getElementById('game-genius-modal').classList.add('hidden');
+    };
+
+    window.startGeniusGame = () => {
+        const select = document.getElementById('genius-player-select');
+        if (!select.value) return Swal.fire('ลืมเลือกผู้เล่น!', 'กรุณาเลือกนักเรียนที่จะมาท้าชิงก่อนครับ', 'warning');
+
+        currentPlayerId = select.value;
+        currentPlayerName = select.options[select.selectedIndex].text;
+        
+        // Switch UI
+        document.getElementById('genius-stage-start').classList.add('hidden');
+        document.getElementById('genius-stage-play').classList.remove('hidden');
+        document.getElementById('genius-stage-play').classList.add('animate__fadeInUp');
+        
+        currentLevel = 0;
+        loadLevel();
+    };
+
+    window.resetGeniusGame = () => {
+        document.getElementById('genius-stage-start').classList.remove('hidden');
+        document.getElementById('genius-stage-play').classList.add('hidden');
+        document.getElementById('genius-stage-end').classList.add('hidden');
+        renderLadder();
+    };
+
+    // 3. Game Flow
+    function renderLadder() {
+        const container = document.getElementById('genius-ladder');
+        container.innerHTML = geniusLadder.map((points, index) => {
+            let activeClass = "";
+            if (index === currentLevel) activeClass = "bg-yellow-500 text-black border-yellow-300 scale-105 shadow-[0_0_15px_rgba(234,179,8,0.5)] z-10";
+            else if (index < currentLevel) activeClass = "bg-green-600 text-green-100 border-green-500 opacity-50";
+            else activeClass = "bg-slate-700 text-slate-400 border-slate-600";
+
+            return `
+            <div class="flex items-center justify-between px-3 py-2 rounded border-l-4 transition-all ${activeClass}">
+                <span class="text-xs font-bold mr-2">LV ${index + 1}</span>
+                <span class="font-mono font-bold">${points.toLocaleString()}</span>
+            </div>`;
+        }).join('');
+    }
+
+    function loadLevel() {
+        renderLadder();
+        
+        // Reset UI
+        document.getElementById('btn-reveal').classList.remove('hidden');
+        document.getElementById('btn-correct').classList.add('hidden');
+        document.getElementById('btn-wrong').classList.add('hidden');
+        document.getElementById('q-answer-box').classList.add('hidden');
+
+        // Random Question
+        const randomIndex = Math.floor(Math.random() * questionBank.length);
+        currentQuestion = questionBank[randomIndex];
+
+        // Animate Text
+        const qText = document.getElementById('q-text');
+        qText.style.opacity = '0';
+        qText.innerHTML = currentQuestion.q;
+        setTimeout(() => qText.style.opacity = '1', 300);
+
+        document.getElementById('q-category').textContent = currentQuestion.c;
+    }
+
+    window.revealAnswer = () => {
+        document.getElementById('btn-reveal').classList.add('hidden');
+        document.getElementById('btn-correct').classList.remove('hidden');
+        document.getElementById('btn-wrong').classList.remove('hidden');
+
+        const ansBox = document.getElementById('q-answer-box');
+        document.getElementById('q-answer-text').textContent = currentQuestion.a;
+        ansBox.classList.remove('hidden');
+        // Play sound effect here if available
+    };
+
+    window.judgeAnswer = async (isCorrect) => {
+        if (isCorrect) {
+            // ✅ ตอบถูก
+            Swal.fire({
+                title: 'ถูกต้องนะคร้าบ! 🎉',
+                text: `รับไปเลย ${geniusLadder[currentLevel]} แต้ม!`,
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false,
+                backdrop: `rgba(0,0,123,0.4)`
+            });
+
+            currentLevel++;
+            if (currentLevel >= geniusLadder.length) {
+                endGame(true); // ชนะเกม (ครบทุกข้อ)
+            } else {
+                loadLevel(); // ไปข้อต่อไป
+            }
+
+        } else {
+            // ❌ ตอบผิด -> จบเกมทันที
+            Swal.fire({
+                title: 'ผิดครับ! 😭',
+                text: 'เสียใจด้วยนะครับ ไว้มาแก้ตัวใหม่น้า',
+                icon: 'error',
+                confirmButtonColor: '#d33'
+            });
+            endGame(false);
+        }
+    };
+
+    async function endGame(isWin) {
+        // คำนวณรางวัล (ถ้าตอบผิด ได้ 0 หรือจะได้รางวัลขั้นล่าสุดที่ทำได้ ก็แก้ตรงนี้)
+        // Logic: ถ้าแพ้ ได้ 0 หรือถ้าชนะได้เต็ม
+        // ปรับ: ถ้าแพ้ ให้ได้แต้มสะสมจากข้อที่แล้ว (currentLevel - 1)
+        
+        let rewardIndex = currentLevel - 1;
+        let finalReward = rewardIndex >= 0 ? geniusLadder[rewardIndex] : 0;
+        
+        // ถ้าตอบผิด ให้หารครึ่งเป็นค่าปลอบใจดีไหม? หรือให้ 0 เลย (โหดๆ) 
+        // เอาแบบ: ถ้าตอบผิด ได้ครึ่งหนึ่งของข้อล่าสุดที่ทำได้
+        if (!isWin && finalReward > 0) {
+            finalReward = Math.floor(finalReward / 2);
+        }
+
+        document.getElementById('genius-stage-play').classList.add('hidden');
+        document.getElementById('genius-stage-end').classList.remove('hidden');
+        document.getElementById('end-player-name').textContent = currentPlayerName;
+        document.getElementById('end-score').textContent = finalReward.toLocaleString();
+
+        // 🎉 บันทึกแต้มลง Firebase จริงๆ!
+        if (finalReward > 0 && currentPlayerId) {
+            try {
+                const sRef = doc(db, 'artifacts', appId, 'public', 'data', 'students', currentPlayerId);
+                const hRef = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
+                
+                await updateDoc(sRef, { 
+                    points: increment(finalReward) 
+                });
+                
+                await setDoc(hRef, {
+                    student_id: currentPlayerId,
+                    student_name: currentPlayerName,
+                    action: 'รางวัลห้องเรียนอัจฉริยะ',
+                    amount: finalReward,
+                    type: 'add_points',
+                    reason: `ตอบถูกถึง Level ${currentLevel}`,
+                    timestamp: serverTimestamp() // อย่าลืม import serverTimestamp ด้วยนะครับ
+                });
+                
+                // เอฟเฟกต์พลุ (ใช้ SweetAlert)
+                // Swal.fire('บันทึกแต้มแล้ว!', 'เก่งมากครับ', 'success');
+            } catch (e) {
+                console.error("Error giving reward:", e);
+                Swal.fire('Error', 'เกิดข้อผิดพลาดในการบันทึกแต้ม', 'error');
+            }
+        }
+    }
+    </script>
+</body>
+</html>
