@@ -242,7 +242,7 @@
                         </div>
                         <div class="bg-red-50 px-6 py-3 rounded-xl border border-red-100">
                             <span class="block text-xs text-red-600 uppercase font-bold tracking-wider">การ์ดแดง</span>
-                            <span id="std-dash-red" class="text-3xl font-bold text-red-700">0</span>
+                            
                         </div>
                     </div>
                 </div>
@@ -310,12 +310,7 @@
             <button onclick="showBulkPointsModal('remove', false)" class="btn-action bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-md font-bold shadow-sm flex items-center gap-2" title="ลดแต้ม">
                 ➖ <span class="hidden lg:inline">แต้ม</span>
             </button>
-            <button onclick="showBulkPointsModal('add', true)" class="btn-action bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md font-bold shadow-sm flex items-center gap-2" title="แจกใบแดง">
-                🟥+
-            </button>
-            <button onclick="showBulkPointsModal('remove', true)" class="btn-action bg-red-800 hover:bg-red-900 text-white px-3 py-2 rounded-md font-bold shadow-sm flex items-center gap-2 border border-red-700" title="ลบใบแดง">
-                🟥-
-            </button>
+            
         </div>
 
         <div class="flex gap-1 p-1 bg-slate-800 rounded-lg border border-slate-700" id="single-action-group">
@@ -360,7 +355,7 @@
                                 <th class="px-2 py-4 text-center font-bold text-green-600">ดอกเบี้ย</th>
                                 <th class="px-2 py-4 text-center font-bold text-emerald-700">รวมถอนได้</th>
                                 
-                                <th class="px-2 py-4 text-center font-bold text-red-600 cursor-pointer" onclick="sortStudents('red_cards')">ใบแดง ↕</th>
+                               
                                 <th class="px-2 py-4 text-center font-bold">จัดการ</th>
                             </tr>
                         </thead>
@@ -574,42 +569,8 @@
             </div>
         </div>
 
-        <!-- ============ PUNISHMENT TAB (Teacher Only) ============ -->
-        <div id="content-punishment" class="tab-content hidden h-full overflow-y-auto">
-             <!-- Manual Controls (Back to Classic) -->
-             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div class="bg-red-50 p-6 rounded-xl border border-red-100">
-                    <h3 class="font-bold text-red-800 text-lg mb-2">บทลงโทษ: หักแต้มตามใบแดง</h3>
-                    <div class="flex items-center gap-4">
-                        <input type="number" id="points-per-red-card" class="w-24 px-3 py-2 border rounded-lg text-center font-bold" 
-                               value="0" onchange="savePunishmentRate()" onkeydown="if(event.key==='Enter') this.blur()">
-                        <span class="text-red-700">แต้ม / 1 ใบ</span>
-                    </div>
-                    <!-- Manual Button Restored -->
-                    <button onclick="deductAllRedCardPoints()" class="mt-4 w-full bg-white border border-red-200 text-red-600 hover:bg-red-100 py-3 rounded-lg font-bold shadow-sm transition-colors flex items-center justify-center gap-2">
-                        <span>⚡</span> หักแต้มเดี๋ยวนี้ (Manual)
-                    </button>
-                </div>
-                
-                <div class="bg-green-50 p-6 rounded-xl border border-green-100">
-                    <h3 class="font-bold text-green-800 text-lg mb-2">ล้างมลทิน: แลกแต้มลบใบแดง</h3>
-                    <div class="flex items-center gap-4">
-                        <input type="number" id="points-to-clear-red-card" class="w-24 px-3 py-2 border rounded-lg text-center font-bold" 
-                               value="0" onchange="saveClearRedCardRate()" onkeydown="if(event.key==='Enter') this.blur()">
-                        <span class="text-green-700">แต้ม / 1 ใบ</span>
-                    </div>
-                </div>
-             </div>
-             
-             <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
-                <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                    <h3 class="font-bold text-gray-800">รายชื่อนักเรียนที่มีใบแดง</h3>
-                </div>
-                <div id="punishment-student-list" class="block max-h-[500px] overflow-y-auto">
-                    <!-- JS Generated -->
-                </div>
-             </div>
-        </div>
+       
+        
 
         <!-- ============ SETTINGS TAB (Teacher Only) ============ -->
         <div id="content-settings" class="tab-content hidden h-full overflow-y-auto">
@@ -1701,7 +1662,6 @@ const appId = 'activeredpoint';
                 
                 <button onclick="switchTab('history')" id="tab-history" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">ประวัติ</button>
                 <button onclick="switchTab('rewards')" id="tab-rewards" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">รางวัล</button>
-                <button onclick="switchTab('punishment')" id="tab-punishment" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">บทลงโทษ</button>
                 
                 <button onclick="switchTab('report')" id="tab-report" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">รายงานผล</button>
                 <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">ตั้งค่า</button>
@@ -2178,9 +2138,7 @@ const appId = 'activeredpoint';
                     ${Math.floor(totalWithdrawable).toLocaleString()}
                 </td>
 
-                <td class="px-2 py-3 text-center">
-                     ${s.red_cards > 0 ? `<span class="bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-bold">${s.red_cards}</span>` : '-'}
-                </td>
+                
 
                 <td class="px-2 py-3 text-center" onclick="event.stopPropagation()">
                     <div class="flex items-center justify-center gap-1">
@@ -2204,38 +2162,7 @@ const appId = 'activeredpoint';
         updateBulkUI();
     };
 
-    function renderPunishmentList() {
-        const punishmentBody = document.getElementById('punishment-student-list');
-        if (punishmentBody) {
-            const badStudents = students.filter(s => s.red_cards > 0);
-            
-            punishmentBody.innerHTML = badStudents.length ? badStudents.map(s => {
-                const totalCost = s.red_cards * (config.clear_rate || 0);
-                const canAfford = s.points >= totalCost;
-                
-                return `
-                 <div class="px-6 py-4 flex items-center justify-between border-b border-gray-100 last:border-0 hover:bg-red-50/30 transition-colors">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold">
-                            ${s.red_cards}
-                        </div>
-                        <div>
-                            <p class="font-bold text-gray-800">${s.full_name}</p>
-                            <p class="text-xs text-gray-500">ห้อง ${s.class_name} • มี ${Math.floor(s.points)} แต้ม</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="clearRedCard('${s.id}')" 
-                            ${!canAfford ? 'disabled' : ''}
-                            class="text-xs border px-3 py-1.5 rounded-lg shadow-sm font-bold ${canAfford ? 'bg-white border-green-200 text-green-700 hover:bg-green-50' : 'bg-gray-200 border-gray-300 text-gray-400 cursor-not-allowed'}">
-                            ล้างทั้งหมด (${totalCost} แต้ม)
-                        </button>
-                    </div>
-                 </div>
-            `;
-            }).join('') : '<div class="p-6 text-center text-gray-400">ยังไม่มีนักเรียนที่ได้รับใบแดง เยี่ยมมาก! 👍</div>';
-        }
-    }
+    
 
     function renderStudentDashboard() {
         if (!currentStudentData) return;
@@ -2248,7 +2175,7 @@ const appId = 'activeredpoint';
         document.getElementById('std-dash-points').textContent = Math.floor(s.points);
         document.getElementById('std-dash-bank').textContent = Math.floor(totalWithdrawable).toLocaleString();
         document.getElementById('std-dash-interest').textContent = Math.floor(interest).toLocaleString();
-        document.getElementById('std-dash-red').textContent = s.red_cards || 0;
+        
         
         const myHistory = history.filter(h => h.student_id === s.id).slice(0, 5);
         document.getElementById('std-history-list').innerHTML = myHistory.length ? myHistory.map(h =>
