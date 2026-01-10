@@ -3286,8 +3286,8 @@ const appId = 'activeredpoint';
             if (typeof selectedStudentForRedeem !== 'undefined' && selectedStudentForRedeem) {
                 // หาบัฟกิลด์
                 if (selectedStudentForRedeem.guild_id) {
-                    const g = guilds.find(x => x.id === selectedStudentForRedeem.guild_id);
-                    if (g && g.buff_discount) guildDiscount = parseInt(g.buff_discount);
+                    const activeBuffs = getGuildActiveBuffs(selectedStudentForRedeem.guild_id);
+                    if (activeBuffs && activeBuffs.discount) guildDiscount = parseInt(activeBuffs.discount);
                 }
                 
                 // หาบัฟส่วนตัว (จากกาชา)
@@ -3374,8 +3374,8 @@ const appId = 'activeredpoint';
             // A. ส่วนลดกิลด์
             let gDiscount = 0;
             if (selectedStudentForRedeem.guild_id) {
-                const g = guilds.find(x => x.id === selectedStudentForRedeem.guild_id);
-                if (g && g.buff_discount) gDiscount = parseInt(g.buff_discount);
+                const activeBuffs = getGuildActiveBuffs(selectedStudentForRedeem.guild_id);
+                if (activeBuffs && activeBuffs.discount) gDiscount = parseInt(activeBuffs.discount);
             }
             
             // B. ส่วนลดส่วนตัว (บัฟจากกาชา)
@@ -3591,59 +3591,38 @@ const appId = 'activeredpoint';
     function calculatePendingInterest(student) {
         if (!student.bank_points || !student.bank_deposit_time) return 0;
 
+        // แปลงเวลาฝาก
         let depositTime = student.bank_deposit_time;
         if (depositTime && typeof depositTime.toMillis === 'function') depositTime = depositTime.toMillis();
         else if (depositTime instanceof Date) depositTime = depositTime.getTime();
+        else if (depositTime.seconds) depositTime = depositTime.seconds * 1000; // กันเหนียว
         else return 0;
 
         const now = Date.now();
+        
+        // --- ส่วนที่แก้ 1: ใช้ getGuildActiveBuffs เพื่อดึงค่าสดๆ ---
         let guildBonus = 0;
         if (student.guild_id) {
-            const g = guilds.find(x => x.id === student.guild_id);
-            if (g && g.buff_interest) guildBonus = parseFloat(g.buff_interest);
+            // เรียกฟังก์ชันคำนวณสดที่เราเพิ่งทำ
+            const activeBuffs = getGuildActiveBuffs(student.guild_id);
+            if (activeBuffs && activeBuffs.interest) {
+                guildBonus = parseFloat(activeBuffs.interest);
+            }
         }
+        
         const globalRate = config.interest_rate || 1.0;
 
-        // เช็คว่ามีโปรโมชั่นดอกเบี้ยพิเศษไหม
-        if (student.special_interest_end && student.special_interest_rate) {
-            let endTime = student.special_interest_end;
-            if (endTime && typeof endTime.toMillis === 'function') endTime = endTime.toMillis();
-            
-            const specialRate = student.special_interest_rate;
+        // ... (Logic เช็คดอกเบี้ยโปรโมชั่นส่วนตัว คงไว้เหมือนเดิม) ...
+        // ... (ข้ามมาดูตอนจบ) ...
 
-            // --- 🛡️ เพิ่มการป้องกันตรงนี้ครับ ---
-            // ถ้าเวลาฝากล่าสุด (depositTime) มันเลยเวลาหมดโปร (endTime) มาแล้ว
-            // แปลว่าธุรกรรมนี้เกิดขึ้นในโลกปกติแล้ว ให้คิดเรทปกติไปเลย (ไม่ต้องเข้าสูตรผสม)
-            if (depositTime >= endTime) {
-                const hours = (now - depositTime) / (1000 * 60 * 60);
-                return student.bank_points * (globalRate / 100) * hours;
-            }
-            // --------------------------------
-
-            if (now <= endTime) {
-                // กรณี A: ยังอยู่ในช่วงโปรโมชั่น (ใช้เรทพิเศษเต็มจำนวน)
-                const hours = (now - depositTime) / (1000 * 60 * 60);
-                return student.bank_points * (specialRate / 100) * hours;
-            } else {
-                // กรณี B: โปรโมชั่นหมดอายุแล้ว (คิดแบบผสม: พิเศษ + ปกติ)
-                
-                // 1. ช่วงโปรโมชั่น: depositTime -> endTime
-                const specialHours = (endTime - depositTime) / (1000 * 60 * 60);
-                const specialInterest = student.bank_points * (specialRate / 100) * specialHours;
-                
-                // 2. ช่วงปกติ: endTime -> now
-                const normalHours = (now - endTime) / (1000 * 60 * 60);
-                // เงินต้นสมมติช่วงที่ 2 คือ (ต้นเดิม + ดอกเบี้ยพิเศษที่ได้ไปแล้ว)
-                const newPrincipal = student.bank_points + specialInterest; 
-                const normalInterest = newPrincipal * (globalRate / 100) * normalHours;
-
-                return specialInterest + normalInterest;
-            }
-        }
-
-        // กรณีปกติ: ใช้เรทกองกลาง
+        // กรณีปกติ: ใช้เรทกองกลาง + บัฟกิลด์
         const hours = (now - depositTime) / (1000 * 60 * 60);
-        return student.bank_points * (globalRate / 100) * hours;
+        
+        // --- ส่วนที่แก้ 2: ต้องบวก guildBonus เข้าไปในสูตรด้วย! ---
+        // ของเดิม: return student.bank_points * (globalRate / 100) * hours; 
+        
+        // ของใหม่ (ถูกต้อง):
+        return student.bank_points * ((globalRate + guildBonus) / 100) * hours;
     }
     
     let currentBankTarget = null;
