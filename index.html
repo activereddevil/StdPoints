@@ -240,9 +240,36 @@
                         
                             <div class="absolute -right-4 -bottom-4 text-green-200/50 text-6xl select-none pointer-events-none">฿</div>
                         </div>
-                        <div class="bg-red-50 px-6 py-3 rounded-xl border border-red-100">
-                            <span class="block text-xs text-red-600 uppercase font-bold tracking-wider">การ์ดแดง</span>
-                            
+                        
+                    </div>
+                </div>
+            </div>
+            <div id="std-warning-section" class="mt-6 hidden animate-bounce-in">
+                <div class="bg-yellow-50 rounded-2xl border-2 border-yellow-200 p-5 relative overflow-hidden shadow-sm">
+                    <div class="absolute -right-6 -top-6 text-yellow-100 text-9xl select-none pointer-events-none">⚠️</div>
+                    
+                    <div class="relative z-10 flex flex-col md:flex-row gap-6 items-start">
+                        <div class="flex items-center gap-4 min-w-[200px]">
+                            <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center text-3xl border-2 border-yellow-200 shadow-inner">
+                                👮
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-800 text-lg">ติดสถานะใบเตือน!</h3>
+                                <p class="text-sm text-yellow-800">
+                                    โดนไปแล้ว <span id="std-dash-warning-count" class="font-bold text-red-600 text-xl">0</span> ใบ
+                                </p>
+                                <div id="std-dash-pending-box" class="hidden mt-1 inline-block bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded border border-red-200 font-bold">
+                                    🔒 อายัด: <span id="std-dash-pending-points">0</span> แต้ม
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex-1 w-full bg-white/60 rounded-xl p-4 border border-yellow-100 backdrop-blur-sm">
+                            <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+                                📜 ภารกิจลบล้างโทษ
+                            </h4>
+                            <div id="std-dash-missions" class="space-y-2">
+                                </div>
                         </div>
                     </div>
                 </div>
@@ -312,7 +339,7 @@
             </button>
             <div class="flex gap-1 p-1 bg-slate-800 rounded-lg border border-slate-700 ml-2">
                 <button onclick="showBulkWarningModal('add')" class="btn-action bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-md font-bold shadow-sm flex items-center gap-2" title="แจกใบเตือน">
-                    ⚠️ <span class="hidden lg:inline">+เตือน</span>
+                    ⚠️ <span class="hidden lg:inline">เตือน</span>
                 </button>
                 <button onclick="showBulkWarningModal('remove')" class="btn-action bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-md font-bold shadow-sm flex items-center gap-2" title="ลดใบเตือน">
                     🛡️ <span class="hidden lg:inline">-เตือน</span>
@@ -323,13 +350,13 @@
 
         <div class="flex gap-1 p-1 bg-slate-800 rounded-lg border border-slate-700" id="single-action-group">
             <button onclick="handleStickySingleAction('shop')" class="btn-single bg-amber-500 hover:bg-amber-600 text-white px-3 py-2 rounded-md font-bold shadow-sm flex items-center gap-2 transition-all">
-                💰 <span class="hidden lg:inline">แลกของ</span>
+                💰 <span class="hidden lg:inline">แลก</span>
             </button>
             <button onclick="showBulkGiveRewardModal()" class="btn-action bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-md font-bold shadow-sm flex items-center gap-2" title="แจกของขวัญ/กล่องสุ่ม">
-                🎁 <span class="hidden lg:inline">แจกของ</span>
+                🎁 <span class="hidden lg:inline">แจก</span>
             </button>
             <button onclick="handleStickySingleAction('inventory')" class="btn-single bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-2 rounded-md font-bold shadow-sm flex items-center gap-2 transition-all">
-                🎒 <span class="hidden lg:inline">กระเป๋า</span>
+                🎒 <span class="hidden lg:inline">ไอเทม</span>
             </button>
             <button onclick="handleStickySingleAction('edit')" class="btn-single bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-2 rounded-md font-bold shadow-sm flex items-center gap-2 transition-all">
                 ✏️ <span class="hidden lg:inline">แก้ไข</span>
@@ -652,15 +679,29 @@
     
                             <div id="buff-rules-container" class="space-y-6"></div>
     
-                            <div class="mt-6 pt-6 border-t border-blue-50">
+                            <div class="mt-6 pt-6 border-t border-gray-100">
                                 <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                                    😇 กฎเด็กดี (Good Guild)
+                                    😇 กฎเด็กดี (Good Guild) - ฉบับเข้มข้น
                                 </label>
-                                <div class="flex items-center gap-3 bg-green-50 p-3 rounded-lg border border-green-100">
-                                    <span class="text-sm text-green-800">หากสมาชิกทุกคนในกิลด์ <b>"ไร้ใบแดง"</b> จะได้รับส่วนลดเพิ่ม:</span>
-                                    <div class="flex items-center gap-2">
-                                        <input type="number" id="rule-good-discount" class="border border-green-300 rounded-md w-20 px-2 py-1 text-center font-bold text-green-700 outline-none" placeholder="0"> 
-                                        <span class="font-bold text-green-700">%</span>
+                                
+                                <div class="bg-orange-50 p-4 rounded-xl border border-orange-200">
+                                    <div class="flex items-start gap-3">
+                                        <div class="text-2xl mt-1">⚠️</div>
+                                        <div class="flex-1">
+                                            <span class="text-sm font-bold text-orange-800 block mb-1">
+                                                เงื่อนไข: กิลด์ต้อง "ไร้ใบเตือน (ใบเหลือง)" 100%
+                                            </span>
+                                            <p class="text-xs text-orange-700 mb-3 leading-relaxed">
+                                                หากสมาชิกในกิลด์ทุกคน <b>ไม่มีใบเตือนติดตัวเลย</b> จะได้รับส่วนลดพิเศษเพิ่มทันที<br>
+                                                (แต่ถ้ามีใครโดนใบเตือนแม้แต่คนเดียว บัฟนี้จะหายไปทั้งกิลด์!)
+                                            </p>
+                                            
+                                            <div class="flex items-center gap-3 bg-white p-2 rounded-lg border border-orange-100 w-fit">
+                                                <span class="text-sm font-bold text-gray-600">รับส่วนลดเพิ่ม:</span>
+                                                <input type="number" id="rule-good-discount" class="border border-orange-300 rounded-md w-20 px-2 py-1 text-center font-bold text-orange-600 outline-none focus:ring-2 focus:ring-orange-200" placeholder="0"> 
+                                                <span class="font-bold text-orange-600">%</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1895,24 +1936,39 @@ const appId = 'activeredpoint';
                 if (userRole === 'teacher') {
                      // Check if focused to avoid overwriting while typing
                     
-                     if (document.activeElement.id !== 'new-interest-rate') {
-                        document.getElementById('new-interest-rate').value = config.interest_rate || 1.0;
-                     }
-                     if (document.activeElement.id !== 'points-per-red-card') {
-                        document.getElementById('points-per-red-card').value = config.deduct_rate || 0;
-                     }
-                     if (document.activeElement.id !== 'points-to-clear-red-card') {
-                        document.getElementById('points-to-clear-red-card').value = config.clear_rate || 0;
-                     }
-                     if (document.activeElement.id !== 'config-max-guild-members') {
-                        document.getElementById('config-max-guild-members').value = config.max_guild_members || 0;
-                     }
-                     if(document.getElementById('config-guild-cooldown')) {
-                        document.getElementById('config-guild-cooldown').value = config.guild_rule_cooldown || 0;
-                     }
-                    if(document.getElementById('config-guild-fee')) {
-                     document.getElementById('config-guild-fee').value = config.guild_rule_fee || 0;
-                    }
+                     // 1. อัปเดตดอกเบี้ย (มีเช็ค activeElement เพื่อไม่ให้กวนตอนพิมพ์)
+    const elInterest = document.getElementById('new-interest-rate');
+    if (elInterest && document.activeElement.id !== 'new-interest-rate') {
+        elInterest.value = config.interest_rate || 1.0;
+    }
+
+    // 2. อัปเดตค่าปรับใบแดง (🔥 ตัวต้นเหตุ: ใส่ if ดักไว้ กัน Error)
+    const elDeduct = document.getElementById('points-per-red-card');
+    if (elDeduct && document.activeElement.id !== 'points-per-red-card') {
+        elDeduct.value = config.deduct_rate || 0;
+    }
+
+    // 3. อัปเดตค่าล้างใบแดง (🔥 ใส่ if ดักไว้เช่นกัน)
+    const elClear = document.getElementById('points-to-clear-red-card');
+    if (elClear && document.activeElement.id !== 'points-to-clear-red-card') {
+        elClear.value = config.clear_rate || 0;
+    }
+
+    // 4. อัปเดตตั้งค่ากิลด์ (เป้าหมายของเรา ✅)
+    const elGuildMax = document.getElementById('config-max-guild-members');
+    if (elGuildMax && document.activeElement.id !== 'config-max-guild-members') {
+        elGuildMax.value = config.max_guild_members || 0;
+    }
+
+    const elGuildCool = document.getElementById('config-guild-cooldown');
+    if (elGuildCool && document.activeElement.id !== 'config-guild-cooldown') {
+        elGuildCool.value = config.guild_rule_cooldown || 0;
+    }
+
+    const elGuildFee = document.getElementById('config-guild-fee');
+    if (elGuildFee && document.activeElement.id !== 'config-guild-fee') {
+        elGuildFee.value = config.guild_rule_fee || 0;
+    }
                      renderBankList(false); // Trigger update for teacher view
                 } else if (userRole === 'student') {
                      renderStudentDashboard(); // Trigger update for student view
@@ -2269,7 +2325,43 @@ const appId = 'activeredpoint';
         document.getElementById('std-dash-points').textContent = Math.floor(s.points);
         document.getElementById('std-dash-bank').textContent = Math.floor(totalWithdrawable).toLocaleString();
         document.getElementById('std-dash-interest').textContent = Math.floor(interest).toLocaleString();
-        
+        const warningSection = document.getElementById('std-warning-section');
+        const warningCount = s.warning_cards || 0;
+
+        if (warningCount > 0) {
+            warningSection.classList.remove('hidden'); // โชว์แผงเตือน
+            
+            // 1. อัปเดตจำนวนใบเตือน
+            document.getElementById('std-dash-warning-count').textContent = warningCount;
+            
+            // 2. อัปเดตแต้มที่อายัด (Pending)
+            const pendingBox = document.getElementById('std-dash-pending-box');
+            if ((s.pending_points || 0) > 0) {
+                pendingBox.classList.remove('hidden');
+                document.getElementById('std-dash-pending-points').textContent = s.pending_points.toLocaleString();
+            } else {
+                pendingBox.classList.add('hidden');
+            }
+
+            // 3. อัปเดตรายการภารกิจ
+            const missionContainer = document.getElementById('std-dash-missions');
+            if (s.active_missions && s.active_missions.length > 0) {
+                missionContainer.innerHTML = s.active_missions.map(m => `
+                    <div class="flex items-start gap-2 text-sm text-gray-700 bg-white p-2 rounded border border-yellow-100 shadow-sm">
+                        <span class="text-red-500 mt-0.5">▫️</span>
+                        <span>${m}</span>
+                    </div>
+                `).join('');
+            } else {
+                missionContainer.innerHTML = `
+                    <div class="text-center py-2 text-yellow-600 text-sm italic bg-yellow-50/50 rounded-lg border border-dashed border-yellow-300">
+                        ยังไม่ได้รับภารกิจ (ติดต่อครูประจำชั้น)
+                    </div>`;
+            }
+
+        } else {
+            warningSection.classList.add('hidden'); // ซ่อนแผงเตือน (ถ้าเป็นเด็กดี)
+        }
         
         const myHistory = history.filter(h => h.student_id === s.id).slice(0, 5);
         document.getElementById('std-history-list').innerHTML = myHistory.length ? myHistory.map(h =>
@@ -6313,66 +6405,75 @@ const appId = 'activeredpoint';
     // 🛠️ NEW BUFF SYSTEM (ระบบคำนวณบัฟแบบใหม่)
     // ==========================================
 
-    // 1. ฟังก์ชันดึงค่าบัฟปัจจุบันของกิลด์ (คำนวณสด)
-    window.getGuildActiveBuffs = (guildId) => {
-        const g = guilds.find(x => x.id === guildId);
-        // ใช้ activeBuffRules ที่โหลดมาแล้ว หรือ config.buff_rules
-        const rules = window.activeBuffRules || config.buff_rules; 
-        
-        if (!g || !rules) return { interest: 0, discount: 0, point_boost: 0 };
+    // 1. ฟังก์ชันดึงค่าบัฟปัจจุบันของกิลด์ (กฎไร้ใบเหลือง)
+window.getGuildActiveBuffs = (guildId) => {
+    const g = guilds.find(x => x.id === guildId);
+    const rules = window.activeBuffRules || config.buff_rules; 
+    
+    if (!g || !rules) return { interest: 0, discount: 0, point_boost: 0 };
 
-        let totalInterest = 0;
-        let totalDiscount = 0;
-        let totalBoost = 0;
+    let totalInterest = 0;
+    let totalDiscount = 0;
+    let totalBoost = 0;
 
-        // คำนวณแต้มรวมและอันดับกิลด์
-        const allGuildStats = guilds.map(gx => {
-             const mems = students.filter(s => s.guild_id === gx.id);
-             return { id: gx.id, pts: mems.reduce((sum, s) => sum + (s.points || 0), 0) };
-        }).sort((a,b) => b.pts - a.pts);
+    // ... (ส่วนคำนวณ Wealth Tiers และ Rank Rules คงไว้เหมือนเดิม) ...
+    // ... (ก๊อปปี้ส่วน Wealth/Rank จากโค้ดเก่ามาใส่ตรงนี้ได้เลยครับ) ...
+    // เพื่อความชัวร์ ผมใส่โค้ดเต็มของส่วน Wealth/Rank ให้ด้านล่างนี้ครับ 👇
 
-        const myStats = allGuildStats.find(x => x.id === guildId);
-        const myRank = allGuildStats.findIndex(x => x.id === guildId) + 1;
-        const myPoints = myStats ? myStats.pts : 0;
+    // --- ส่วนคำนวณ Wealth & Rank (เหมือนเดิม) ---
+    const allGuildStats = guilds.map(gx => {
+            const mems = students.filter(s => s.guild_id === gx.id);
+            return { id: gx.id, pts: mems.reduce((sum, s) => sum + (s.points || 0), 0) };
+    }).sort((a,b) => b.pts - a.pts);
+    const myStats = allGuildStats.find(x => x.id === guildId);
+    const myRank = allGuildStats.findIndex(x => x.id === guildId) + 1;
+    const myPoints = myStats ? myStats.pts : 0;
 
-        // --- กฎที่ 1: เศรษฐี (Wealth Tiers) ---
-        if (rules.wealth_tiers) {
-            const tiers = rules.wealth_tiers.sort((a,b) => b.min - a.min);
-            const reached = tiers.find(t => myPoints >= t.min);
-            if (reached) {
-                totalInterest += (reached.interest || 0);
-                totalDiscount += (reached.discount || 0);
-                totalBoost += (reached.boost || 0);
-            }
+    if (rules.wealth_tiers) {
+        const tiers = rules.wealth_tiers.sort((a,b) => b.min - a.min);
+        const reached = tiers.find(t => myPoints >= t.min);
+        if (reached) {
+            totalInterest += (reached.interest || 0);
+            totalDiscount += (reached.discount || 0);
+            totalBoost += (reached.boost || 0);
         }
-
-        // --- กฎที่ 2: จ่าฝูง (Rank Rules) ---
-        if (rules.rank_rules) {
-            const rankBuff = rules.rank_rules[myRank];
-            if (rankBuff) {
-                totalInterest += (rankBuff.interest || 0);
-                totalDiscount += (rankBuff.discount || 0);
-                totalBoost += (rankBuff.boost || 0);
-            }
+    }
+    if (rules.rank_rules) {
+        const rankBuff = rules.rank_rules[myRank];
+        if (rankBuff) {
+            totalInterest += (rankBuff.interest || 0);
+            totalDiscount += (rankBuff.discount || 0);
+            totalBoost += (rankBuff.boost || 0);
         }
+    }
+    // ------------------------------------------
 
-        // --- ✨ กฎที่ 3: เด็กดี (Good Guild) - ไร้ใบแดง ---
-        // ดึงสมาชิกเพื่อเช็คใบแดงสดๆ
-        const myMembers = students.filter(s => s.guild_id === guildId);
-        const totalRedCards = myMembers.reduce((sum, s) => sum + (s.red_cards || 0), 0);
+    // 🔥🔥🔥 จุดที่แก้: กฎเด็กดี (Good Guild) - เปลี่ยนเป็นเช็คใบเตือน 🔥🔥🔥
+    const myMembers = students.filter(s => s.guild_id === guildId);
+    
+    // นับจำนวนใบเตือนรวมของทุกคนในกิลด์
+    const totalWarningCards = myMembers.reduce((sum, s) => sum + (s.warning_cards || 0), 0);
 
-        // เงื่อนไข: ต้องมีสมาชิกอย่างน้อย 1 คน และ ใบแดงรวมต้องเป็น 0
-        if (myMembers.length > 0 && totalRedCards === 0) {
-            const goodDisc = parseInt(rules.good_discount) || 0;
-            totalDiscount += goodDisc;
-        }
+    // เงื่อนไขใหม่: ต้องมีสมาชิก และ "ใบเตือนต้องเป็น 0"
+    if (myMembers.length > 0 && totalWarningCards === 0) {
+        const goodDisc = parseInt(rules.good_discount) || 0;
+        totalDiscount += goodDisc;
+    } 
+    // ถ้ามีใบเตือนแม้แต่ใบเดียว (totalWarningCards > 0) -> ไม่บวกเพิ่ม
+    // และถ้าระบบ "ปลาเน่า" ทำงาน (Collective Penalty) มันจะไปตัดส่วนลดทั้งหมดทิ้งอีกที (ตามที่คุยกันรอบก่อน)
+    
+    // --- เพิ่ม: กฎปลาเน่า (Collective Penalty) ---
+    // ถ้ามีใบเตือน -> ตัดส่วนลดทั้งหมดทิ้ง (Reset เป็น 0)
+    if (totalWarningCards > 0) {
+        totalDiscount = 0; 
+    }
 
-        return {
-            interest: totalInterest,
-            discount: Math.min(100, totalDiscount),
-            point_boost: totalBoost
-        };
+    return {
+        interest: totalInterest,
+        discount: Math.min(100, totalDiscount),
+        point_boost: totalBoost
     };
+};
 
     // 2. ฟังก์ชันคำนวณแต้มที่ได้จริง (รวม Boost)
    // 2. ฟังก์ชันคำนวณแต้มที่ได้จริง (รวม Boost กิลด์ + ส่วนตัว) 🚀
@@ -6947,6 +7048,9 @@ const appId = 'activeredpoint';
     };
 
     // แสดงหน้าคุมประพฤติ (เรียกตอนกดแท็บ หรือ refresh)
+    // เก็บ ID นักเรียนที่ถูกเลือกในหน้าคุมประพฤติ
+    window.selectedPunishmentIds = new Set();
+    // แสดงหน้าคุมประพฤติ (อัปเกรดใหม่: Checkbox + Edit/Delete)
     window.renderPunishmentList = () => {
         const container = document.getElementById('punishment-list');
         if (!container) return;
@@ -6957,6 +7061,27 @@ const appId = 'activeredpoint';
         const countBadge = document.getElementById('punishment-count');
         if (countBadge) countBadge.textContent = guiltyStudents.length;
 
+        // ส่วนหัว: ปุ่มจัดการกลุ่ม (Bulk Actions)
+        let headerHtml = '';
+        if (guiltyStudents.length > 0) {
+            headerHtml = `
+            <div class="flex justify-between items-center mb-4 px-2 sticky top-0 bg-white/90 backdrop-blur-sm z-20 py-2 border-b">
+                <div class="text-sm text-gray-500 font-bold">
+                    เลือก <span id="punishment-sel-count" class="text-indigo-600">${selectedPunishmentIds.size}</span> คน
+                </div>
+                <div class="flex gap-2">
+                     ${selectedPunishmentIds.size > 0 ? `
+                        <button onclick="bulkAddMission()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-1.5 rounded-lg font-bold shadow-sm flex items-center gap-1 transition-all animate-bounce-in">
+                            📝 เพิ่มภารกิจกลุ่ม
+                        </button>
+                        <button onclick="clearPunishmentSelection()" class="bg-gray-200 hover:bg-gray-300 text-gray-600 text-xs px-3 py-1.5 rounded-lg font-bold">
+                            ยกเลิกเลือก
+                        </button>
+                    ` : ''}
+                </div>
+            </div>`;
+        }
+
         if (guiltyStudents.length === 0) {
             container.innerHTML = `<div class="text-center text-gray-400 py-10 flex flex-col items-center">
                 <span class="text-4xl mb-2">🕊️</span>
@@ -6965,43 +7090,65 @@ const appId = 'activeredpoint';
             return;
         }
 
-        container.innerHTML = guiltyStudents.map(s => `
-            <div class="flex flex-col md:flex-row gap-4 items-start bg-yellow-50 p-4 rounded-lg border border-yellow-200 shadow-sm relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-2 opacity-10 text-6xl">⚠️</div>
+        // สร้างรายการการ์ด
+        const listHtml = guiltyStudents.map(s => {
+            const isSelected = selectedPunishmentIds.has(s.id);
+            return `
+            <div class="flex flex-col md:flex-row gap-4 items-start bg-yellow-50 p-4 rounded-lg border ${isSelected ? 'border-indigo-500 ring-2 ring-indigo-200' : 'border-yellow-200'} shadow-sm relative overflow-hidden transition-all">
                 
-                <div class="flex-1 z-10">
+                <div class="absolute top-3 left-3 z-20">
+                    <input type="checkbox" onchange="togglePunishmentSelect('${s.id}')" ${isSelected ? 'checked' : ''} class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500 cursor-pointer">
+                </div>
+
+                <div class="absolute top-0 right-0 p-2 opacity-10 text-6xl pointer-events-none">⚠️</div>
+                
+                <div class="flex-1 z-10 pl-8">
                     <div class="flex items-center gap-2 mb-1">
-                        <span class="font-bold text-lg text-gray-800">${s.full_name}</span>
-                        <span class="bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded border border-red-200">
+                        <span class="font-bold text-lg text-gray-800 cursor-pointer" onclick="togglePunishmentSelect('${s.id}')">${s.full_name}</span>
+                        <span class="bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded border border-red-200 whitespace-nowrap">
                             โดน ${s.warning_cards} ใบ
                         </span>
                     </div>
-                    <div class="text-sm text-gray-600 flex gap-4">
+                    <div class="text-sm text-gray-600 flex flex-wrap gap-x-4 gap-y-1">
                         <span>เลขที่: ${s.student_id}</span>
                         <span class="font-bold text-red-500">🔒 อายัด: ${s.pending_points || 0} แต้ม</span>
                     </div>
                 </div>
 
-                <div class="flex-1 w-full z-10">
+                <div class="flex-1 w-full z-10 pl-8 md:pl-0">
                     <p class="text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-wider">ภารกิจลบล้างโทษ</p>
                     <ul class="space-y-2 mb-2">
                         ${(s.active_missions || []).map((m, idx) => `
-                            <li class="flex items-center justify-between bg-white p-2 rounded border border-yellow-200 text-sm shadow-sm group">
-                                <span class="text-gray-700">▫️ ${m}</span>
-                                <button onclick="removeMission('${s.id}', ${idx})" class="text-green-600 hover:text-green-800 text-xs font-bold bg-green-50 px-2 py-1 rounded hover:bg-green-100 transition-colors">
-                                    ✅ สำเร็จ
-                                </button>
+                            <li class="flex items-center justify-between bg-white p-2 rounded border border-yellow-200 text-sm shadow-sm group hover:border-yellow-400 transition-colors">
+                                <div class="flex items-center gap-2 flex-1 mr-2">
+                                    <span class="text-gray-700 break-words">${m}</span>
+                                    <button onclick="editMission('${s.id}', ${idx}, '${m.replace(/'/g, "\\'")}')" class="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-blue-500 transition-opacity" title="แก้ไขข้อความ">
+                                        ✏️
+                                    </button>
+                                </div>
+                                <div class="flex items-center gap-1 shrink-0">
+                                    <button onclick="deleteMission('${s.id}', ${idx})" class="text-gray-300 hover:text-red-500 p-1 hover:bg-red-50 rounded transition-colors" title="ลบรายการนี้ (ใบเตือนไม่ลด)">
+                                        🗑️
+                                    </button>
+                                    <button onclick="removeMission('${s.id}', ${idx})" class="text-green-600 hover:text-green-800 text-xs font-bold bg-green-50 px-2 py-1 rounded hover:bg-green-100 border border-green-200 transition-colors shadow-sm ml-1">
+                                        ✅ สำเร็จ
+                                    </button>
+                                </div>
                             </li>
                         `).join('')}
                         ${(!s.active_missions || s.active_missions.length === 0) ? '<li class="text-xs text-gray-400 italic">- ยังไม่มีภารกิจ -</li>' : ''}
                     </ul>
+                    
                     <div class="flex gap-2">
-                        <input type="text" id="mission-input-${s.id}" placeholder="เพิ่มภารกิจ (เช่น กวาดห้อง)..." class="flex-1 text-sm border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-yellow-400 outline-none" onkeydown="if(event.key==='Enter') addMission('${s.id}')">
-                        <button onclick="addMission('${s.id}')" class="bg-indigo-600 text-white text-xs px-3 py-1 rounded hover:bg-indigo-700 shadow-sm">เพิ่ม</button>
+                        <input type="text" id="mission-input-${s.id}" placeholder="เพิ่มภารกิจ..." class="flex-1 text-sm border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-yellow-400 outline-none" onkeydown="if(event.key==='Enter') addMission('${s.id}')">
+                        <button onclick="addMission('${s.id}')" class="bg-yellow-500 hover:bg-yellow-600 text-white text-xs px-3 py-1 rounded shadow-sm font-bold">+</button>
                     </div>
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
+
+        container.innerHTML = headerHtml + listHtml;
     };
 
     // เพิ่มภารกิจ
@@ -7197,9 +7344,112 @@ const appId = 'activeredpoint';
             showToast('ไม่มีการเปลี่ยนแปลงข้อมูล (ใบเตือนเป็น 0 อยู่แล้ว)');
         }
     };
+
+    // --- 🛠️ PUNISHMENT TOOLS (Select, Bulk Add, Edit, Delete) ---
+
+    // 1. เลือก/ไม่เลือก นักเรียน (Checkbox)
+    window.togglePunishmentSelect = (id) => {
+        if (selectedPunishmentIds.has(id)) {
+            selectedPunishmentIds.delete(id);
+        } else {
+            selectedPunishmentIds.add(id);
+        }
+        renderPunishmentList(); // รีเฟรชหน้าเพื่อโชว์ปุ่ม
+    };
+
+    window.clearPunishmentSelection = () => {
+        selectedPunishmentIds.clear();
+        renderPunishmentList();
+    };
+
+    // 2. เพิ่มภารกิจกลุ่ม (Bulk Add)
+    window.bulkAddMission = async () => {
+        if (selectedPunishmentIds.size === 0) return;
+
+        const { value: mission } = await Swal.fire({
+            title: '📝 เพิ่มภารกิจกลุ่ม',
+            input: 'text',
+            inputLabel: `มอบหมายภารกิจให้ ${selectedPunishmentIds.size} คน`,
+            inputPlaceholder: 'เช่น ช่วยครูยกของ, กวาดห้อง...',
+            showCancelButton: true,
+            confirmButtonText: 'บันทึก',
+            cancelButtonText: 'ยกเลิก',
+            confirmButtonColor: '#4f46e5'
+        });
+
+        if (mission) {
+            const batch = writeBatch(db);
+            let count = 0;
+
+            selectedPunishmentIds.forEach(id => {
+                const s = students.find(x => x.id === id);
+                if (s) {
+                    const sRef = doc(db, 'artifacts', appId, 'public', 'data', 'students', id);
+                    const newMissions = [...(s.active_missions || []), mission];
+                    batch.update(sRef, { active_missions: newMissions });
+                    count++;
+                }
+            });
+
+            await batch.commit();
+            showToast(`✅ เพิ่มภารกิจให้ ${count} คนเรียบร้อย`);
+            selectedPunishmentIds.clear(); // เคลียร์การเลือกหลังทำเสร็จ
+            renderPunishmentList(); // รีเฟรช
+        }
+    };
+
+    // 3. แก้ไขข้อความภารกิจ (Edit)
+    window.editMission = async (id, idx, oldText) => {
+        const { value: newText } = await Swal.fire({
+            title: '✏️ แก้ไขภารกิจ',
+            input: 'text',
+            inputValue: oldText,
+            showCancelButton: true,
+            confirmButtonText: 'บันทึก',
+            cancelButtonText: 'ยกเลิก'
+        });
+
+        if (newText && newText !== oldText) {
+            const s = students.find(x => x.id === id);
+            if (!s) return;
+
+            const missions = [...(s.active_missions || [])];
+            missions[idx] = newText; // อัปเดตข้อความ
+
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'students', id), {
+                active_missions: missions
+            });
+            showToast('แก้ไขเรียบร้อย');
+        }
+    };
+
+    // 4. ลบภารกิจทิ้ง (Delete) - ไม่ลดใบเตือน
+    window.deleteMission = async (id, idx) => {
+        const result = await Swal.fire({
+            title: 'ลบรายการนี้?',
+            text: "ภารกิจจะหายไป แต่ใบเตือนจะไม่ลดลงนะครับ (ใช้กรณีพิมพ์ผิด)",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'ลบทิ้ง',
+            cancelButtonText: 'ยกเลิก'
+        });
+
+        if (result.isConfirmed) {
+            const s = students.find(x => x.id === id);
+            if (!s) return;
+
+            const missions = [...(s.active_missions || [])];
+            missions.splice(idx, 1); // ลบออกจาก array
+
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'students', id), {
+                active_missions: missions
+            });
+            showToast('ลบรายการแล้ว');
+        }
+    };
    
- 
   </script>
  </body>
 </html>
-
