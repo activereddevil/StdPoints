@@ -276,7 +276,7 @@
                 <div class="text-right">
                     <p class="text-[10px] font-medium opacity-80 uppercase tracking-wider">อัตราดอกเบี้ยปัจจุบัน</p>
                     <p class="text-2xl font-bold leading-none">
-                        <span id="home-interest-display">1.00</span><span class="text-sm font-normal">%</span>
+                        <span id="home-interest-display">1.00</span><span class="text-sm font-normal">%</span> <span class="text-sm font-normal"> ต่อชั่วโมง</span>
                     </p>
                 </div>
                 <div class="text-3xl opacity-50">📈</div>
@@ -1450,10 +1450,10 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
     import { getFirestore, collection, addDoc, setDoc, updateDoc, deleteDoc, doc, getDoc, onSnapshot, query, where, getDocs, increment, serverTimestamp, writeBatch, arrayUnion, arrayRemove, deleteField, runTransaction } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";    // --- Firebase Config (Auto-injected by Canvas) ---
    const firebaseConfig = {
-  apiKey: "AIzaSyB8hwkbfnnxpdQLdCGVVgbosYEAcoIVx6k",
+  apiKey: "AIzaSyCt1hOqcgf8fGmPVtvrPztwzMQZvlrETfY",
   authDomain: "pointmgmt-b8b87.firebaseapp.com",
   projectId: "pointmgmt-b8b87",
   storageBucket: "pointmgmt-b8b87.firebasestorage.app",
@@ -1601,17 +1601,30 @@ const appId = 'activeredpoint';
         }
     };
 
-    window.handleTeacherLogin = async () => {
-        if (!auth.currentUser) return alert('ระบบยังไม่พร้อม กรุณารอสักครู่...');
+window.handleTeacherLogin = async () => {
+    const provider = new GoogleAuthProvider();
+    
+    try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
         
-        const pass = document.getElementById('login-teacher-pass').value.trim();
-        if (pass === '560610528') {
+        // เช็คว่าเป็นอีเมลคุณออฟหรือเปล่า (ใส่เมลคุณตรงนี้)
+        const allowedTeachers = ['activereddevil@gmail.com']; // ใส่ได้หลายเมล
+        
+        if (allowedTeachers.includes(user.email)) {
             userRole = 'teacher';
+            showToast(`ยินดีต้อนรับครับ ครู ${user.displayName}!`);
             initAppUI();
         } else {
-            alert('รหัสผ่านไม่ถูกต้อง');
+            // ถ้าล็อกอินแล้วไม่ใช่เมลครู ให้เด้งออก
+            alert('ขออภัย อีเมลนี้ไม่มีสิทธิ์เข้าถึงส่วนจัดการครูครับ');
+            await signOut(auth); // เตะออกจากระบบ
         }
-    };
+    } catch (error) {
+        console.error(error);
+        alert('เกิดข้อผิดพลาดในการล็อกอิน: ' + error.message);
+    }
+};
 
     window.handleLogout = async () => {
         // Stop interval
@@ -5076,7 +5089,9 @@ const appId = 'activeredpoint';
                     newCard.type = 'instant_points'; // ใช้ Type เดิมของแต้มได้เลย
                     newCard.value = pts;
                     newCard.image = wonSlot.image ? wonSlot.image : '💎';
-                    resultIcon = '💎';
+                    resultIcon = (newCard.image.startsWith('http')) 
+    ? `<img src="${newCard.image}" class="w-20 h-20 object-contain mx-auto">` 
+    : `<span class="text-6xl">${newCard.image}</span>`;
                     resultTitle = `รับไปเลย! ${pts} แต้ม`;
                     resultSub = 'การ์ดแต้มถูกเก็บเข้ากระเป๋าแล้ว';
                 }
