@@ -1538,10 +1538,11 @@ const appId = 'activeredpoint';
             btnStudent.disabled = false;
             btnStudent.classList.remove('opacity-50', 'cursor-not-allowed');
             btnStudent.textContent = 'เข้าดูคะแนน';
-            
+           if (btnTeacher) { 
             btnTeacher.disabled = false;
             btnTeacher.classList.remove('opacity-50', 'cursor-not-allowed');
             btnTeacher.textContent = 'เข้าสู่ระบบครู';
+           }
         } catch (error) {
             console.error("Auth failed", error);
             statusEl.textContent = 'การเชื่อมต่อผิดพลาด: ' + error.message;
@@ -1612,9 +1613,8 @@ const appId = 'activeredpoint';
 
         // 3. กำหนดรายชื่ออีเมลครูที่มีสิทธิ์ (สำคัญมาก! แก้ตรงนี้เป็นเมลคุณออฟ)
         const allowedTeachers = [
-            'activereddevil@gmail.com',  // <--- แก้เป็นเมลจริงของคุณออฟ
-            
-        ]; 
+            'activereddevil@gmail.com' // <--- แก้เป็นเมลจริงของคุณออฟ
+            ]; 
         
         // 4. ตรวจสอบสิทธิ์
         if (allowedTeachers.includes(user.email)) {
