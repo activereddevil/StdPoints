@@ -354,6 +354,7 @@
                                 <th class="px-2 py-4 text-center font-bold text-indigo-700 cursor-pointer" onclick="sortStudents('bank_points')">ฝาก ↕</th>
                                 <th class="px-2 py-4 text-center font-bold text-green-600">ดอกเบี้ย</th>
                                 <th class="px-2 py-4 text-center font-bold text-emerald-700">รวมถอนได้</th>
+                                <th class="px-2 py-4 text-center font-bold text-yellow-600">ใบเตือน ⚠️</th>
                                 
                                
                                 <th class="px-2 py-4 text-center font-bold">จัดการ</th>
@@ -365,6 +366,21 @@
                     </table>
                 </div>
                 <div id="pagination-home" class="p-4 border-t bg-gray-50 flex justify-between items-center">
+                    </div>
+            </div>
+        </div>
+
+        <div id="content-punishment" class="tab-content hidden h-full flex flex-col">
+            <div class="mb-4 shrink-0">
+                <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                    ⚠️ รายชื่อนักเรียนที่ถูกคุมประพฤติ
+                    <span id="punishment-count" class="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded-full">0</span>
+                </h2>
+                <p class="text-sm text-gray-500">นักเรียนเหล่านี้จะถอนเงินไม่ได้ และแต้มใหม่จะถูกอายัดไว้จนกว่าจะหมดโทษ</p>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex-1">
+                <div id="punishment-list" class="divide-y divide-gray-100 overflow-y-auto h-full p-4 space-y-3">
                     </div>
             </div>
         </div>
@@ -1657,6 +1673,7 @@ const appId = 'activeredpoint';
             tabsHtml = `
                 
                 <button onclick="switchTab('home')" id="tab-home" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-red-500 text-red-600">รายชื่อนักเรียน</button>
+                <button onclick="switchTab('punishment')" id="tab-punishment" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">⚠️ คุมประพฤติ</button>
                 <button onclick="switchTab('guilds')" id="tab-guilds" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">🏰 กิลด์</button>
                 <button onclick="switchTab('quests')" id="tab-quests" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">ภารกิจ</button>
                 
@@ -2136,6 +2153,16 @@ const appId = 'activeredpoint';
                 </td>
                 <td class="px-2 py-3 text-center text-emerald-700 font-bold text-sm">
                     ${Math.floor(totalWithdrawable).toLocaleString()}
+                </td>
+                <td class="px-2 py-3 text-center">
+                    <div class="flex flex-col items-center justify-center">
+                        <div class="flex items-center gap-1">
+                            <button onclick="adjustWarning('${s.id}', -1)" class="w-6 h-6 rounded bg-gray-100 text-gray-400 hover:bg-gray-200">-</button>
+                            <span class="font-bold text-yellow-600 w-4">${s.warning_cards || 0}</span>
+                            <button onclick="adjustWarning('${s.id}', 1)" class="w-6 h-6 rounded bg-yellow-100 text-yellow-600 hover:bg-yellow-200 hover:scale-110 transition-transform">+</button>
+                        </div>
+                        ${(s.pending_points || 0) > 0 ? `<div class="text-[10px] text-red-500 font-bold mt-1 bg-red-50 px-1 rounded border border-red-100">🔒 อายัด ${s.pending_points}</div>` : ''}
+                    </div>
                 </td>
 
                 
@@ -2632,26 +2659,30 @@ const appId = 'activeredpoint';
                     timestamp: timestamp
                 });
             } else {
-                // ✨ LOGIC ใหม่: คำนวณ Point Boost
                 let finalAmount = amount;
                 let logAction = type === 'add' ? 'ได้รับแต้ม' : 'ถูกหักแต้ม';
 
-                // ถ้าเป็นการ "เพิ่มแต้ม" ให้เช็คบัฟกิลด์
                 if (type === 'add') {
                     finalAmount = calculateBuffedPoints(s, amount);
-                    if (finalAmount > amount) {
-                        logAction += ` (Boost ${finalAmount - amount})`;
+                    if (finalAmount > amount) logAction += ` (Boost ${finalAmount - amount})`;
+                    
+                    // 🔒 เช็คใบเตือน: ถ้ามีใบเตือน -> เข้า pending_points
+                    if ((s.warning_cards || 0) > 0) {
+                        batch.update(sRef, { pending_points: increment(finalAmount) });
+                        logAction += ` (ติดสถานะใบเตือน: อายัด)`;
+                    } else {
+                        batch.update(sRef, { points: increment(finalAmount) });
                     }
+                } else {
+                    // ถ้าลดแต้ม -> ลดจาก points ปกติ (หรือจะลด pending ก็ได้แล้วแต่ครู แต่ปกติลดแต้มหลัก)
+                    batch.update(sRef, { points: increment(-finalAmount) });
                 }
                 
-                const change = type === 'add' ? finalAmount : -finalAmount;
-                
-                batch.update(sRef, { points: increment(change) });
                 batch.set(hRef, {
                     student_id: s.id,
                     student_name: s.full_name,
                     action: logAction,
-                    amount: finalAmount, // บันทึกยอดที่ได้รับจริง (รวม Boost)
+                    amount: finalAmount,
                     reason: reason,
                     type: type === 'add' ? 'add_points' : 'remove_points',
                     timestamp: timestamp
@@ -3468,6 +3499,15 @@ const appId = 'activeredpoint';
     // ==========================================
     window.openBankModal = (studentId) => {
         // 1. หา ID เป้าหมาย (ถ้าระบุมาใช้ตัวนั้น ถ้าไม่ระบุใช้ของตัวเอง)
+        const checkId = studentId || (currentStudentData ? currentStudentData.id : null);
+            if (checkId) {
+        const s = students.find(x => x.id === checkId);
+            if (s && (s.warning_cards || 0) > 0) {
+            alert(`⛔ ไม่สามารถทำธุรกรรมได้!\n\n${s.full_name} ติดสถานะใบเตือน ${s.warning_cards} ใบ\nกรุณาทำภารกิจลบล้างโทษที่ห้องพักครูก่อนครับ`);
+            return;
+        }
+    }
+
         let targetId = studentId;
         if (!targetId) {
             if (currentStudentData && currentStudentData.id) {
@@ -4294,7 +4334,12 @@ const appId = 'activeredpoint';
             const sRef = doc(db, 'artifacts', appId, 'public', 'data', 'students', sid);
             const hRef = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
             
-            batch.update(sRef, { points: increment(totalPoints) });
+            // 🔒 เช็คใบเตือน: ถ้ามีใบเตือนให้เข้า pending_points แทน
+            if ((s.warning_cards || 0) > 0) {
+                batch.update(sRef, { pending_points: increment(totalPoints) });
+            } else {
+                batch.update(sRef, { points: increment(totalPoints) });
+            }
             batch.set(hRef, {
                 student_id: s.id,
                 student_name: s.full_name,
@@ -6784,6 +6829,165 @@ const appId = 'activeredpoint';
                 }
             }
         );
+    };
+
+    // --- ⚠️ PUNISHMENT & WARNING SYSTEM ---
+
+    // เพิ่ม/ลด ใบเตือน
+    window.adjustWarning = async (id, amount) => {
+        const s = students.find(x => x.id === id);
+        if (!s) return;
+        
+        const newWarning = Math.max(0, (s.warning_cards || 0) + amount);
+        
+        // ถ้าใบเตือนหมด -> คืนแต้มที่ยึดไว้ทั้งหมด!
+        let updateData = { warning_cards: newWarning };
+        let msg = '';
+
+        if (newWarning === 0 && (s.pending_points || 0) > 0) {
+            const returnPoints = s.pending_points;
+            updateData.points = increment(returnPoints);
+            updateData.pending_points = 0;
+            msg = ` และได้รับคืน ${returnPoints} แต้มที่ถูกอายัดไว้!`;
+            
+            // บันทึกประวัติการคืนแต้ม
+            const hRef = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
+            await setDoc(hRef, {
+                student_id: s.id,
+                student_name: s.full_name,
+                action: 'พ้นโทษแบน (คืนแต้มอายัด)',
+                amount: returnPoints,
+                type: 'add_points',
+                timestamp: serverTimestamp()
+            });
+        }
+
+        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'students', id), updateData);
+        
+        if (newWarning === 0) {
+            showToast(`🎉 ${s.full_name} พ้นโทษแล้ว!${msg}`);
+        } else {
+            // ถ้าเพิ่มใบเตือน ให้แจ้งเตือนด้วย (Optional)
+            if (amount > 0) showToast(`⚠️ เพิ่มใบเตือนให้ ${s.full_name}`);
+        }
+    };
+
+    // แสดงหน้าคุมประพฤติ (เรียกตอนกดแท็บ หรือ refresh)
+    window.renderPunishmentList = () => {
+        const container = document.getElementById('punishment-list');
+        if (!container) return;
+
+        // กรองเอาเฉพาะคนที่มีใบเตือน
+        const guiltyStudents = students.filter(s => (s.warning_cards || 0) > 0);
+        
+        const countBadge = document.getElementById('punishment-count');
+        if (countBadge) countBadge.textContent = guiltyStudents.length;
+
+        if (guiltyStudents.length === 0) {
+            container.innerHTML = `<div class="text-center text-gray-400 py-10 flex flex-col items-center">
+                <span class="text-4xl mb-2">🕊️</span>
+                <span>ห้องเรียนสงบสุข ไม่มีใครโดนใบเตือน</span>
+            </div>`;
+            return;
+        }
+
+        container.innerHTML = guiltyStudents.map(s => `
+            <div class="flex flex-col md:flex-row gap-4 items-start bg-yellow-50 p-4 rounded-lg border border-yellow-200 shadow-sm relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-2 opacity-10 text-6xl">⚠️</div>
+                
+                <div class="flex-1 z-10">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="font-bold text-lg text-gray-800">${s.full_name}</span>
+                        <span class="bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded border border-red-200">
+                            โดน ${s.warning_cards} ใบ
+                        </span>
+                    </div>
+                    <div class="text-sm text-gray-600 flex gap-4">
+                        <span>เลขที่: ${s.student_id}</span>
+                        <span class="font-bold text-red-500">🔒 อายัด: ${s.pending_points || 0} แต้ม</span>
+                    </div>
+                </div>
+
+                <div class="flex-1 w-full z-10">
+                    <p class="text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-wider">ภารกิจลบล้างโทษ</p>
+                    <ul class="space-y-2 mb-2">
+                        ${(s.active_missions || []).map((m, idx) => `
+                            <li class="flex items-center justify-between bg-white p-2 rounded border border-yellow-200 text-sm shadow-sm group">
+                                <span class="text-gray-700">▫️ ${m}</span>
+                                <button onclick="removeMission('${s.id}', ${idx})" class="text-green-600 hover:text-green-800 text-xs font-bold bg-green-50 px-2 py-1 rounded hover:bg-green-100 transition-colors">
+                                    ✅ สำเร็จ
+                                </button>
+                            </li>
+                        `).join('')}
+                        ${(!s.active_missions || s.active_missions.length === 0) ? '<li class="text-xs text-gray-400 italic">- ยังไม่มีภารกิจ -</li>' : ''}
+                    </ul>
+                    <div class="flex gap-2">
+                        <input type="text" id="mission-input-${s.id}" placeholder="เพิ่มภารกิจ (เช่น กวาดห้อง)..." class="flex-1 text-sm border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-yellow-400 outline-none" onkeydown="if(event.key==='Enter') addMission('${s.id}')">
+                        <button onclick="addMission('${s.id}')" class="bg-indigo-600 text-white text-xs px-3 py-1 rounded hover:bg-indigo-700 shadow-sm">เพิ่ม</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    };
+
+    // เพิ่มภารกิจ
+    window.addMission = async (id) => {
+        const input = document.getElementById(`mission-input-${id}`);
+        const mission = input.value.trim();
+        if (!mission) return;
+        
+        const s = students.find(x => x.id === id);
+        const newMissions = [...(s.active_missions || []), mission];
+        
+        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'students', id), {
+            active_missions: newMissions
+        });
+    };
+
+    // ลบภารกิจ (ทำสำเร็จ)
+    window.removeMission = async (studentId, missionIndex) => {
+        if(!confirm('ยืนยันว่านักเรียนทำภารกิจนี้สำเร็จแล้ว?')) return;
+
+        const s = students.find(x => x.id === studentId);
+        let missions = [...(s.active_missions || [])];
+        missions.splice(missionIndex, 1); // ลบภารกิจออก
+        
+        // ลดใบเตือนลง 1 ใบ อัตโนมัติ (ถ้าคุณออฟต้องการ)
+        const newWarning = Math.max(0, (s.warning_cards || 0) - 1);
+        
+        let updateData = { 
+            active_missions: missions,
+            warning_cards: newWarning
+        };
+
+        // เช็คอีกรอบว่าถ้าหมดโทษแล้ว ให้คืนแต้มทันที
+        if (newWarning === 0 && (s.pending_points || 0) > 0) {
+            updateData.points = increment(s.pending_points);
+            updateData.pending_points = 0;
+            showToast(`🎉 ${s.full_name} พ้นโทษแล้ว! ได้คืน ${s.pending_points} แต้ม`);
+            
+            // Log การคืนแต้ม
+            const hRef = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
+            await setDoc(hRef, {
+                student_id: s.id,
+                student_name: s.full_name,
+                action: 'ทำภารกิจครบ (คืนแต้มอายัด)',
+                amount: s.pending_points,
+                type: 'add_points',
+                timestamp: serverTimestamp()
+            });
+        }
+
+        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'students', studentId), updateData);
+    };
+
+    // อัปเดต switchTab ให้เรียก renderPunishmentList เมื่อกดแท็บ
+    const oldSwitch = window.switchTab;
+    window.switchTab = (tabName) => {
+        oldSwitch(tabName);
+        if (tabName === 'punishment') {
+            renderPunishmentList();
+        }
     };
  
   </script>
