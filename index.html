@@ -3618,8 +3618,7 @@ const appId = 'activeredpoint';
         // กรณีปกติ: ใช้เรทกองกลาง + บัฟกิลด์
         const hours = (now - depositTime) / (1000 * 60 * 60);
         
-        // --- ส่วนที่แก้ 2: ต้องบวก guildBonus เข้าไปในสูตรด้วย! ---
-        // ของเดิม: return student.bank_points * (globalRate / 100) * hours; 
+       
         
         // ของใหม่ (ถูกต้อง):
         return student.bank_points * ((globalRate + guildBonus) / 100) * hours;
@@ -7443,3 +7442,4 @@ window.getGuildActiveBuffs = (guildId) => {
   </script>
  </body>
 </html>
+
