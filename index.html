@@ -310,6 +310,14 @@
             <button onclick="showBulkPointsModal('remove', false)" class="btn-action bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-md font-bold shadow-sm flex items-center gap-2" title="ลดแต้ม">
                 ➖ <span class="hidden lg:inline">แต้ม</span>
             </button>
+            <div class="flex gap-1 p-1 bg-slate-800 rounded-lg border border-slate-700 ml-2">
+                <button onclick="handleBulkWarning(1)" class="btn-action bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-md font-bold shadow-sm flex items-center gap-2" title="แจกใบเตือน">
+                    ⚠️ <span class="hidden lg:inline">+เตือน</span>
+                </button>
+                <button onclick="handleBulkWarning(-1)" class="btn-action bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-md font-bold shadow-sm flex items-center gap-2" title="ลดใบเตือน">
+                    🛡️ <span class="hidden lg:inline">-เตือน</span>
+                </button>
+            </div>
             
         </div>
 
@@ -6988,6 +6996,78 @@ const appId = 'activeredpoint';
         if (tabName === 'punishment') {
             renderPunishmentList();
         }
+    };
+
+    // --- ⚡ ฟังก์ชันจัดการใบเตือนแบบกลุ่ม (Sticky Bar) ---
+    window.handleBulkWarning = async (amount) => {
+        if (selectedStudentIds.size === 0) return alert('กรุณาเลือกนักเรียนก่อนครับ');
+
+        const actionName = amount > 0 ? 'แจกใบเตือน' : 'ลดใบเตือน';
+        const confirmMsg = `ยืนยัน ${actionName} ให้กับนักเรียน ${selectedStudentIds.size} คน?`;
+
+        showConfirmModal(actionName, confirmMsg, async () => {
+            const batch = writeBatch(db);
+            const timestamp = serverTimestamp();
+            let count = 0;
+            let releasedCount = 0; // นับจำนวนคนที่พ้นโทษ
+
+            selectedStudentIds.forEach(id => {
+                const s = students.find(x => x.id === id);
+                if (!s) return;
+
+                const sRef = doc(db, 'artifacts', appId, 'public', 'data', 'students', s.id);
+                const currentWarnings = s.warning_cards || 0;
+                
+                // คำนวณใบเตือนใหม่ (ห้ามติดลบ)
+                const newWarnings = Math.max(0, currentWarnings + amount);
+                
+                // ถ้าค่าไม่เปลี่ยน (เช่น เป็น 0 อยู่แล้ว แล้วกดลบ) ก็ข้ามไป
+                if (newWarnings === currentWarnings) return;
+
+                const updates = { warning_cards: newWarnings };
+
+                // 🔓 เช็คเงื่อนไข: ถ้าใบเตือนหมด -> คืนแต้มที่อายัด!
+                if (newWarnings === 0 && (s.pending_points || 0) > 0) {
+                    const returnPoints = s.pending_points;
+                    updates.points = increment(returnPoints);
+                    updates.pending_points = 0;
+                    
+                    // Log การคืนแต้ม
+                    const hRef = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
+                    batch.set(hRef, {
+                        student_id: s.id,
+                        student_name: s.full_name,
+                        action: 'พ้นโทษแบน (คืนแต้มอายัด)',
+                        amount: returnPoints,
+                        type: 'add_points',
+                        timestamp: timestamp
+                    });
+                    releasedCount++;
+                }
+
+                batch.update(sRef, updates);
+                count++;
+            });
+
+            if (count > 0) {
+                try {
+                    await batch.commit();
+                    let msg = `✅ ${actionName} สำเร็จ ${count} คน`;
+                    if (releasedCount > 0) msg += ` (และพ้นโทษ ${releasedCount} คน)`;
+                    showToast(msg);
+                    
+                    // เคลียร์การเลือกและรีเฟรช
+                    selectedStudentIds.clear();
+                    updateBulkUI();
+                    renderStudentList(false);
+                } catch (e) {
+                    console.error(e);
+                    alert('เกิดข้อผิดพลาด: ' + e.message);
+                }
+            } else {
+                showToast('ไม่มีการเปลี่ยนแปลงข้อมูล');
+            }
+        });
     };
  
   </script>
