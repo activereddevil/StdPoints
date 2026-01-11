@@ -2408,14 +2408,14 @@ const appId = 'activeredpoint';
     function renderStudentDashboard() {
         if (!currentStudentData) return;
         const s = currentStudentData;
-        const interest = calculatePendingInterest(s);
-        const totalWithdrawable = (s.bank_points || 0) + interest;
+        const PendingInterest = calculatePendingInterest(s);
+        const totalWithdrawable = (s.bank_points || 0) + PendingInterest;
 
         document.getElementById('std-dash-name').textContent = s.full_name;
         document.getElementById('std-dash-class').textContent = `เลขประจำตัว: ${s.student_id} | ชั้น: ${s.class_name}`;
         document.getElementById('std-dash-points').textContent = Math.floor(s.points);
         document.getElementById('std-dash-bank').textContent = Math.floor(totalWithdrawable).toLocaleString();
-        document.getElementById('std-dash-interest').textContent = Math.floor(interest).toLocaleString();
+        document.getElementById('std-dash-interest').textContent = Math.floor(PendingInterest).toLocaleString();
         const warningSection = document.getElementById('std-warning-section');
         const warningCount = s.warning_cards || 0;
 
