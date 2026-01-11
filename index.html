@@ -3249,11 +3249,7 @@ const appId = 'activeredpoint';
                     return; 
                 }
             }
-                else if (slotType === 'red_card') {
-                    data.amount = parseInt(slot.querySelector('.slot-amount').value) || 1;
-                    if(data.amount < 1) { alert('จำนวนใบแดงต้อง >= 1'); isValid = false; return; }
-
-                } else if (slotType === 'interest') {  
+                 else if (slotType === 'interest') {  
                     data.rate = parseFloat(slot.querySelector('.slot-rate').value) || 1.0;
                     data.hours = parseFloat(slot.querySelector('.slot-hours').value) || 24;
 
@@ -4643,7 +4639,7 @@ const appId = 'activeredpoint';
             <div class="flex gap-2 mb-2">
                 <select class="border rounded text-sm px-2 py-1 bg-gray-50 flex-1 slot-type" onchange="updateSlotInputs(this)">
                     <option value="points">💰 สุ่มแต้ม (ช่วง Min-Max)</option>
-                    <option value="points_fix">💎 สุ่มแต้ม (Fix ค่าเดียว)</option> <option value="red_card">🟥 ลดใบแดง</option>
+                    <option value="points_fix">💎 สุ่มแต้ม (Fix ค่าเดียว)</option>
                     <option value="interest">📈 ดอกเบี้ยพิเศษ</option>
                     <option value="buff_discount">🏷️ บัฟส่วนลดร้านค้า</option> 
                     <option value="buff_points">🚀 บูสต์แต้ม (Multiplier)</option>
@@ -4669,11 +4665,7 @@ const appId = 'activeredpoint';
                     </div>
                     <input type="text" class="border rounded w-full px-2 py-1 slot-fix-image" placeholder="URL รูปภาพคูปอง (ถ้ามี ใส่ลิ้งค์รูปตรงนี้)">
                 </div>
-
-                <div class="input-red_card hidden flex gap-2 items-center">
-                    <span>ลด</span> <input type="number" class="border rounded w-20 px-2 py-1 slot-amount" value="1"> ใบ
-                </div>
-                
+   
                 <div class="input-buff_discount hidden space-y-1">
                      <div class="flex gap-2 items-center">
                         <span>ส่วนลด</span> <input type="number" min="1" max="100" class="border rounded w-20 px-2 py-1 slot-value font-bold text-red-500" placeholder="%"> %
@@ -4737,7 +4729,7 @@ const appId = 'activeredpoint';
             <div class="flex gap-2 mb-2">
                 <select class="border rounded text-sm px-2 py-1 bg-gray-50 flex-1 slot-type" onchange="updateEditSlotInputs(this)">
                     <option value="points">💰 สุ่มแต้ม (ช่วง Min-Max)</option>
-                    <option value="points_fix">💎 สุ่มแต้ม (Fix ค่าเดียว)</option> <option value="red_card">🟥 ลดใบแดง</option>
+                    <option value="points_fix">💎 สุ่มแต้ม (Fix ค่าเดียว)</option>
                     <option value="interest">📈 ดอกเบี้ยพิเศษ</option>
                     <option value="buff_discount">🏷️ บัฟส่วนลดร้านค้า</option>
                     <option value="buff_points">🚀 บูสต์แต้ม (Multiplier)</option>
@@ -4763,11 +4755,7 @@ const appId = 'activeredpoint';
                     </div>
                     <input type="text" class="border rounded w-full px-2 py-1 slot-fix-image" placeholder="URL รูปภาพคูปอง (ถ้ามี)">
                 </div>
-
-                <div class="input-red_card hidden flex gap-2 items-center">
-                    <span>ลด</span> <input type="number" class="border rounded w-20 px-2 py-1 slot-amount" value="1"> ใบ
-                </div>
-                
+  
                 <div class="input-buff_discount hidden space-y-1">
                      <div class="flex gap-2 items-center">
                         <span>ส่วนลด</span> <input type="number" min="1" max="100" class="border rounded w-20 px-2 py-1 slot-value font-bold text-red-500" placeholder="%"> %
@@ -4823,9 +4811,7 @@ const appId = 'activeredpoint';
                 div.querySelector('.slot-fix-amount').value = data.amount;
                 div.querySelector('.slot-fix-image').value = data.image || '';
             }
-            else if (data.type === 'red_card') {
-                div.querySelector('.slot-amount').value = data.amount;
-            } else if (data.type === 'interest') {
+             else if (data.type === 'interest') {
                 div.querySelector('.slot-rate').value = data.rate;
                 div.querySelector('.slot-hours').value = data.hours;
             } else if (data.type === 'reward_ref') {
@@ -4950,11 +4936,7 @@ const appId = 'activeredpoint';
                     return; 
                 }
             }
-                else if (slotType === 'red_card') {
-                    data.amount = parseInt(slot.querySelector('.slot-amount').value) || 1;
-                    if (data.amount < 1) { alert('จำนวนใบแดงต้องอย่างน้อย 1 ใบ'); isValid = false; return; }
-
-                } else if (slotType === 'interest') { 
+                 else if (slotType === 'interest') { 
                     data.rate = parseFloat(slot.querySelector('.slot-rate').value) || 1.0;
                     data.hours = parseFloat(slot.querySelector('.slot-hours').value) || 24;
 
@@ -5241,16 +5223,7 @@ const appId = 'activeredpoint';
                     resultTitle = `ยินดีด้วย! ${pts} แต้ม`;
                     resultSub = 'การ์ดแต้มถูกเก็บเข้ากระเป๋าแล้ว';
 
-                } else if (wonSlot.type === 'red_card') {
-                    newCard.name = `บัตรลบใบแดง ${wonSlot.amount} ใบ`;
-                    newCard.type = 'instant_red_card';
-                    newCard.value = wonSlot.amount;
-                    newCard.image = '🛡️';
-                    resultIcon = '🛡️';
-                    resultTitle = `สุดยอด! ลบใบแดง ${wonSlot.amount} ใบ`;
-                    resultSub = 'ไอเทมศักดิ์สิทธิ์ถูกเก็บเข้ากระเป๋าแล้ว';
-
-                } else if (wonSlot.type === 'interest') {
+                }  else if (wonSlot.type === 'interest') {
                     const days = (wonSlot.hours / 24).toFixed(1).replace('.0', '');
                     newCard.name = `บัตรดอกเบี้ยเทพ ${wonSlot.rate}% (${days} วัน)`;
                     newCard.type = 'instant_interest';
