@@ -1112,6 +1112,23 @@
                     <button type="button" onclick="addGachaSlot()" class="w-full py-2 border-2 border-dashed border-amber-300 text-amber-600 rounded-lg hover:bg-amber-100 font-bold text-sm">+ เพิ่มความเป็นไปได้ (Slot)</button>
                 </div>
 
+                
+                    <div class="bg-red-50 p-3 rounded-lg border border-red-100">
+                        <label class="text-xs font-bold text-red-800 block mb-2">🚫 เงื่อนไขการยกเว้นส่วนลด (Option)</label>
+                        <div class="flex gap-4">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="add-reward-no-guild" class="rounded text-red-600 focus:ring-red-500">
+                                <span class="text-xs text-gray-700">ห้ามใช้บัฟกิลด์</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="add-reward-no-personal" class="rounded text-red-600 focus:ring-red-500">
+                                <span class="text-xs text-gray-700">ห้ามใช้บัฟส่วนตัว</span>
+                            </label>
+                        </div>
+                    </div>
+                
+                    
+
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="text-xs text-gray-500">จำนวนสต็อก</label>
@@ -1178,6 +1195,20 @@
                     <div id="edit-gacha-slots-list" class="space-y-2 mb-3"></div>
 
                     <button type="button" onclick="addEditGachaSlot()" class="w-full py-2 border-2 border-dashed border-amber-300 text-amber-600 rounded-lg hover:bg-amber-100 font-bold text-sm">+ เพิ่มความเป็นไปได้ (Slot)</button>
+                </div>
+
+                <div class="bg-red-50 p-3 rounded-lg border border-red-100">
+                    <label class="text-xs font-bold text-red-800 block mb-2">🚫 เงื่อนไขการยกเว้นส่วนลด</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="edit-reward-no-guild" class="rounded text-red-600 focus:ring-red-500">
+                            <span class="text-xs text-gray-700">ห้ามใช้บัฟกิลด์</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="edit-reward-no-personal" class="rounded text-red-600 focus:ring-red-500">
+                            <span class="text-xs text-gray-700">ห้ามใช้บัฟส่วนตัว</span>
+                        </label>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
@@ -1530,6 +1561,65 @@
         <button onclick="document.getElementById('bank-locked-modal').classList.add('hidden'); document.getElementById('bank-locked-modal').classList.remove('flex')" class="w-full py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl font-bold shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2">
             <span>เข้าใจแล้ว</span>
         </button>
+    </div>
+</div>
+
+<div id="quest-distribution-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-[80] p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full flex flex-col max-h-[90vh]">
+        
+        <div class="p-5 border-b flex justify-between items-center bg-indigo-50 rounded-t-xl shrink-0">
+            <div>
+                <h3 class="text-xl font-bold text-indigo-900 flex items-center gap-2">
+                    ⚡ แจกรางวัลภารกิจ
+                </h3>
+                <p id="quest-dist-title" class="text-sm text-indigo-600 font-bold mt-1">...</p>
+            </div>
+            <button onclick="document.getElementById('quest-distribution-modal').classList.add('hidden')" class="w-8 h-8 rounded-full bg-white text-gray-400 hover:text-red-500 flex items-center justify-center font-bold shadow-sm transition-colors">
+                ✕
+            </button>
+        </div>
+
+        <div class="p-4 bg-white border-b flex flex-col sm:flex-row gap-3 items-center shrink-0">
+            <div class="relative flex-1 w-full">
+                <input type="text" id="quest-dist-search" oninput="renderQuestStudentSelector()" 
+                    placeholder="🔍 ค้นหาชื่อ หรือเลขประจำตัว..." 
+                    class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+                <span class="text-sm font-bold text-gray-600">เลือกแล้ว: <span id="quest-dist-count" class="text-indigo-600 text-lg">0</span> คน</span>
+                <button onclick="clearQuestDistSelection()" class="text-xs text-red-500 hover:bg-red-50 px-2 py-1 rounded border border-transparent hover:border-red-200 transition-colors">
+                    ล้าง
+                </button>
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 bg-gray-50 custom-scrollbar relative">
+            <div id="quest-dist-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                </div>
+        </div>
+
+        <div class="p-4 border-t bg-white rounded-b-xl shrink-0">
+            <div class="flex items-center justify-between mb-4 bg-indigo-50 p-3 rounded-lg border border-indigo-100">
+                <label class="font-bold text-indigo-800 text-sm flex items-center gap-2">
+                    🔢 จำนวนครั้งที่ทำ:
+                </label>
+                <div class="flex items-center bg-white rounded-lg border border-indigo-200 shadow-sm">
+                    <button onclick="adjustQuestDistQty(-1)" class="w-10 py-1 text-indigo-600 hover:bg-indigo-50 font-bold text-lg rounded-l-lg">-</button>
+                    <input type="number" id="quest-dist-qty" value="1" min="1" class="w-16 text-center font-bold text-indigo-700 outline-none border-x border-indigo-100 py-1">
+                    <button onclick="adjustQuestDistQty(1)" class="w-10 py-1 text-indigo-600 hover:bg-indigo-50 font-bold text-lg rounded-r-lg">+</button>
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="document.getElementById('quest-distribution-modal').classList.add('hidden')" class="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold transition-colors">
+                    ยกเลิก
+                </button>
+                <button onclick="confirmQuestDistribution()" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2">
+                    <span>⚡ แจกแต้มทันที</span>
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -3049,6 +3139,9 @@ const appId = 'activeredpoint';
         document.getElementById('edit-reward-img').value = r.image || '';
         document.getElementById('edit-reward-points').value = r.points;
         document.getElementById('edit-reward-quota').value = r.quota || 0;
+        // ✅ เพิ่ม: โหลดค่า Checkbox กลับมาแสดง
+        document.getElementById('edit-reward-no-guild').checked = r.no_guild_discount || false;
+        document.getElementById('edit-reward-no-personal').checked = r.no_personal_discount || false;
         
         // 2. จัดการสต็อก
         if (r.stock === -1) {
@@ -3110,7 +3203,9 @@ const appId = 'activeredpoint';
             image: document.getElementById('edit-reward-img').value || '',
             quota: quota,
             type: type,
-            effect: 'none' 
+            effect: 'none',
+            no_guild_discount: document.getElementById('edit-reward-no-guild').checked,
+            no_personal_discount: document.getElementById('edit-reward-no-personal').checked
         };
 
         if (type === 'gacha_custom') {
@@ -3289,13 +3384,25 @@ const appId = 'activeredpoint';
                     const activeBuffs = getGuildActiveBuffs(selectedStudentForRedeem.guild_id);
                     if (activeBuffs && activeBuffs.discount) guildDiscount = parseInt(activeBuffs.discount);
                 }
+
+                if (!r.no_guild_discount && selectedStudentForRedeem.guild_id) {
+                    const activeBuffs = getGuildActiveBuffs(selectedStudentForRedeem.guild_id);
+                    if (activeBuffs && activeBuffs.discount) guildDiscount = parseInt(activeBuffs.discount);
+                }
                 
                 // หาบัฟส่วนตัว (จากกาชา)
                 if (selectedStudentForRedeem.buff_discount_end) {
                     let endTime = selectedStudentForRedeem.buff_discount_end;
                     if (typeof endTime.toMillis === 'function') endTime = endTime.toMillis();
                     else if (endTime instanceof Date) endTime = endTime.getTime();
-                    
+                }
+
+                if (!r.no_personal_discount && selectedStudentForRedeem.buff_discount_end) {
+                    let endTime = selectedStudentForRedeem.buff_discount_end;
+                    if (typeof endTime.toMillis === 'function') endTime = endTime.toMillis();
+                    else if (endTime instanceof Date) endTime = endTime.getTime();
+                
+
                     if (Date.now() < endTime) {
                         guildDiscount += parseInt(selectedStudentForRedeem.buff_discount_val || 0);
                     }
@@ -3373,6 +3480,12 @@ const appId = 'activeredpoint';
         if (typeof selectedStudentForRedeem !== 'undefined' && selectedStudentForRedeem) {
             // A. ส่วนลดกิลด์
             let gDiscount = 0;
+
+            // ✅ แก้ไข: เพิ่มเงื่อนไข !redeemTarget.no_guild_discount
+            if (!redeemTarget.no_guild_discount && selectedStudentForRedeem.guild_id) {
+                const activeBuffs = getGuildActiveBuffs(selectedStudentForRedeem.guild_id);
+                if (activeBuffs && activeBuffs.discount) gDiscount = parseInt(activeBuffs.discount);
+            }
             if (selectedStudentForRedeem.guild_id) {
                 const activeBuffs = getGuildActiveBuffs(selectedStudentForRedeem.guild_id);
                 if (activeBuffs && activeBuffs.discount) gDiscount = parseInt(activeBuffs.discount);
@@ -3385,6 +3498,12 @@ const appId = 'activeredpoint';
                 // แปลงเวลาให้เป็น Millis
                 if (typeof endTime.toMillis === 'function') endTime = endTime.toMillis();
                 else if (endTime instanceof Date) endTime = endTime.getTime();
+            }
+                // ✅ แก้ไข: เพิ่มเงื่อนไข !redeemTarget.no_personal_discount
+                if (!redeemTarget.no_personal_discount && selectedStudentForRedeem.buff_discount_end) {
+                    let endTime = selectedStudentForRedeem.buff_discount_end;
+                    if (typeof endTime.toMillis === 'function') endTime = endTime.toMillis();
+                    else if (endTime instanceof Date) endTime = endTime.getTime();
                 
                 // ถ้ายังไม่หมดเวลา ให้บวกส่วนลดเพิ่ม
                 if (Date.now() < endTime) {
@@ -3618,7 +3737,8 @@ const appId = 'activeredpoint';
         // กรณีปกติ: ใช้เรทกองกลาง + บัฟกิลด์
         const hours = (now - depositTime) / (1000 * 60 * 60);
         
-       
+        // --- ส่วนที่แก้ 2: ต้องบวก guildBonus เข้าไปในสูตรด้วย! ---
+        // ของเดิม: return student.bank_points * (globalRate / 100) * hours; 
         
         // ของใหม่ (ถูกต้อง):
         return student.bank_points * ((globalRate + guildBonus) / 100) * hours;
@@ -4896,6 +5016,9 @@ const appId = 'activeredpoint';
         const effectEl = document.getElementById('add-reward-effect');
         const effectValue = effectEl ? effectEl.value : 'none';
 
+        const noGuild = document.getElementById('add-reward-no-guild').checked;
+        const noPersonal = document.getElementById('add-reward-no-personal').checked;
+
         await addDoc(collections.rewards(), {
             name: document.getElementById('add-reward-name').value,
             points: parseInt(document.getElementById('add-reward-points').value),
@@ -4904,7 +5027,10 @@ const appId = 'activeredpoint';
             quota: quota,
             type: type,
             effect: effectValue,
-            gacha_pool: gachaPool
+            gacha_pool: gachaPool,
+            // ✅ บันทึกค่าใหม่ลง DB
+            no_guild_discount: noGuild,
+            no_personal_discount: noPersonal
         });
         
         document.getElementById('add-reward-modal').classList.add('hidden');
@@ -7438,8 +7564,175 @@ window.getGuildActiveBuffs = (guildId) => {
             showToast('ลบรายการแล้ว');
         }
     };
+
+    // --- ⚡ QUEST DISTRIBUTION LOGIC (NEW) ---
+
+    // ตัวแปรสำหรับจำค่า (Global Variables)
+    let tempQuestDistSelection = new Set(); // จำรายชื่อคนถูกเลือก
+    let currentQuestDistId = null;          // จำ ID ภารกิจที่กำลังทำ
+
+    // 1. ฟังก์ชันเปิด Modal (แทนที่ executeBulkQuest เดิมในปุ่ม HTML)
+    window.executeBulkQuest = (questId) => {
+        const quest = quests.find(q => q.id === questId);
+        if (!quest) return;
+
+        currentQuestDistId = questId;
+        
+        // ตั้งค่า UI
+        document.getElementById('quest-dist-title').textContent = `${quest.icon} ${quest.title} (+${quest.points} แต้ม)`;
+        document.getElementById('quest-dist-qty').value = 1;
+        document.getElementById('quest-dist-search').value = '';
+
+        // ✨ พิเศษ: ถ้ามีการเลือกนักเรียนค้างไว้จากหน้าหลัก (Select All) ให้ดึงมาใส่เลย
+        if (selectedStudentIds.size > 0) {
+            tempQuestDistSelection = new Set(selectedStudentIds);
+        } else {
+            tempQuestDistSelection.clear();
+        }
+
+        renderQuestStudentSelector(); // วาดรายชื่อ
+        document.getElementById('quest-distribution-modal').classList.remove('hidden');
+        document.getElementById('quest-distribution-modal').classList.add('flex');
+    };
+
+    // 2. ฟังก์ชันวาดรายชื่อนักเรียน (พร้อมระบบค้นหา & จำค่า)
+    window.renderQuestStudentSelector = () => {
+        const container = document.getElementById('quest-dist-list');
+        const search = document.getElementById('quest-dist-search').value.toLowerCase().trim();
+        const countEl = document.getElementById('quest-dist-count');
+
+        // กรองข้อมูล
+        let filtered = students.filter(s => 
+            s.full_name.toLowerCase().includes(search) || 
+            s.student_id.includes(search) ||
+            (s.class_name && s.class_name.toLowerCase().includes(search))
+        );
+
+        // ✨ เทคนิคสำคัญ: เรียงลำดับให้ "คนที่ถูกเลือก" ลอยขึ้นมาอยู่บนสุดเสมอ
+        filtered.sort((a, b) => {
+            const aSel = tempQuestDistSelection.has(a.id);
+            const bSel = tempQuestDistSelection.has(b.id);
+            if (aSel !== bSel) return bSel - aSel; // เลือกแล้ว (true) มาก่อน
+            // ถ้าสถานะเหมือนกัน ให้เรียงตามห้อง -> เลขที่
+            if ((a.class_name || '') !== (b.class_name || '')) return (a.class_name || '').localeCompare(b.class_name || '');
+            return a.student_id.localeCompare(b.student_id, undefined, {numeric: true});
+        });
+
+        // อัปเดตตัวเลขจำนวนคนที่เลือก
+        countEl.textContent = tempQuestDistSelection.size;
+
+        // สร้าง HTML
+        if (filtered.length === 0) {
+            container.innerHTML = `<div class="col-span-full text-center py-8 text-gray-400">ไม่พบนักเรียน</div>`;
+            return;
+        }
+
+        container.innerHTML = filtered.map(s => {
+            const isSelected = tempQuestDistSelection.has(s.id);
+            // สไตล์การ์ด: ถ้าเลือกจะเป็นสีเขียว ถ้าไม่เลือกเป็นสีขาว
+            const cardClass = isSelected 
+                ? 'bg-indigo-50 border-indigo-500 ring-1 ring-indigo-500' 
+                : 'bg-white border-gray-200 hover:border-indigo-300';
+
+            return `
+            <div onclick="toggleQuestDistSelection('${s.id}')" class="cursor-pointer p-3 rounded-lg border flex items-center gap-3 transition-all select-none ${cardClass}">
+                <div class="w-6 h-6 rounded flex items-center justify-center border transition-colors shrink-0 ${isSelected ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-gray-300 text-transparent'}">
+                    ✓
+                </div>
+                <div class="min-w-0">
+                    <p class="font-bold text-gray-800 text-sm truncate">${s.full_name}</p>
+                    <p class="text-xs text-gray-500">เลขที่ ${s.student_id} | ห้อง ${s.class_name}</p>
+                </div>
+            </div>`;
+        }).join('');
+    };
+
+    // 3. ฟังก์ชันสลับการเลือก (Toggle)
+    window.toggleQuestDistSelection = (sid) => {
+        if (tempQuestDistSelection.has(sid)) {
+            tempQuestDistSelection.delete(sid);
+        } else {
+            tempQuestDistSelection.add(sid);
+        }
+        renderQuestStudentSelector(); // วาดใหม่ทันทีเพื่อให้ UI อัปเดต
+    };
+
+    // 4. ปุ่มล้างการเลือกทั้งหมด
+    window.clearQuestDistSelection = () => {
+        tempQuestDistSelection.clear();
+        renderQuestStudentSelector();
+    };
+
+    // 5. ปรับจำนวนครั้ง (+/-)
+    window.adjustQuestDistQty = (delta) => {
+        const input = document.getElementById('quest-dist-qty');
+        let val = parseInt(input.value) || 1;
+        val += delta;
+        if (val < 1) val = 1;
+        input.value = val;
+    };
+
+    // 6. ฟังก์ชันยืนยันการแจก (Logic จริง)
+    window.confirmQuestDistribution = async () => {
+        if (tempQuestDistSelection.size === 0) return alert('กรุณาเลือกนักเรียนอย่างน้อย 1 คนครับ');
+        
+        const quest = quests.find(q => q.id === currentQuestDistId);
+        if (!quest) return;
+
+        const qty = parseInt(document.getElementById('quest-dist-qty').value) || 1;
+        const totalPoints = quest.points * qty;
+
+        // ปิด Modal และแสดง Loading
+        document.getElementById('quest-distribution-modal').classList.add('hidden');
+        showToast('กำลังแจกแต้ม... ⏳');
+
+        const batch = writeBatch(db);
+        const timestamp = serverTimestamp();
+        let count = 0;
+
+        // วนลูปรายชื่อจาก Set ที่เราจำไว้
+        tempQuestDistSelection.forEach(sid => {
+            const s = students.find(std => std.id === sid);
+            if (s) {
+                const sRef = doc(db, 'artifacts', appId, 'public', 'data', 'students', s.id);
+                const hRef = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
+
+                // เช็คใบเตือนเหมือนเดิม
+                if ((s.warning_cards || 0) > 0) {
+                    batch.update(sRef, { pending_points: increment(totalPoints) });
+                } else {
+                    batch.update(sRef, { points: increment(totalPoints) });
+                }
+
+                batch.set(hRef, {
+                    student_id: s.id,
+                    student_name: s.full_name,
+                    action: `ภารกิจสำเร็จ: ${quest.title} (x${qty})`,
+                    amount: totalPoints,
+                    type: 'quest_complete',
+                    timestamp: timestamp
+                });
+                count++;
+            }
+        });
+
+        try {
+            await batch.commit();
+            showToast(`✅ แจกแต้มสำเร็จ ${count} คน (คนละ ${totalPoints} แต้ม)`);
+            
+            // เล่นเสียงเหรียญ
+            if(window.soundCoin) window.soundCoin.play();
+
+            // ล้างค่าเมื่อเสร็จงาน
+            tempQuestDistSelection.clear();
+            currentQuestDistId = null;
+            
+        } catch (e) {
+            console.error(e);
+            alert('เกิดข้อผิดพลาด: ' + e.message);
+        }
+    };
    
   </script>
  </body>
 </html>
-
