@@ -510,10 +510,20 @@
         <!-- ============ REWARDS TAB (UPDATED) ============ -->
         <div id="content-rewards" class="tab-content hidden h-full flex flex-col">
             <!-- Teacher Controls -->
-            <div id="teacher-reward-controls" class="mb-6 hidden shrink-0">
-                <button onclick="showAddRewardModal()" class="bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2">
-                    <span class="text-xl leading-none">+</span> เพิ่มของรางวัล
-                </button>
+            <div class="mb-4 shrink-0">
+                <div id="teacher-reward-controls" class="hidden flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">🎁 จัดการของรางวัล</h2>
+                    <div class="flex gap-2">
+                        <button onclick="openManageRewardCategoriesModal()" class="bg-white border border-amber-200 text-amber-600 hover:bg-amber-50 px-4 py-2.5 rounded-lg font-bold shadow-sm transition-colors text-sm flex items-center gap-2">
+                            📂 จัดการหมวดหมู่
+                        </button>
+                        <button onclick="showAddRewardModal()" class="bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2">
+                            <span class="text-xl leading-none">+</span> เพิ่มของรางวัล
+                        </button>
+                    </div>
+                </div>
+                <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar" id="reward-category-filters">
+                    </div>
             </div>
             
             <!-- Teacher View (Table) -->
@@ -1085,6 +1095,11 @@
                         <label class="text-xs text-gray-500">ชื่อของรางวัล/กล่อง</label>
                         <input type="text" id="add-reward-name" required placeholder="เช่น กล่องสุ่มเทพเจ้า" class="w-full px-4 py-2 border rounded-lg">
                     </div>
+                    <div class="mb-2">
+                        <label class="text-xs text-gray-500">หมวดหมู่</label>
+                        <select id="add-reward-category" class="w-full px-4 py-2 border rounded-lg bg-white">
+                            </select>
+                    </div>
                     <div>
                         <label class="text-xs text-gray-500">ราคา (แต้ม)</label>
                         <input type="number" id="add-reward-points" required class="w-full px-4 py-2 border rounded-lg">
@@ -1167,6 +1182,11 @@
                     <div>
                         <label class="text-xs text-gray-500">ชื่อของรางวัล/กล่อง</label>
                         <input type="text" id="edit-reward-name" required class="w-full px-4 py-2 border rounded-lg">
+                    </div>
+                    <div class="mb-2">
+                        <label class="text-xs text-gray-500">หมวดหมู่</label>
+                        <select id="edit-reward-category" class="w-full px-4 py-2 border rounded-lg bg-white">
+                            </select>
                     </div>
                     <div>
                         <label class="text-xs text-gray-500">ราคา (แต้ม)</label>
@@ -1623,6 +1643,22 @@
     </div>
 </div>
 
+<div id="manage-reward-categories-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-sm w-full p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold text-gray-800">📂 จัดการหมวดหมู่รางวัล</h3>
+            <button onclick="document.getElementById('manage-reward-categories-modal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+        </div>
+        
+        <div id="reward-category-list" class="space-y-2 mb-4 max-h-[300px] overflow-y-auto"></div>
+
+        <div class="flex gap-2 border-t pt-4">
+            <input type="text" id="new-reward-category-input" class="flex-1 border rounded-lg px-3 py-2 text-sm" placeholder="ชื่อหมวดหมู่ใหม่...">
+            <button onclick="addRewardCategory()" class="bg-green-600 text-white px-3 py-2 rounded-lg font-bold text-sm hover:bg-green-700">+</button>
+        </div>
+    </div>
+   </div>
+
 
   </div> <!-- End App -->
 
@@ -1854,6 +1890,7 @@ const appId = 'activeredpoint';
         setupNavigation();
         subscribeToData();
         loadQuestCategories();
+        loadRewardCategories();
         
         // Clear previous intervals if any
         if (window.interestInterval) clearInterval(window.interestInterval);
@@ -2486,9 +2523,16 @@ const appId = 'activeredpoint';
 
     function renderRewards() {
         const tbody = document.getElementById('rewards-list');
+        
+
+        let displayRewards = rewards;
+        if (currentRewardCategoryFilter !== 'all') {
+            displayRewards = rewards.filter(r => (r.category || 'ทั่วไป') === currentRewardCategoryFilter);
+        }
         // Teacher view (Table)
         if (userRole === 'teacher' && tbody) {
-             tbody.innerHTML = rewards.map(r => {
+             tbody.innerHTML = displayRewards.map(r => {
+                const catBadge = `<span class="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full border border-gray-200">${r.category || 'ทั่วไป'}</span>`;
                 const stockText = r.stock === -1 ? 'ไม่จำกัด' : r.stock;
                 const quotaText = r.quota && r.quota > 0 ? r.quota : 'ไม่จำกัด';
                 
@@ -2505,7 +2549,7 @@ const appId = 'activeredpoint';
                              ${r.image ? `<img src="${r.image}" class="w-full h-full object-cover">` : `<span class="text-lg">🎁</span>`}
                         </div>
                     </td>
-                    <td class="px-4 py-3 font-medium text-gray-800">${r.name}</td>
+                    <td class="px-4 py-3 font-medium text-gray-800">${r.name}<br> ${catBadge}</td>
                     <td class="px-4 py-3 text-center font-bold ${pointsClass}">${pointsDisplay}</td>
                     <td class="px-4 py-3 text-center text-gray-600">${stockText}</td>
                     <td class="px-4 py-3 text-center text-gray-500">${quotaText}</td>
@@ -2526,7 +2570,7 @@ const appId = 'activeredpoint';
         // Student view (Grid)
         const grid = document.getElementById('rewards-grid');
         if (userRole === 'student' && grid) {
-            grid.innerHTML = rewards.map(r => {
+            grid.innerHTML = displayRewards.map(r => {
                 // --- 🟢 ส่วนที่แก้: Logic แสดงผลฝั่งนักเรียน ---
                 const isGain = r.points < 0; // ถ้าแต้มติดลบ แปลว่า "แจกแต้ม"
                 
@@ -3142,6 +3186,8 @@ const appId = 'activeredpoint';
         document.getElementById('edit-reward-name').value = r.name;
         document.getElementById('edit-reward-img').value = r.image || '';
         document.getElementById('edit-reward-points').value = r.points;
+        const catSelect = document.getElementById('edit-reward-category');
+            if(catSelect) catSelect.value = r.category || rewardCategories[0];
         document.getElementById('edit-reward-quota').value = r.quota || 0;
         // ✅ เพิ่ม: โหลดค่า Checkbox กลับมาแสดง
         document.getElementById('edit-reward-no-guild').checked = r.no_guild_discount || false;
@@ -3201,6 +3247,7 @@ const appId = 'activeredpoint';
         const quota = isQuotaUnlimited ? 0 : (parseInt(document.getElementById('edit-reward-quota').value) || 0);
 
         const updates = {
+            category: document.getElementById('edit-reward-category').value,
             name: document.getElementById('edit-reward-name').value,
             points: parseInt(document.getElementById('edit-reward-points').value),
             stock: stock,
@@ -4983,6 +5030,7 @@ const appId = 'activeredpoint';
         const noPersonal = document.getElementById('add-reward-no-personal').checked;
 
         await addDoc(collections.rewards(), {
+            category: document.getElementById('add-reward-category').value,
             name: document.getElementById('add-reward-name').value,
             points: parseInt(document.getElementById('add-reward-points').value),
             image: document.getElementById('add-reward-img').value || '',
@@ -6667,8 +6715,99 @@ window.getGuildActiveBuffs = (guildId) => {
         renderQuests(); // Re-render table
     };
 
-    // --- 🚀 UPDATE QUEST RENDER (TABLE VERSION) ---
-    // แทนที่ renderQuests เดิม
+    // --- 🎁 REWARD CATEGORIES SYSTEM ---
+    
+    let rewardCategories = ["ทั่วไป", "อุปกรณ์การเรียน", "ขนม/เครื่องดื่ม", "สิทธิพิเศษ"];
+    let currentRewardCategoryFilter = 'all';
+
+    // 1. โหลดหมวดหมู่
+    async function loadRewardCategories() {
+        try {
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'config', 'reward_categories');
+            const snap = await getDoc(docRef);
+            if (snap.exists() && snap.data().list) {
+                rewardCategories = snap.data().list;
+            } else {
+                saveRewardCategoriesToDB(rewardCategories);
+            }
+            renderRewardCategoryFilters();
+        } catch (e) {
+            console.error("Load Reward Cat Error", e);
+        }
+    }
+
+    async function saveRewardCategoriesToDB(list) {
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'reward_categories'), { list: list });
+    }
+
+    // 2. จัดการ Modal
+    window.openManageRewardCategoriesModal = () => {
+        renderManageRewardCategoryList();
+        document.getElementById('manage-reward-categories-modal').classList.remove('hidden');
+    };
+
+    function renderManageRewardCategoryList() {
+        const div = document.getElementById('reward-category-list');
+        div.innerHTML = rewardCategories.map((cat, index) => `
+            <div class="flex justify-between items-center bg-gray-50 p-2 rounded border border-gray-100">
+                <span class="text-gray-700 text-sm">${cat}</span>
+                <button onclick="deleteRewardCategory(${index})" class="text-red-500 hover:text-red-700 text-xs font-bold">ลบ</button>
+            </div>
+        `).join('');
+    }
+
+    window.addRewardCategory = async () => {
+        const input = document.getElementById('new-reward-category-input');
+        const val = input.value.trim();
+        if (!val) return;
+        
+        if (!rewardCategories.includes(val)) {
+            rewardCategories.push(val);
+            await saveRewardCategoriesToDB(rewardCategories);
+            renderManageRewardCategoryList();
+            renderRewardCategoryFilters();
+            input.value = '';
+        } else {
+            alert('มีหมวดหมู่นี้อยู่แล้ว');
+        }
+    };
+
+    window.deleteRewardCategory = async (index) => {
+        if (!confirm('ยืนยันลบหมวดหมู่นี้?')) return;
+        rewardCategories.splice(index, 1);
+        if(rewardCategories.length === 0) rewardCategories.push('ทั่วไป');
+        await saveRewardCategoriesToDB(rewardCategories);
+        renderManageRewardCategoryList();
+        renderRewardCategoryFilters();
+    };
+
+    // 3. Render Filters & Select Options
+    function renderRewardCategoryFilters() {
+        // A. Render Tabs
+        const container = document.getElementById('reward-category-filters');
+        if (container) {
+            let html = `<button onclick="filterRewardCategory('all')" class="whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold border transition-colors ${currentRewardCategoryFilter === 'all' ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'}">ทั้งหมด</button>`;
+            
+            rewardCategories.forEach(cat => {
+                const isActive = currentRewardCategoryFilter === cat;
+                html += `<button onclick="filterRewardCategory('${cat}')" class="whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold border transition-colors ${isActive ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'}">${cat}</button>`;
+            });
+            container.innerHTML = html;
+        }
+
+        // B. Update Select in Modals
+        const optionsHtml = rewardCategories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+        const addSelect = document.getElementById('add-reward-category');
+        const editSelect = document.getElementById('edit-reward-category');
+        if(addSelect) addSelect.innerHTML = optionsHtml;
+        if(editSelect) editSelect.innerHTML = optionsHtml;
+    }
+
+    window.filterRewardCategory = (cat) => {
+        currentRewardCategoryFilter = cat;
+        renderRewardCategoryFilters();
+        renderRewards(); // สั่งวาดหน้าร้านใหม่ตามฟิลเตอร์
+    };
    
     // ==========================================
     // 🏦 BANK TRANSACTION SYSTEM (ระบบฝากถอน - ฉบับสมบูรณ์)
