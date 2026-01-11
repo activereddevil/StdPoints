@@ -2088,9 +2088,16 @@ const appId = 'activeredpoint';
 
         unsubscribers.push(onSnapshot(collections.guilds(), (snapshot) => {
         guilds = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        if(userRole === 'teacher') renderGuildsDashboard();
+        if(userRole === 'teacher') {
+        renderGuildsDashboard();
         renderStudentList(false);
         renderBankList(false);
+        }
+        else if (userRole === 'student') {
+                // ✅ เพิ่มบรรทัดนี้: เมื่อข้อมูลกิลด์มาถึง ให้หน้าจอนักเรียนคำนวณใหม่ทันที
+                renderStudentDashboard(); 
+            }
+
     }, onError));
 
         
@@ -2414,14 +2421,14 @@ const appId = 'activeredpoint';
     function renderStudentDashboard() {
         if (!currentStudentData) return;
         const s = currentStudentData;
-        const PendingInterest = calculatePendingInterest(s);
-        const totalWithdrawable = (s.bank_points || 0) + PendingInterest;
+        const interest = calculatePendingInterest(s);
+        const totalWithdrawable = (s.bank_points || 0) + interest;
 
         document.getElementById('std-dash-name').textContent = s.full_name;
         document.getElementById('std-dash-class').textContent = `เลขประจำตัว: ${s.student_id} | ชั้น: ${s.class_name}`;
         document.getElementById('std-dash-points').textContent = Math.floor(s.points);
         document.getElementById('std-dash-bank').textContent = Math.floor(totalWithdrawable).toLocaleString();
-        document.getElementById('std-dash-interest').textContent = Math.floor(PendingInterest).toLocaleString();
+        document.getElementById('std-dash-interest').textContent = Math.floor(interest).toLocaleString();
         const warningSection = document.getElementById('std-warning-section');
         const warningCount = s.warning_cards || 0;
 
