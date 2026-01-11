@@ -3377,6 +3377,7 @@ const appId = 'activeredpoint';
         grid.innerHTML = rewards.map(r => {
             // 1. คำนวณส่วนลด
             let guildDiscount = 0;
+            let pDiscount = 0;
             // เช็คว่ามีตัวแปรนักเรียนที่เลือกอยู่จริงไหม กัน Error
             if (typeof selectedStudentForRedeem !== 'undefined' && selectedStudentForRedeem) {
                 // หาบัฟกิลด์
@@ -3404,13 +3405,13 @@ const appId = 'activeredpoint';
                 
 
                     if (Date.now() < endTime) {
-                        guildDiscount += parseInt(selectedStudentForRedeem.buff_discount_val || 0);
+                        pDiscount = parseInt(selectedStudentForRedeem.buff_discount_val || 0);
                     }
                 }
             }
 
             // จำกัดส่วนลดไม่เกิน 100%
-            const totalDiscount = Math.min(100, guildDiscount);
+            const totalDiscount = Math.min(100, guildDiscount + pDiscount);
 
             // คำนวณราคาโชว์ (สำหรับของที่ต้องซื้อ)
             let finalPoints = r.points;
@@ -3492,13 +3493,14 @@ const appId = 'activeredpoint';
             }
             
             // B. ส่วนลดส่วนตัว (บัฟจากกาชา)
-            let pDiscount = 0;
+           
             if (selectedStudentForRedeem.buff_discount_end) {
                 let endTime = selectedStudentForRedeem.buff_discount_end;
                 // แปลงเวลาให้เป็น Millis
                 if (typeof endTime.toMillis === 'function') endTime = endTime.toMillis();
                 else if (endTime instanceof Date) endTime = endTime.getTime();
             }
+            let pDiscount = 0;
                 // ✅ แก้ไข: เพิ่มเงื่อนไข !redeemTarget.no_personal_discount
                 if (!redeemTarget.no_personal_discount && selectedStudentForRedeem.buff_discount_end) {
                     let endTime = selectedStudentForRedeem.buff_discount_end;
