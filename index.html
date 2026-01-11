@@ -2006,6 +2006,8 @@ const appId = 'activeredpoint';
             if (rulesDoc) {
                 window.activeBuffRules = rulesDoc.data();
                 config.buff_rules = rulesDoc.data(); // สำรองไว้ใน config ด้วย
+
+                if (userRole === 'student') renderStudentDashboard();
             }
 
             if (settingsDoc) {
