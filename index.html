@@ -2002,6 +2002,12 @@ const appId = 'activeredpoint';
         unsubscribers.push(onSnapshot(collections.config(), (snapshot) => {
             const settingsDoc = snapshot.docs.find(d => d.id === 'school_settings');
             
+            const rulesDoc = snapshot.docs.find(d => d.id === 'buff_rules');
+            if (rulesDoc) {
+                window.activeBuffRules = rulesDoc.data();
+                config.buff_rules = rulesDoc.data(); // สำรองไว้ใน config ด้วย
+            }
+
             if (settingsDoc) {
                 const cfg = settingsDoc.data();
                 config = { ...config, ...cfg };
