@@ -2418,7 +2418,7 @@ const appId = 'activeredpoint';
 
     
 
-    function renderStudentDashboard() {
+    window.renderStudentDashboard = function() {
         if (!currentStudentData) return;
         const s = currentStudentData;
         const interest = calculatePendingInterest(s);
@@ -2484,7 +2484,10 @@ const appId = 'activeredpoint';
             </div>
         `;
     }).join('') : '<p class="text-gray-400 text-center py-2">ยังไม่มีประวัติ</p>';
-        renderStudentInventory(s); // เรียกฟังก์ชันแสดงกระเป๋า
+        renderStudentInventory(s);
+        if (typeof renderStudentInventory === 'function') {
+            renderStudentInventory();
+        } // เรียกฟังก์ชันแสดงกระเป๋า
     }
 
    
@@ -3703,15 +3706,29 @@ const appId = 'activeredpoint';
         let depositTime = student.bank_deposit_time;
         if (depositTime && typeof depositTime.toMillis === 'function') depositTime = depositTime.toMillis();
         else if (depositTime instanceof Date) depositTime = depositTime.getTime();
-        else if (depositTime.seconds) depositTime = depositTime.seconds * 1000; // กันเหนียว
+        else if (depositTime.seconds) depositTime = depositTime.seconds * 1000;
         else return 0;
 
         const now = Date.now();
-        
-        // --- ส่วนที่แก้ 1: ใช้ getGuildActiveBuffs เพื่อดึงค่าสดๆ ---
+        const hours = (now - depositTime) / (1000 * 60 * 60);
+
+        // ✅ 1. เช็คดอกเบี้ยโปรโมชั่นส่วนตัวก่อน (Priority สูงสุด)
+        // (ส่วนนี้แหละครับที่หายไป ทำให้คนมีบัฟส่วนตัวเงินไม่ตรง)
+        if (student.special_interest_end) {
+            let endTime = student.special_interest_end;
+            if (typeof endTime.toMillis === 'function') endTime = endTime.toMillis();
+            else if (endTime instanceof Date) endTime = endTime.getTime();
+            
+            if (now < endTime) {
+                // ถ้ามีโปรส่วนตัว ใช้เรทพิเศษเพียวๆ เลย
+                const specialRate = parseFloat(student.special_interest_rate);
+                return student.bank_points * (specialRate / 100) * hours;
+            }
+        }
+
+        // ✅ 2. ถ้าไม่มีโปรส่วนตัว ให้ใช้เรทปกติ + บัฟกิลด์
         let guildBonus = 0;
         if (student.guild_id) {
-            // เรียกฟังก์ชันคำนวณสดที่เราเพิ่งทำ
             const activeBuffs = getGuildActiveBuffs(student.guild_id);
             if (activeBuffs && activeBuffs.interest) {
                 guildBonus = parseFloat(activeBuffs.interest);
@@ -3719,17 +3736,8 @@ const appId = 'activeredpoint';
         }
         
         const globalRate = config.interest_rate || 1.0;
-
-        // ... (Logic เช็คดอกเบี้ยโปรโมชั่นส่วนตัว คงไว้เหมือนเดิม) ...
-        // ... (ข้ามมาดูตอนจบ) ...
-
-        // กรณีปกติ: ใช้เรทกองกลาง + บัฟกิลด์
-        const hours = (now - depositTime) / (1000 * 60 * 60);
         
-        // --- ส่วนที่แก้ 2: ต้องบวก guildBonus เข้าไปในสูตรด้วย! ---
-        // ของเดิม: return student.bank_points * (globalRate / 100) * hours; 
-        
-        // ของใหม่ (ถูกต้อง):
+        // คำนวณรวม: (เรทกลาง + บัฟกิลด์)
         return student.bank_points * ((globalRate + guildBonus) / 100) * hours;
     }
     
@@ -5126,24 +5134,7 @@ const appId = 'activeredpoint';
         `).join('');
     }
 
-    // Update Student Dashboard Render
-    const originalRenderDash = window.renderStudentDashboard || (() => {});
-    window.renderStudentDashboard = () => {
-        // Run original logic (copy-pasted manually inside original function if needed, or overwrite)
-        // Since we can't easily hook, let's assume you update the original function to call renderStudentInventory(s)
-        if (!currentStudentData) return;
-        // ... (Original Code) ...
-        // Add this line at the end of original renderStudentDashboard:
-        renderStudentInventory(currentStudentData);
-        
-        // *IMPORTANT*: Re-run original DOM updates from the snippet provided in file
-        // For simplicity, I recommend finding renderStudentDashboard and pasting the renderStudentInventory call at the bottom of it.
-        
-        // Re-implementing parts for safety:
-        document.getElementById('std-dash-points').textContent = Math.floor(currentStudentData.points);
-        // ... other UI updates ...
-    };
-
+   
     // Item Usage Logic
     // Item Usage Logic (ฉบับอัปเกรด: เพิ่มระบบเรทสุ่มรางวัลใหญ่ยาก) [cite: 658-673]
    // ฟังก์ชันปิด Modal Gacha (อัปเดตใหม่: รีเฟรชกระเป๋าทันที 🎉)
