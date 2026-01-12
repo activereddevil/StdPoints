@@ -7302,7 +7302,6 @@ window.getGuildActiveBuffs = (guildId) => {
 
     // --- ⚠️ PUNISHMENT & WARNING SYSTEM ---
 
-    // เพิ่ม/ลด ใบเตือน (ฉบับแก้ไข Logic ทบต้น)
     window.adjustWarning = async (id, amount) => {
         const s = students.find(x => x.id === id);
         if (!s) return;
@@ -7342,14 +7341,13 @@ window.getGuildActiveBuffs = (guildId) => {
              updateData.bank_deposit_time = serverTimestamp();
         }
 
-        // 3. กรณีพ้นโทษ: คืนแต้มที่อายัดไว้ (Pending Points) - Logic เดิม
-        if (newWarning === 0 && (s.pending_points || 0) > 0) {
+        // 3. กรณีพ้นโทษ: คืนแต้มที่อายัดไว้ (Pending Points)
+        if (isUnfreezing && (s.pending_points || 0) > 0) {
             const returnPoints = s.pending_points;
             updateData.points = increment(returnPoints);
             updateData.pending_points = 0;
             msg += ` (คืนแต้มอายัด ${returnPoints.toLocaleString()})`;
             
-            // Log การคืนแต้ม
             const hRef = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
             await setDoc(hRef, {
                 student_id: s.id,
@@ -7585,7 +7583,7 @@ window.getGuildActiveBuffs = (guildId) => {
         document.getElementById('bulk-warning-modal').classList.add('flex');
     };
 
-    // 3. ยืนยันการทำรายการ (บันทึกประวัติ + Logic คืนแต้ม)
+    // 3. ยืนยันการทำรายการ (บันทึกประวัติ + Logic คืนแต้ม + Logic ดอกเบี้ยแช่แข็ง)
     window.confirmBulkWarning = async () => {
         const type = document.getElementById('bulk-warning-type').value;
         const amountInput = parseInt(document.getElementById('bulk-warning-amount').value) || 1;
@@ -7622,24 +7620,47 @@ window.getGuildActiveBuffs = (guildId) => {
             const updates = { warning_cards: newWarnings };
             const hRef = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
 
+            // --- 🔥 LOGIC จัดการดอกเบี้ย (เพิ่มใหม่) ---
+            const isFreezing = (currentWarnings === 0 && newWarnings > 0);   // สถานะ: เริ่มโดนแบน
+            const isUnfreezing = (currentWarnings > 0 && newWarnings === 0); // สถานะ: พ้นโทษ
+
+            if (isFreezing) {
+                // 1. จำลองสถานะก่อนโดนใบเตือน (ใบเตือน=0) เพื่อคำนวณดอกเบี้ยที่ค้างอยู่
+                const tempS = { ...s, warning_cards: 0 };
+                const interest = calculatePendingInterest(tempS);
+                const interestInt = Math.floor(interest);
+
+                // ทบดอกเบี้ยเข้าเงินต้นทันที
+                if (interestInt > 0) {
+                    updates.bank_points = increment(interestInt);
+                }
+                // รีเซ็ตเวลาฝาก เพื่อ "แช่แข็ง" (ดอกเบี้ยจะไม่เดินต่อจากจุดนี้เพราะมีใบเตือนแล้ว)
+                updates.bank_deposit_time = timestamp;
+            } 
+            else if (isUnfreezing) {
+                // 2. พ้นโทษแล้ว รีเซ็ตเวลาฝากใหม่ เพื่อเริ่มนับดอกเบี้ยต่อจากวินาทีนี้
+                updates.bank_deposit_time = timestamp;
+            }
+            // ----------------------------------------
+
             // 📝 1. บันทึกประวัติใบเตือน
             batch.set(hRef, {
                 student_id: s.id,
                 student_name: s.full_name,
                 action: isAdd ? `โดนใบเตือน (${amountInput} ใบ)` : `ลบใบเตือน (${amountInput} ใบ)`,
-                amount: amountInput, // บันทึกจำนวนใบเตือนลงไป
+                amount: amountInput, 
                 reason: reason || (isAdd ? 'พฤติกรรมไม่เหมาะสม' : 'ทำความดีชดเชย'),
-                type: 'warning_card_log', // Type ใหม่สำหรับ log นี้โดยเฉพาะ
+                type: 'warning_card_log', 
                 timestamp: timestamp
             });
 
-            // 🔓 2. เช็คเงื่อนไขพิเศษ: ถ้าใบเตือนหมด -> คืนแต้มที่อายัด!
-            if (newWarnings === 0 && (s.pending_points || 0) > 0) {
+            // 🔓 2. เช็คเงื่อนไขพิเศษ: ถ้าใบเตือนหมด -> คืนแต้มที่อายัด! (Logic เดิม)
+            if (isUnfreezing && (s.pending_points || 0) > 0) {
                 const returnPoints = s.pending_points;
                 updates.points = increment(returnPoints);
                 updates.pending_points = 0;
                 
-                // Log การคืนแต้ม (แยกอีกบรรทัดให้ชัดเจน)
+                // Log การคืนแต้ม
                 const hRef2 = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
                 batch.set(hRef2, {
                     student_id: s.id,
