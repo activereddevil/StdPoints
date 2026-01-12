@@ -1138,6 +1138,10 @@
                             <label for="add-reward-unlimited" class="text-[10px] text-gray-600">ไม่จำกัด</label>
                         </div>
                     </div>
+                    <div class="flex items-center gap-2 mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <input type="checkbox" id="add-reward-active" checked class="w-5 h-5 text-green-600 rounded focus:ring-green-500 cursor-pointer">
+                        <label for="add-reward-active" class="text-sm font-bold text-gray-700 cursor-pointer select-none">✅ เปิดขายทันที</label>
+                    </div>
                     <div>
                       <label class="text-xs text-gray-500">โควตา/คน</label>
                         <input type="number" id="add-reward-quota" class="w-full px-4 py-2 border rounded-lg">
@@ -1219,6 +1223,10 @@
                             <input type="checkbox" id="edit-reward-unlimited" class="mr-2" onchange="toggleStockInput('edit')">
                             <label for="edit-reward-unlimited" class="text-[10px] text-gray-600">ไม่จำกัด</label>
                         </div>
+                    </div>
+                    <div class="flex items-center gap-2 mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <input type="checkbox" id="edit-reward-active" class="w-5 h-5 text-green-600 rounded focus:ring-green-500 cursor-pointer">
+                        <label for="edit-reward-active" class="text-sm font-bold text-gray-700 cursor-pointer select-none">✅ เปิดใช้งาน (แสดงในร้านค้า)</label>
                     </div>
                     <div>
                         <label class="text-xs text-gray-500">โควตา/คน</label>
@@ -2489,39 +2497,45 @@ const appId = 'activeredpoint';
         // Teacher view (Table)
         if (userRole === 'teacher' && tbody) {
              tbody.innerHTML = rewards.map(r => {
-                const stockText = r.stock === -1 ? 'ไม่จำกัด' : r.stock;
+                const stockText = r.stock === -1 || r.stock === '-1' ? 'ไม่จำกัด' : r.stock;
                 const quotaText = r.quota && r.quota > 0 ? r.quota : 'ไม่จำกัด';
                 
-                // --- 🟢 ส่วนที่แก้: เช็คว่าแจกแต้มหรือไม่ ---
                 const isGain = r.points < 0;
                 const pointsDisplay = isGain ? `+${Math.abs(r.points)}` : r.points;
                 const pointsClass = isGain ? 'text-green-600' : 'text-amber-600';
-                // ---------------------------------------
+
+                // 🔥 เช็คสถานะ Active
+                const isActive = r.is_active !== false; // Default true
+                const statusClass = isActive ? '' : 'opacity-50 grayscale bg-gray-100';
+                const statusBadge = isActive ? '' : '<span class="ml-2 text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full border border-red-200 font-bold">ปิดใช้งาน</span>';
 
                 return `
-                <tr class="hover:bg-amber-50 group">
+                <tr class="hover:bg-amber-50 group transition-all ${statusClass}">
                     <td class="px-4 py-3 text-center">
-                        <div class="h-10 w-10 mx-auto bg-gray-100 rounded flex items-center justify-center overflow-hidden">
+                        <div class="h-10 w-10 mx-auto bg-gray-100 rounded flex items-center justify-center overflow-hidden relative">
                              ${r.image ? `<img src="${r.image}" class="w-full h-full object-cover">` : `<span class="text-lg">🎁</span>`}
+                             ${!isActive ? '<div class="absolute inset-0 bg-black/10"></div>' : ''}
                         </div>
                     </td>
-                    <td class="px-4 py-3 font-medium text-gray-800">${r.name}</td>
+                    <td class="px-4 py-3 font-medium text-gray-800">
+                        ${r.name}
+                        ${statusBadge}
+                    </td>
                     <td class="px-4 py-3 text-center font-bold ${pointsClass}">${pointsDisplay}</td>
                     <td class="px-4 py-3 text-center text-gray-600">${stockText}</td>
                     <td class="px-4 py-3 text-center text-gray-500">${quotaText}</td>
                     <td class="px-4 py-3 text-center">
                         <div class="flex items-center justify-center gap-2">
-                             <button onclick="openEditRewardModal('${r.id}')" class="bg-white border border-gray-300 text-gray-600 p-1.5 rounded-full hover:bg-gray-100 shadow-sm" title="แก้ไข">✏️</button>
-                             <button onclick="confirmDeleteReward('${r.id}')" class="bg-white border border-red-200 text-red-600 p-1.5 rounded-full hover:bg-red-50 shadow-sm" title="ลบ">🗑️</button>
+                             <button onclick="openEditRewardModal('${r.id}')" class="bg-white border border-gray-300 text-gray-600 p-1.5 rounded-full hover:bg-gray-100 shadow-sm transition-transform hover:scale-110" title="แก้ไข">✏️</button>
+                             <button onclick="confirmDeleteReward('${r.id}')" class="bg-white border border-red-200 text-red-600 p-1.5 rounded-full hover:bg-red-50 shadow-sm transition-transform hover:scale-110" title="ลบ">🗑️</button>
                         </div>
                     </td>
-                </tr>
-                `;
+                </tr>`;
             }).join('');
             
             document.getElementById('rewards-table-container').classList.remove('hidden');
             document.getElementById('rewards-grid-container').classList.add('hidden');
-        } 
+        }
         
         // Student view (Grid)
         const grid = document.getElementById('rewards-grid');
@@ -3146,6 +3160,7 @@ const appId = 'activeredpoint';
         // ✅ เพิ่ม: โหลดค่า Checkbox กลับมาแสดง
         document.getElementById('edit-reward-no-guild').checked = r.no_guild_discount || false;
         document.getElementById('edit-reward-no-personal').checked = r.no_personal_discount || false;
+        document.getElementById('edit-reward-active').checked = (r.is_active !== false);
         
         // 2. จัดการสต็อก
         if (r.stock === -1) {
@@ -3201,6 +3216,7 @@ const appId = 'activeredpoint';
         const quota = isQuotaUnlimited ? 0 : (parseInt(document.getElementById('edit-reward-quota').value) || 0);
 
         const updates = {
+            is_active: document.getElementById('edit-reward-active').checked,
             name: document.getElementById('edit-reward-name').value,
             points: parseInt(document.getElementById('edit-reward-points').value),
             stock: stock,
@@ -3431,6 +3447,7 @@ const appId = 'activeredpoint';
                 available // ตัวแปรสำหรับใช้เรียงลำดับ
             };
         });
+        items = items.filter(r => r.is_active !== false);
 
         // 3. 🔥 จัดเรียงลำดับ (Smart Sorting)
         items.sort((a, b) => {
@@ -5012,6 +5029,7 @@ const appId = 'activeredpoint';
         const noPersonal = document.getElementById('add-reward-no-personal').checked;
 
         await addDoc(collections.rewards(), {
+            is_active: document.getElementById('add-reward-active').checked,
             name: document.getElementById('add-reward-name').value,
             points: parseInt(document.getElementById('add-reward-points').value),
             image: document.getElementById('add-reward-img').value || '',
