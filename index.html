@@ -3571,51 +3571,85 @@ const appId = 'activeredpoint';
         }).join('');
     }
 
-    // --- 🛍️ REDEEM MODAL CONTROLLER ---
+    // --- 🛍️ REDEEM MODAL CONTROLLER (LOGIC FIXED) ---
 
     window.openRedeemQuantityModal = (rewardId) => {
         const reward = rewards.find(r => r.id === rewardId);
         if (!reward) return;
 
-        // คำนวณราคาสุทธิอีกครั้ง (เพื่อให้ได้ราคาที่ลดแล้ว)
         const s = selectedStudentForRedeem;
+        if (!s) return;
+
+        // 1. คำนวณราคาจริง (Actual Price)
         let guildDiscount = 0;
         let pDiscount = 0;
 
-        if (s) {
-            if (!reward.no_guild_discount && s.guild_id) {
-                const activeBuffs = getGuildActiveBuffs(s.guild_id);
-                if (activeBuffs && activeBuffs.discount) guildDiscount = parseInt(activeBuffs.discount);
-            }
-            if (!reward.no_personal_discount && s.buff_discount_end) {
-                let endTime = s.buff_discount_end;
-                if (typeof endTime.toMillis === 'function') endTime = endTime.toMillis();
-                else if (endTime instanceof Date) endTime = endTime.getTime();
-                if (Date.now() < endTime) pDiscount = parseInt(s.buff_discount_val || 0);
-            }
+        if (!reward.no_guild_discount && s.guild_id) {
+            const activeBuffs = getGuildActiveBuffs(s.guild_id);
+            if (activeBuffs && activeBuffs.discount) guildDiscount = parseInt(activeBuffs.discount);
         }
+        if (!reward.no_personal_discount && s.buff_discount_end) {
+            let endTime = s.buff_discount_end;
+            if (typeof endTime.toMillis === 'function') endTime = endTime.toMillis();
+            else if (endTime instanceof Date) endTime = endTime.getTime();
+            if (Date.now() < endTime) pDiscount = parseInt(s.buff_discount_val || 0);
+        }
+        
         const totalDiscount = Math.min(100, guildDiscount + pDiscount);
         let actualPrice = reward.points;
         if (reward.points > 0 && totalDiscount > 0) {
             actualPrice = Math.ceil(reward.points * (100 - totalDiscount) / 100);
         }
 
-        // ตั้งค่าตัวแปรเป้าหมาย
-        redeemTarget = { ...reward, actualPrice: actualPrice };
+        // 2. 🔥 คำนวณเพดานสูงสุด (Max Redeemable) จาก 3 ปัจจัย
         
-        // เซ็ตค่าใน Modal
+        // A. จำกัดด้วยสต็อก (Stock)
+        let limitByStock = (reward.stock === -1) ? 9999 : parseInt(reward.stock);
+
+        // B. จำกัดด้วยโควตา (Quota)
+        let limitByQuota = 9999;
+        if (reward.quota > 0) {
+            const used = (s.redeemed_history && s.redeemed_history[reward.id]) || 0;
+            limitByQuota = Math.max(0, parseInt(reward.quota) - used);
+        }
+
+        // C. จำกัดด้วยเงิน (Affordability)
+        let limitByPoints = 9999;
+        if (actualPrice > 0) {
+            limitByPoints = Math.floor((s.points || 0) / actualPrice);
+        }
+
+        // สรุปยอดที่แลกได้จริง (เอาค่าน้อยที่สุด)
+        const maxRedeemable = Math.min(limitByStock, limitByQuota, limitByPoints);
+
+        // ตั้งค่าตัวแปรเป้าหมาย
+        redeemTarget = { 
+            ...reward, 
+            actualPrice: actualPrice,
+            maxRedeemable: maxRedeemable 
+        };
+        
+        // เซ็ตค่าแสดงผล
         document.getElementById('redeem-modal-title').textContent = reward.name;
         document.getElementById('redeem-modal-subtitle').textContent = 
-            `ราคาต่อชิ้น: ${reward.points < 0 ? 'ฟรี' : actualPrice + ' แต้ม'}`;
+            `ราคาต่อชิ้น: ${reward.points < 0 ? 'ฟรี' : actualPrice + ' แต้ม'} ` +
+            `(โควตาเหลือ: ${limitByQuota >= 999 ? 'ไม่จำกัด' : limitByQuota})`;
         
         const qtyInput = document.getElementById('redeem-qty');
-        qtyInput.value = 1;
-        qtyInput.max = (reward.stock === -1) ? 999 : reward.stock;
         
-        // คำนวณราคารวมเริ่มต้น
-        updateRedeemTotal(1);
+        // กรณีไม่มีสิทธิ์แลกเลย (เช่น เงินไม่พอ หรือโควตาเต็ม)
+        if (maxRedeemable <= 0) {
+            qtyInput.value = 0;
+            qtyInput.disabled = true;
+            document.getElementById('redeem-total-points').textContent = "ไม่สามารถแลกได้";
+            document.getElementById('redeem-total-points').className = "font-bold text-red-600 text-lg";
+        } else {
+            qtyInput.value = 1;
+            qtyInput.disabled = false;
+            qtyInput.max = maxRedeemable; // ตั้งค่า max ให้ input ด้วย
+            updateRedeemTotal(1);
+        }
 
-        // เปิด Modal
         document.getElementById('redeem-quantity-modal').classList.remove('hidden');
         document.getElementById('redeem-quantity-modal').classList.add('flex');
     };
@@ -3627,26 +3661,29 @@ const appId = 'activeredpoint';
     };
 
     window.adjustRedeemQty = (delta) => {
+        if (!redeemTarget || redeemTarget.maxRedeemable <= 0) return;
+
         const input = document.getElementById('redeem-qty');
         let val = parseInt(input.value) || 0;
         val += delta;
         
-        // ตรวจสอบขอบเขต
+        // ตรวจสอบขอบเขต (1 - Max)
         if (val < 1) val = 1;
-        if (redeemTarget && redeemTarget.stock !== -1 && val > redeemTarget.stock) {
-            val = redeemTarget.stock;
-        }
+        if (val > redeemTarget.maxRedeemable) val = redeemTarget.maxRedeemable;
         
         input.value = val;
         validateRedeemInput(input);
     };
 
     window.validateRedeemInput = (input) => {
+        if (!redeemTarget) return;
+
         let val = parseInt(input.value);
         if (isNaN(val) || val < 1) val = 1;
         
-        if (redeemTarget && redeemTarget.stock !== -1 && val > redeemTarget.stock) {
-            val = redeemTarget.stock;
+        // ถ้าค่าเกิน Max ให้ตบกลับมาที่ Max
+        if (val > redeemTarget.maxRedeemable) {
+            val = redeemTarget.maxRedeemable;
         }
         
         input.value = val;
@@ -3655,15 +3692,20 @@ const appId = 'activeredpoint';
 
     function updateRedeemTotal(qty) {
         if (!redeemTarget) return;
-        const total = qty * redeemTarget.actualPrice;
         
-        // ถ้าเป็นของแจกแต้ม (ราคาติดลบ)
+        const total = qty * redeemTarget.actualPrice;
+        const totalEl = document.getElementById('redeem-total-points');
+
         if (redeemTarget.points < 0) {
-            document.getElementById('redeem-total-points').textContent = `ได้รับ ${Math.abs(total)} แต้ม`;
-            document.getElementById('redeem-total-points').className = "font-bold text-green-600 text-lg";
+            totalEl.textContent = `ได้รับ ${Math.abs(total)} แต้ม`;
+            totalEl.className = "font-bold text-green-600 text-lg";
         } else {
-            document.getElementById('redeem-total-points').textContent = total.toLocaleString();
-            document.getElementById('redeem-total-points').className = "font-bold text-amber-600 text-lg";
+            // เช็คอีกทีว่าเงินพอไหม (เผื่อกรณีบั๊ก)
+            const s = selectedStudentForRedeem;
+            const canAfford = (s.points || 0) >= total;
+            
+            totalEl.textContent = total.toLocaleString();
+            totalEl.className = canAfford ? "font-bold text-amber-600 text-lg" : "font-bold text-red-600 text-lg";
         }
     }
 
