@@ -3872,21 +3872,22 @@ const appId = 'activeredpoint';
         
     // 5. Bank Logic
     function calculatePendingInterest(student) {
+        // 1. 🔒 เช็คใบเตือน: ถ้ามีใบเตือน ดอกเบี้ยเป็น 0 ทันที (แช่แข็ง)
+        if ((student.warning_cards || 0) > 0) return 0;
+
         if (!student.bank_points || !student.bank_deposit_time) return 0;
 
-        // แปลงเวลาฝาก
         let depositTime = student.bank_deposit_time;
         if (depositTime && typeof depositTime.toMillis === 'function') depositTime = depositTime.toMillis();
         else if (depositTime instanceof Date) depositTime = depositTime.getTime();
-        else if (depositTime.seconds) depositTime = depositTime.seconds * 1000; // กันเหนียว
+        else if (depositTime.seconds) depositTime = depositTime.seconds * 1000;
         else return 0;
 
         const now = Date.now();
         
-        // --- ส่วนที่แก้ 1: ใช้ getGuildActiveBuffs เพื่อดึงค่าสดๆ ---
+        // 2. ดึงบัฟกิลด์
         let guildBonus = 0;
-        if (student.guild_id) {
-            // เรียกฟังก์ชันคำนวณสดที่เราเพิ่งทำ
+        if (student.guild_id && typeof getGuildActiveBuffs === 'function') {
             const activeBuffs = getGuildActiveBuffs(student.guild_id);
             if (activeBuffs && activeBuffs.interest) {
                 guildBonus = parseFloat(activeBuffs.interest);
@@ -3894,17 +3895,13 @@ const appId = 'activeredpoint';
         }
         
         const globalRate = config.interest_rate || 1.0;
-
-        // ... (Logic เช็คดอกเบี้ยโปรโมชั่นส่วนตัว คงไว้เหมือนเดิม) ...
-        // ... (ข้ามมาดูตอนจบ) ...
-
-        // กรณีปกติ: ใช้เรทกองกลาง + บัฟกิลด์
+        
+        // 3. คำนวณดอกเบี้ย (ตามเรท + บัฟ)
         const hours = (now - depositTime) / (1000 * 60 * 60);
         
-        // --- ส่วนที่แก้ 2: ต้องบวก guildBonus เข้าไปในสูตรด้วย! ---
-        // ของเดิม: return student.bank_points * (globalRate / 100) * hours; 
-        
-        // ของใหม่ (ถูกต้อง):
+        // ตรวจสอบว่าเป็น NaN หรือไม่ (กันเหนียว)
+        if (isNaN(hours) || hours < 0) return 0;
+
         return student.bank_points * ((globalRate + guildBonus) / 100) * hours;
     }
     
@@ -7305,43 +7302,61 @@ window.getGuildActiveBuffs = (guildId) => {
 
     // --- ⚠️ PUNISHMENT & WARNING SYSTEM ---
 
-    // เพิ่ม/ลด ใบเตือน
+    // เพิ่ม/ลด ใบเตือน (พร้อมระบบแช่แข็งดอกเบี้ย)
     window.adjustWarning = async (id, amount) => {
         const s = students.find(x => x.id === id);
         if (!s) return;
         
-        const newWarning = Math.max(0, (s.warning_cards || 0) + amount);
+        const currentWarning = s.warning_cards || 0;
+        const newWarning = Math.max(0, currentWarning + amount);
         
-        // ถ้าใบเตือนหมด -> คืนแต้มที่ยึดไว้ทั้งหมด!
+        // ถ้าค่าไม่เปลี่ยน ก็ไม่ต้องทำอะไร
+        if (newWarning === currentWarning) return;
+
         let updateData = { warning_cards: newWarning };
         let msg = '';
 
+        // 🔥 LOGIC แช่แข็งดอกเบี้ย: เมื่อสถานะใบเตือนเปลี่ยน (จากไม่มี->มี หรือ มี->ไม่มี)
+        // เราจะ "ทบดอกเบี้ยเก่า" เข้าเงินต้นทันที แล้วเริ่มนับเวลาใหม่
+        // เพื่อไม่ให้เสียประโยชน์จากช่วงเวลาที่ผ่านมา (กรณีโดนเตือน) 
+        // หรือเพื่อรีเซ็ตเวลาเริ่มนับใหม่ (กรณีพ้นโทษ)
+        
+        const interest = calculatePendingInterest(s); // คำนวณดอกเบี้ยก่อนโดนทำโทษ
+        if (interest > 0) {
+            // ทบดอกเบี้ยเข้าเงินฝาก
+            updateData.bank_points = increment(Math.floor(interest));
+            // รีเซ็ตเวลาฝากเป็น "ณ ตอนนี้"
+            updateData.bank_deposit_time = serverTimestamp(); 
+        } else if (currentWarning > 0 && newWarning === 0) {
+            // กรณีพ้นโทษ (ดอกเบี้ยเป็น 0 อยู่แล้ว) ให้รีเซ็ตเวลาเริ่มนับใหม่ ณ ตอนนี้
+            updateData.bank_deposit_time = serverTimestamp();
+        }
+
+        // กรณีพ้นโทษ: คืนแต้มที่อายัดไว้ (Pending Points)
         if (newWarning === 0 && (s.pending_points || 0) > 0) {
             const returnPoints = s.pending_points;
             updateData.points = increment(returnPoints);
             updateData.pending_points = 0;
-            msg = ` และได้รับคืน ${returnPoints} แต้มที่ถูกอายัดไว้!`;
+            msg = ` และได้รับคืน ${returnPoints.toLocaleString()} แต้ม`;
             
-            // บันทึกประวัติการคืนแต้ม
+            // Log การคืนแต้ม
             const hRef = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
             await setDoc(hRef, {
                 student_id: s.id,
                 student_name: s.full_name,
-                action: 'พ้นโทษแบน (คืนแต้มอายัด)',
+                action: 'พ้นโทษใบเตือน (คืนแต้มอายัด)',
                 amount: returnPoints,
                 type: 'add_points',
                 timestamp: serverTimestamp()
             });
         }
 
+        // อัปเดตข้อมูลนักเรียน
         await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'students', id), updateData);
         
-        if (newWarning === 0) {
-            showToast(`🎉 ${s.full_name} พ้นโทษแล้ว!${msg}`);
-        } else {
-            // ถ้าเพิ่มใบเตือน ให้แจ้งเตือนด้วย (Optional)
-            if (amount > 0) showToast(`⚠️ เพิ่มใบเตือนให้ ${s.full_name}`);
-        }
+        // Log การให้ใบเตือน
+        const actionText = amount > 0 ? `ได้รับใบเตือน (${newWarning})` : `ลดใบเตือน (${newWarning})`;
+        showToast(`⚠️ ${s.full_name} ${actionText}${msg}`);
     };
 
     // แสดงหน้าคุมประพฤติ (เรียกตอนกดแท็บ หรือ refresh)
