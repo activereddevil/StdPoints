@@ -4597,6 +4597,39 @@ const appId = 'activeredpoint';
     input.value = val;
 };
 
+// 🔥 ฟังก์ชันช่วยคำนวณแต้มรวมบัฟ (Quest + Guild + Personal)
+window.calculateQuestPointsWithBuffs = (student, basePoints) => {
+        let bonusPercent = 0;
+
+        // 1. เช็คบัฟกิลด์ (Guild Buff)
+        if (student.guild_id && typeof getGuildActiveBuffs === 'function') {
+            const gBuffs = getGuildActiveBuffs(student.guild_id);
+            // ตรวจสอบว่ามีค่า point_boost หรือไม่ (สมมติว่าเป็น %)
+            if (gBuffs && gBuffs.point_boost) {
+                bonusPercent += parseFloat(gBuffs.point_boost) || 0;
+            }
+        }
+
+        // 2. เช็คบัฟส่วนตัว (Personal Buff from Gacha/Item)
+        if (student.buff_points_end) {
+            let endTime = student.buff_points_end;
+            // แปลง Timestamp เป็น Milliseconds
+            if (typeof endTime.toMillis === 'function') endTime = endTime.toMillis();
+            else if (endTime instanceof Date) endTime = endTime.getTime();
+            
+            // ถ้าเวลายังไม่หมดอายุ ให้บวก % เพิ่ม
+            if (Date.now() < endTime) {
+                bonusPercent += parseFloat(student.buff_points_val) || 0;
+            }
+        }
+
+        // คำนวณแต้มสุทธิ
+        // สูตร: ฐาน + (ฐาน * %โบนัส / 100)
+        const bonusPoints = Math.floor(basePoints * bonusPercent / 100);
+        const totalPoints = basePoints + bonusPoints;
+
+        return { totalPoints, bonusPoints, bonusPercent };
+    };
 
    window.executeBulkQuest = async (questId) => {
     const quest = quests.find(q => q.id === questId);
@@ -7573,27 +7606,74 @@ window.getGuildActiveBuffs = (guildId) => {
     let currentQuestDistId = null;          // จำ ID ภารกิจที่กำลังทำ
 
     // 1. ฟังก์ชันเปิด Modal (แทนที่ executeBulkQuest เดิมในปุ่ม HTML)
-    window.executeBulkQuest = (questId) => {
+    window.executeBulkQuest = async (questId) => {
         const quest = quests.find(q => q.id === questId);
         if (!quest) return;
-
-        currentQuestDistId = questId;
         
-        // ตั้งค่า UI
-        document.getElementById('quest-dist-title').textContent = `${quest.icon} ${quest.title} (+${quest.points} แต้ม)`;
-        document.getElementById('quest-dist-qty').value = 1;
-        document.getElementById('quest-dist-search').value = '';
+        // ดึงจำนวนครั้งจากช่องกรอก
+        const qtyInput = document.getElementById('bulk-quest-qty');
+        const qty = parseInt(qtyInput ? qtyInput.value : 1) || 1;
+        
+        // แต้มตั้งต้น (Base Points)
+        const baseTotalPoints = quest.points * qty;
 
-        // ✨ พิเศษ: ถ้ามีการเลือกนักเรียนค้างไว้จากหน้าหลัก (Select All) ให้ดึงมาใส่เลย
-        if (selectedStudentIds.size > 0) {
-            tempQuestDistSelection = new Set(selectedStudentIds);
-        } else {
-            tempQuestDistSelection.clear();
+        const batch = writeBatch(db);
+        const timestamp = serverTimestamp();
+        let count = 0;
+        let totalBonusGiven = 0; // เก็บสถิติเล่นๆ
+
+        const targetIds = currentQuestTargetId ? [currentQuestTargetId] : Array.from(selectedStudentIds);
+
+        targetIds.forEach(sid => {
+            const s = students.find(std => std.id === sid);
+            
+            if (s) {
+                const sRef = doc(db, 'artifacts', appId, 'public', 'data', 'students', sid);
+                const hRef = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
+                
+                // 🔥 คำนวณบัฟ!
+                const { totalPoints, bonusPoints, bonusPercent } = calculateQuestPointsWithBuffs(s, baseTotalPoints);
+                totalBonusGiven += bonusPoints;
+
+                // ข้อความบันทึกประวัติ (เพิ่มรายละเอียดบัฟถ้ามี)
+                let historyAction = `ภารกิจสำเร็จ: ${quest.title} (x${qty})`;
+                if (bonusPoints > 0) {
+                    historyAction += ` [โบนัส +${bonusPercent}%]`;
+                }
+
+                // เช็คใบเตือน (Pending Points)
+                if ((s.warning_cards || 0) > 0) {
+                    batch.update(sRef, { pending_points: increment(totalPoints) });
+                } else {
+                    batch.update(sRef, { points: increment(totalPoints) });
+                }
+
+                batch.set(hRef, {
+                    student_id: s.id,
+                    student_name: s.full_name,
+                    action: historyAction,
+                    amount: totalPoints, // บันทึกยอดสุทธิ (รวมโบนัสแล้ว)
+                    type: 'quest_complete',
+                    timestamp: timestamp
+                });
+                count++;
+            }
+        });
+
+        await batch.commit();
+        document.getElementById('bulk-quest-modal').classList.add('hidden');
+        
+        // แจ้งเตือนสรุป
+        let msg = `มอบรางวัลภารกิจให้ ${count} คน เรียบร้อย!`;
+        if (totalBonusGiven > 0) msg += ` (รวมโบนัสบัฟ ${totalBonusGiven} แต้ม)`;
+        showToast(msg);
+        
+        if (!currentQuestTargetId) {
+                selectedStudentIds.clear();
+                updateBulkUI();
         }
-
-        renderQuestStudentSelector(); // วาดรายชื่อ
-        document.getElementById('quest-distribution-modal').classList.remove('hidden');
-        document.getElementById('quest-distribution-modal').classList.add('flex');
+        currentQuestTargetId = null;
+        renderStudentList(false);
     };
 
     // 2. ฟังก์ชันวาดรายชื่อนักเรียน (พร้อมระบบค้นหา & จำค่า)
@@ -7673,7 +7753,6 @@ window.getGuildActiveBuffs = (guildId) => {
         input.value = val;
     };
 
-    // 6. ฟังก์ชันยืนยันการแจก (Logic จริง)
     window.confirmQuestDistribution = async () => {
         if (tempQuestDistSelection.size === 0) return alert('กรุณาเลือกนักเรียนอย่างน้อย 1 คนครับ');
         
@@ -7681,9 +7760,8 @@ window.getGuildActiveBuffs = (guildId) => {
         if (!quest) return;
 
         const qty = parseInt(document.getElementById('quest-dist-qty').value) || 1;
-        const totalPoints = quest.points * qty;
+        const baseTotalPoints = quest.points * qty; // แต้มตั้งต้น
 
-        // ปิด Modal และแสดง Loading
         document.getElementById('quest-distribution-modal').classList.add('hidden');
         showToast('กำลังแจกแต้ม... ⏳');
 
@@ -7691,14 +7769,20 @@ window.getGuildActiveBuffs = (guildId) => {
         const timestamp = serverTimestamp();
         let count = 0;
 
-        // วนลูปรายชื่อจาก Set ที่เราจำไว้
         tempQuestDistSelection.forEach(sid => {
             const s = students.find(std => std.id === sid);
             if (s) {
                 const sRef = doc(db, 'artifacts', appId, 'public', 'data', 'students', s.id);
                 const hRef = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
 
-                // เช็คใบเตือนเหมือนเดิม
+                // 🔥 คำนวณบัฟ!
+                const { totalPoints, bonusPoints, bonusPercent } = calculateQuestPointsWithBuffs(s, baseTotalPoints);
+
+                let historyAction = `ภารกิจสำเร็จ: ${quest.title} (x${qty})`;
+                if (bonusPoints > 0) {
+                    historyAction += ` [Buff +${bonusPercent}%]`;
+                }
+
                 if ((s.warning_cards || 0) > 0) {
                     batch.update(sRef, { pending_points: increment(totalPoints) });
                 } else {
@@ -7708,7 +7792,7 @@ window.getGuildActiveBuffs = (guildId) => {
                 batch.set(hRef, {
                     student_id: s.id,
                     student_name: s.full_name,
-                    action: `ภารกิจสำเร็จ: ${quest.title} (x${qty})`,
+                    action: historyAction,
                     amount: totalPoints,
                     type: 'quest_complete',
                     timestamp: timestamp
@@ -7719,15 +7803,10 @@ window.getGuildActiveBuffs = (guildId) => {
 
         try {
             await batch.commit();
-            showToast(`✅ แจกแต้มสำเร็จ ${count} คน (คนละ ${totalPoints} แต้ม)`);
-            
-            // เล่นเสียงเหรียญ
+            showToast(`✅ แจกแต้มสำเร็จ ${count} คน`);
             if(window.soundCoin) window.soundCoin.play();
-
-            // ล้างค่าเมื่อเสร็จงาน
             tempQuestDistSelection.clear();
             currentQuestDistId = null;
-            
         } catch (e) {
             console.error(e);
             alert('เกิดข้อผิดพลาด: ' + e.message);
