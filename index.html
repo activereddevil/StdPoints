@@ -3468,9 +3468,7 @@ const appId = 'activeredpoint';
         const s = selectedStudentForRedeem;
         if (!s) return;
 
-        // ===============================================
         // 1. เตรียมข้อมูล & คำนวณราคา
-        // ===============================================
         let items = rewards.map(r => {
             let guildDiscount = 0;
             let pDiscount = 0;
@@ -3506,36 +3504,25 @@ const appId = 'activeredpoint';
             };
         });
 
-        // ===============================================
-        // 2. กรองและเรียงลำดับ (Filter & Smart Sort)
-        // ===============================================
-        
-        // 🛡️ กรองเฉพาะของที่เปิดใช้งาน
+        // 2. กรองและเรียงลำดับ
         items = items.filter(r => r.is_active !== false);
 
-        // 🔥 เรียงลำดับ: ซื้อไหวขึ้นก่อน -> ตามด้วยราคาถูกไปแพง
         const myPoints = s.points || 0;
-        
         items.sort((a, b) => {
              const affordA = a.isGain || myPoints >= a.finalPoints;
              const affordB = b.isGain || myPoints >= b.finalPoints;
-             
              if (affordA && !affordB) return -1;
              if (!affordA && affordB) return 1;
-
              return a.finalPoints - b.finalPoints;
         });
 
-        // ===============================================
-        // 3. วาดลงหน้าจอ (Render)
-        // ===============================================
+        // 3. วาดลงหน้าจอ
         grid.innerHTML = items.map(r => {
             const canAfford = s.points >= r.finalPoints;
             const isUnlimited = r.stock === -1;
             const hasStock = isUnlimited || r.stock > 0;
             const disabled = (!canAfford && !r.isGain) || !hasStock;
 
-            // ป้ายราคา
             let pointsDisplay = '';
             let discountBadge = '';
 
@@ -3554,9 +3541,9 @@ const appId = 'activeredpoint';
                 }
             }
 
-            // ✅ ปุ่มแลกสินค้า (ใส่กลับมาให้แล้วครับ)
+            // ✅ เปลี่ยนคำสั่ง onclick เป็น openRedeemQuantityModal
             const btnHtml = `
-            <button onclick="confirmRedeemAction('${r.id}')" 
+            <button onclick="openRedeemQuantityModal('${r.id}')" 
                 class="w-full mt-3 py-2 rounded-lg font-bold text-white shadow-sm transition-all flex items-center justify-center gap-2
                 ${disabled ? 'bg-gray-300 cursor-not-allowed' : 'bg-amber-500 hover:bg-amber-600 hover:scale-105 active:scale-95'}"
                 ${disabled ? 'disabled' : ''}>
@@ -3582,6 +3569,102 @@ const appId = 'activeredpoint';
                 </div>
             </div>`;
         }).join('');
+    }
+
+    // --- 🛍️ REDEEM MODAL CONTROLLER ---
+
+    window.openRedeemQuantityModal = (rewardId) => {
+        const reward = rewards.find(r => r.id === rewardId);
+        if (!reward) return;
+
+        // คำนวณราคาสุทธิอีกครั้ง (เพื่อให้ได้ราคาที่ลดแล้ว)
+        const s = selectedStudentForRedeem;
+        let guildDiscount = 0;
+        let pDiscount = 0;
+
+        if (s) {
+            if (!reward.no_guild_discount && s.guild_id) {
+                const activeBuffs = getGuildActiveBuffs(s.guild_id);
+                if (activeBuffs && activeBuffs.discount) guildDiscount = parseInt(activeBuffs.discount);
+            }
+            if (!reward.no_personal_discount && s.buff_discount_end) {
+                let endTime = s.buff_discount_end;
+                if (typeof endTime.toMillis === 'function') endTime = endTime.toMillis();
+                else if (endTime instanceof Date) endTime = endTime.getTime();
+                if (Date.now() < endTime) pDiscount = parseInt(s.buff_discount_val || 0);
+            }
+        }
+        const totalDiscount = Math.min(100, guildDiscount + pDiscount);
+        let actualPrice = reward.points;
+        if (reward.points > 0 && totalDiscount > 0) {
+            actualPrice = Math.ceil(reward.points * (100 - totalDiscount) / 100);
+        }
+
+        // ตั้งค่าตัวแปรเป้าหมาย
+        redeemTarget = { ...reward, actualPrice: actualPrice };
+        
+        // เซ็ตค่าใน Modal
+        document.getElementById('redeem-modal-title').textContent = reward.name;
+        document.getElementById('redeem-modal-subtitle').textContent = 
+            `ราคาต่อชิ้น: ${reward.points < 0 ? 'ฟรี' : actualPrice + ' แต้ม'}`;
+        
+        const qtyInput = document.getElementById('redeem-qty');
+        qtyInput.value = 1;
+        qtyInput.max = (reward.stock === -1) ? 999 : reward.stock;
+        
+        // คำนวณราคารวมเริ่มต้น
+        updateRedeemTotal(1);
+
+        // เปิด Modal
+        document.getElementById('redeem-quantity-modal').classList.remove('hidden');
+        document.getElementById('redeem-quantity-modal').classList.add('flex');
+    };
+
+    window.hideRedeemQuantityModal = () => {
+        document.getElementById('redeem-quantity-modal').classList.add('hidden');
+        document.getElementById('redeem-quantity-modal').classList.remove('flex');
+        redeemTarget = null;
+    };
+
+    window.adjustRedeemQty = (delta) => {
+        const input = document.getElementById('redeem-qty');
+        let val = parseInt(input.value) || 0;
+        val += delta;
+        
+        // ตรวจสอบขอบเขต
+        if (val < 1) val = 1;
+        if (redeemTarget && redeemTarget.stock !== -1 && val > redeemTarget.stock) {
+            val = redeemTarget.stock;
+        }
+        
+        input.value = val;
+        validateRedeemInput(input);
+    };
+
+    window.validateRedeemInput = (input) => {
+        let val = parseInt(input.value);
+        if (isNaN(val) || val < 1) val = 1;
+        
+        if (redeemTarget && redeemTarget.stock !== -1 && val > redeemTarget.stock) {
+            val = redeemTarget.stock;
+        }
+        
+        input.value = val;
+        updateRedeemTotal(val);
+    };
+
+    function updateRedeemTotal(qty) {
+        if (!redeemTarget) return;
+        const total = qty * redeemTarget.actualPrice;
+        
+        // ถ้าเป็นของแจกแต้ม (ราคาติดลบ)
+        if (redeemTarget.points < 0) {
+            document.getElementById('redeem-total-points').textContent = `ได้รับ ${Math.abs(total)} แต้ม`;
+            document.getElementById('redeem-total-points').className = "font-bold text-green-600 text-lg";
+        } else {
+            document.getElementById('redeem-total-points').textContent = total.toLocaleString();
+            document.getElementById('redeem-total-points').className = "font-bold text-amber-600 text-lg";
+        }
     }
 
     let currentDiscountPercent = 0;
