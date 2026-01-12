@@ -510,7 +510,7 @@
         <!-- ============ REWARDS TAB (UPDATED) ============ -->
         <div id="content-rewards" class="tab-content hidden h-full flex flex-col">
             <!-- Teacher Controls -->
-            <div id="teacher-reward-controls" class="mb-6 hidden shrink-0">
+            <div id="teacher-reward-controls" class="flex gap-2">
                 <button onclick="showAddRewardModal()" class="bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2">
                     <span class="text-xl leading-none">+</span> เพิ่มของรางวัล
                 </button>
@@ -2671,6 +2671,9 @@ const appId = 'activeredpoint';
                     </td>
                 </tr>`;
             }).join('');
+
+            document.getElementById('rewards-table-container').classList.remove('hidden');
+            document.getElementById('rewards-grid-container').classList.add('hidden');
         }
         
         // Student view (Grid)
