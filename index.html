@@ -514,6 +514,9 @@
                 <button onclick="showAddRewardModal()" class="bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2">
                     <span class="text-xl leading-none">+</span> เพิ่มของรางวัล
                 </button>
+                <button onclick="openManageRewardCategoriesModal()" class="bg-white border border-gray-300 text-gray-600 px-4 py-2.5 rounded-lg font-bold shadow-sm hover:bg-gray-50 flex items-center gap-2 ml-2">
+                    📂 หมวดหมู่
+                </button>
             </div>
             
             <!-- Teacher View (Table) -->
@@ -1086,6 +1089,10 @@
                         <input type="text" id="add-reward-name" required placeholder="เช่น กล่องสุ่มเทพเจ้า" class="w-full px-4 py-2 border rounded-lg">
                     </div>
                     <div>
+                        <label class="text-xs text-gray-500">หมวดหมู่</label>
+                        <select id="add-reward-category" class="w-full px-4 py-2 border rounded-lg bg-white"></select>
+                    </div>
+                    <div>
                         <label class="text-xs text-gray-500">ราคา (แต้ม)</label>
                         <input type="number" id="add-reward-points" required class="w-full px-4 py-2 border rounded-lg">
                     </div>
@@ -1171,6 +1178,10 @@
                     <div>
                         <label class="text-xs text-gray-500">ชื่อของรางวัล/กล่อง</label>
                         <input type="text" id="edit-reward-name" required class="w-full px-4 py-2 border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-500">หมวดหมู่</label>
+                        <select id="edit-reward-category" class="w-full px-4 py-2 border rounded-lg bg-white"></select>
                     </div>
                     <div>
                         <label class="text-xs text-gray-500">ราคา (แต้ม)</label>
@@ -1631,6 +1642,22 @@
     </div>
 </div>
 
+<div id="manage-reward-categories-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-[60] p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-sm w-full p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">จัดการหมวดหมู่ของรางวัล</h2>
+        
+        <div class="flex gap-2 mb-4">
+            <input type="text" id="new-reward-cat-name" placeholder="ชื่อหมวดหมู่ใหม่..." class="flex-1 px-4 py-2 border rounded-lg">
+            <button onclick="addRewardCategory()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-indigo-700">+</button>
+        </div>
+
+        <div id="manage-reward-cat-list" class="space-y-2 max-h-60 overflow-y-auto mb-4 custom-scrollbar">
+            </div>
+
+        <button onclick="document.getElementById('manage-reward-categories-modal').classList.add('hidden'); document.getElementById('manage-reward-categories-modal').classList.remove('flex')" class="w-full bg-gray-100 text-gray-600 py-2 rounded-lg font-bold">ปิด</button>
+    </div>
+</div>
+
 
   </div> <!-- End App -->
 
@@ -1666,6 +1693,8 @@ const appId = 'activeredpoint';
         deduct_rate: 0, 
         clear_rate: 0
     };
+    let rewardCategories = ['ทั่วไป']; // ค่าเริ่มต้น
+    let currentRewardSort = { field: 'name', dir: 'asc' }; // สถานะการเรียงลำดับปัจจุบัน
     // --- SOUND ASSETS (Base64 เพื่อความสะดวก ไม่ต้องหาไฟล์) ---
     // เสียงเหรียญ (สำหรับแต้มบวก)
     const soundCoin = new Audio("https://cdn.freesound.org/previews/341/341695_5858296-lq.mp3"); 
@@ -1856,13 +1885,81 @@ const appId = 'activeredpoint';
 
     // --- MAIN APP LOGIC ---
 
+    // ฟังก์ชันโหลดหมวดหมู่ (เรียกตอนเริ่มต้น)
+    async function loadRewardCategories() {
+        try {
+            const docRef = doc(db, 'artifacts', appId, 'public', 'config');
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists() && docSnap.data().reward_categories) {
+                rewardCategories = docSnap.data().reward_categories;
+            } else {
+                rewardCategories = ['ทั่วไป', 'อุปกรณ์การเรียน', 'ขนม/เครื่องดื่ม', 'สิทธิพิเศษ', 'ของสะสม'];
+            }
+            renderRewardCategoryOptions(); // อัปเดต Dropdown
+        } catch (e) { console.error("Error loading categories:", e); }
+    }
+
+    // ฟังก์ชันบันทึกหมวดหมู่
+    async function saveRewardCategoriesToDB() {
+        try {
+            await setDoc(doc(db, 'artifacts', appId, 'public', 'config'), { 
+                reward_categories: rewardCategories 
+            }, { merge: true });
+            renderRewardCategoryOptions();
+            showToast('บันทึกหมวดหมู่เรียบร้อย');
+        } catch (e) { console.error(e); alert('บันทึกไม่สำเร็จ'); }
+    }
+
+    // ฟังก์ชันอัปเดตตัวเลือกใน Dropdown (Add/Edit Modal)
+    function renderRewardCategoryOptions() {
+        const options = rewardCategories.map(c => `<option value="${c}">${c}</option>`).join('');
+        
+        const addSelect = document.getElementById('add-reward-category');
+        if(addSelect) addSelect.innerHTML = options;
+        
+        const editSelect = document.getElementById('edit-reward-category');
+        if(editSelect) editSelect.innerHTML = options;
+    }
+
+    // --- Modal Controller for Manage Categories ---
+    window.openManageRewardCategoriesModal = () => {
+        const list = document.getElementById('manage-reward-cat-list');
+        list.innerHTML = rewardCategories.map((c, i) => `
+            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg border">
+                <span>${c}</span>
+                ${c !== 'ทั่วไป' ? `<button onclick="deleteRewardCategory(${i})" class="text-red-500 hover:text-red-700 font-bold">ลบ</button>` : '<span class="text-xs text-gray-400">ค่าหลัก</span>'}
+            </div>
+        `).join('');
+        document.getElementById('manage-reward-categories-modal').classList.remove('hidden');
+        document.getElementById('manage-reward-categories-modal').classList.add('flex');
+    };
+
+    window.addRewardCategory = () => {
+        const input = document.getElementById('new-reward-cat-name');
+        const val = input.value.trim();
+        if(val && !rewardCategories.includes(val)) {
+            rewardCategories.push(val);
+            saveRewardCategoriesToDB();
+            input.value = '';
+            openManageRewardCategoriesModal(); // Refresh List
+        }
+    };
+
+    window.deleteRewardCategory = (index) => {
+        if(confirm('ต้องการลบหมวดหมู่นี้?')) {
+            rewardCategories.splice(index, 1);
+            saveRewardCategoriesToDB();
+            openManageRewardCategoriesModal(); // Refresh List
+        }
+    };
+// เริ่มต้นแอป
     async function initAppUI() {
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('app').classList.remove('hidden');
         setupNavigation();
         subscribeToData();
         loadQuestCategories();
-        
+        loadRewardCategories();
         // Clear previous intervals if any
         if (window.interestInterval) clearInterval(window.interestInterval);
         
@@ -2492,49 +2589,88 @@ const appId = 'activeredpoint';
         return;
     };
 
+    window.sortRewards = (field) => {
+        if (currentRewardSort.field === field) {
+            // ถ้ากดปุ่มเดิม ให้สลับ Asc <-> Desc
+            currentRewardSort.dir = currentRewardSort.dir === 'asc' ? 'desc' : 'asc';
+        } else {
+            // ถ้ากดปุ่มใหม่ ให้เริ่มที่ Asc
+            currentRewardSort.field = field;
+            currentRewardSort.dir = 'asc';
+        }
+        renderRewards(); // วาดตารางใหม่
+    };
+
     function renderRewards() {
         const tbody = document.getElementById('rewards-list');
-        // Teacher view (Table)
+        const headerRow = document.querySelector('#rewards-table-container thead tr');
+        
+        // 1. อัปเดตหัวตารางให้กดเรียงได้ (Inject HTML Headers)
+        if (headerRow) {
+            const getSortIcon = (f) => currentRewardSort.field === f ? (currentRewardSort.dir === 'asc' ? '▲' : '▼') : '↕';
+            headerRow.innerHTML = `
+                <th class="px-4 py-3 text-center w-20">รูป</th>
+                <th class="px-4 py-3 text-left cursor-pointer hover:bg-amber-100 select-none" onclick="sortRewards('category')">หมวดหมู่ <span class="text-xs text-gray-400">${getSortIcon('category')}</span></th>
+                <th class="px-4 py-3 text-left cursor-pointer hover:bg-amber-100 select-none" onclick="sortRewards('name')">ชื่อรางวัล <span class="text-xs text-gray-400">${getSortIcon('name')}</span></th>
+                <th class="px-4 py-3 text-center cursor-pointer hover:bg-amber-100 select-none" onclick="sortRewards('points')">ราคา <span class="text-xs text-gray-400">${getSortIcon('points')}</span></th>
+                <th class="px-4 py-3 text-center cursor-pointer hover:bg-amber-100 select-none" onclick="sortRewards('stock')">สต็อก <span class="text-xs text-gray-400">${getSortIcon('stock')}</span></th>
+                <th class="px-4 py-3 text-center">จัดการ</th>
+            `;
+        }
+
         if (userRole === 'teacher' && tbody) {
-             tbody.innerHTML = rewards.map(r => {
-                const stockText = r.stock === -1 || r.stock === '-1' ? 'ไม่จำกัด' : r.stock;
-                const quotaText = r.quota && r.quota > 0 ? r.quota : 'ไม่จำกัด';
-                
+            // 2. เตรียมข้อมูลและเรียงลำดับ
+            let displayRewards = [...rewards];
+
+            displayRewards.sort((a, b) => {
+                let valA = a[currentRewardSort.field];
+                let valB = b[currentRewardSort.field];
+
+                // จัดการค่า Null/Undefined
+                if (currentRewardSort.field === 'category') {
+                    valA = valA || 'ทั่วไป';
+                    valB = valB || 'ทั่วไป';
+                }
+
+                if (valA < valB) return currentRewardSort.dir === 'asc' ? -1 : 1;
+                if (valA > valB) return currentRewardSort.dir === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            // 3. วาดแถวข้อมูล
+            tbody.innerHTML = displayRewards.map(r => {
+                const stockText = (r.stock === -1 || r.stock === '-1') ? '∞' : r.stock;
                 const isGain = r.points < 0;
                 const pointsDisplay = isGain ? `+${Math.abs(r.points)}` : r.points;
                 const pointsClass = isGain ? 'text-green-600' : 'text-amber-600';
-
-                // 🔥 เช็คสถานะ Active
-                const isActive = r.is_active !== false; // Default true
-                const statusClass = isActive ? '' : 'opacity-50 grayscale bg-gray-100';
-                const statusBadge = isActive ? '' : '<span class="ml-2 text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full border border-red-200 font-bold">ปิดใช้งาน</span>';
+                
+                const isActive = r.is_active !== false;
+                const opacityClass = isActive ? '' : 'opacity-50 grayscale bg-gray-50';
+                const statusBadge = isActive ? '' : '<span class="ml-2 text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full border border-red-200">ปิด</span>';
 
                 return `
-                <tr class="hover:bg-amber-50 group transition-all ${statusClass}">
+                <tr class="hover:bg-amber-50 group border-b last:border-0 ${opacityClass}">
                     <td class="px-4 py-3 text-center">
-                        <div class="h-10 w-10 mx-auto bg-gray-100 rounded flex items-center justify-center overflow-hidden relative">
+                        <div class="h-10 w-10 mx-auto bg-gray-100 rounded flex items-center justify-center overflow-hidden">
                              ${r.image ? `<img src="${r.image}" class="w-full h-full object-cover">` : `<span class="text-lg">🎁</span>`}
-                             ${!isActive ? '<div class="absolute inset-0 bg-black/10"></div>' : ''}
                         </div>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="inline-block px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md border border-gray-200">
+                            ${r.category || 'ทั่วไป'}
+                        </span>
                     </td>
                     <td class="px-4 py-3 font-medium text-gray-800">
-                        ${r.name}
-                        ${statusBadge}
+                        ${r.name} ${statusBadge}
                     </td>
                     <td class="px-4 py-3 text-center font-bold ${pointsClass}">${pointsDisplay}</td>
-                    <td class="px-4 py-3 text-center text-gray-600">${stockText}</td>
-                    <td class="px-4 py-3 text-center text-gray-500">${quotaText}</td>
+                    <td class="px-4 py-3 text-center font-mono text-gray-500">${stockText}</td>
                     <td class="px-4 py-3 text-center">
-                        <div class="flex items-center justify-center gap-2">
-                             <button onclick="openEditRewardModal('${r.id}')" class="bg-white border border-gray-300 text-gray-600 p-1.5 rounded-full hover:bg-gray-100 shadow-sm transition-transform hover:scale-110" title="แก้ไข">✏️</button>
-                             <button onclick="confirmDeleteReward('${r.id}')" class="bg-white border border-red-200 text-red-600 p-1.5 rounded-full hover:bg-red-50 shadow-sm transition-transform hover:scale-110" title="ลบ">🗑️</button>
-                        </div>
+                        <button onclick="openEditRewardModal('${r.id}')" class="text-blue-600 hover:text-blue-800 font-bold text-sm px-2">แก้ไข</button>
+                        <button onclick="confirmDeleteReward('${r.id}')" class="text-red-500 hover:text-red-700 font-bold text-sm px-2">ลบ</button>
                     </td>
                 </tr>`;
             }).join('');
-            
-            document.getElementById('rewards-table-container').classList.remove('hidden');
-            document.getElementById('rewards-grid-container').classList.add('hidden');
         }
         
         // Student view (Grid)
@@ -2556,7 +2692,7 @@ const appId = 'activeredpoint';
                 // ปรับ UI ตามประเภท (งาน vs รางวัล)
                 const pointsLabel = isGain ? `+${Math.abs(r.points)} แต้ม` : `🪙 ${r.points} แต้ม`;
                 const pointsBg = isGain ? 'bg-green-100 text-green-700' : 'bg-amber-50 text-amber-600';
-                const btnText = disabled ? (hasStock ? 'แต้มไม่พอ' : 'หมดแล้ว') : (isGain ? 'ส่งงาน / รับแต้ม' : 'แลกรางวัล');
+                const btnText = disabled ? (hasStock ? 'แต้มไม่พอ' : 'หมดแล้ว') : (isGain ? 'ส่งงาน / รับแต้ม' : 'แลกรางวัล โปรดติดต่อครู');
                 const btnColor = disabled ? 'bg-gray-300 cursor-not-allowed' : (isGain ? 'bg-indigo-600 hover:bg-indigo-700 shadow-sm' : 'bg-green-500 hover:bg-green-600 shadow-sm');
                 // -----------------------------------------------
 
@@ -3161,6 +3297,7 @@ const appId = 'activeredpoint';
         document.getElementById('edit-reward-no-guild').checked = r.no_guild_discount || false;
         document.getElementById('edit-reward-no-personal').checked = r.no_personal_discount || false;
         document.getElementById('edit-reward-active').checked = (r.is_active !== false);
+        document.getElementById('edit-reward-category').value = r.category || 'ทั่วไป';
         
         // 2. จัดการสต็อก
         if (r.stock === -1) {
@@ -3225,7 +3362,8 @@ const appId = 'activeredpoint';
             type: type,
             effect: 'none',
             no_guild_discount: document.getElementById('edit-reward-no-guild').checked,
-            no_personal_discount: document.getElementById('edit-reward-no-personal').checked
+            no_personal_discount: document.getElementById('edit-reward-no-personal').checked,
+            category: document.getElementById('edit-reward-category').value
         };
 
         if (type === 'gacha_custom') {
@@ -5090,6 +5228,7 @@ window.calculateQuestPointsWithBuffs = (student, basePoints) => {
             // ✅ บันทึกค่าใหม่ลง DB
             no_guild_discount: document.getElementById('add-reward-no-guild').checked,
             no_personal_discount: document.getElementById('add-reward-no-personal').checked,
+            category: document.getElementById('add-reward-category').value
         });
         
         document.getElementById('add-reward-modal').classList.add('hidden');
