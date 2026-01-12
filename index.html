@@ -7367,6 +7367,35 @@ window.getGuildActiveBuffs = (guildId) => {
         showToast(`⚠️ ${s.full_name} ${actionText}${msg}`);
     };
 
+    // ฟังก์ชันเพิ่มภารกิจ (ปุ่ม + สีเหลือง) ที่หายไป
+    window.addMission = async (id) => {
+        const input = document.getElementById(`mission-input-${id}`);
+        if (!input) return;
+        
+        const text = input.value.trim();
+        if (!text) {
+            showToast('กรุณากรอกชื่อภารกิจ', 'error');
+            return;
+        }
+
+        const s = students.find(x => x.id === id);
+        if (!s) return;
+
+        // เพิ่มภารกิจใหม่ต่อท้าย
+        const missions = [...(s.active_missions || []), text];
+        
+        try {
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'students', id), {
+                active_missions: missions
+            });
+            input.value = ''; // เคลียร์ช่องกรอก
+            showToast('เพิ่มภารกิจเรียบร้อย ✅');
+        } catch (err) {
+            console.error(err);
+            showToast('เกิดข้อผิดพลาดในการบันทึก', 'error');
+        }
+    };
+
     // แสดงหน้าคุมประพฤติ (เรียกตอนกดแท็บ หรือ refresh)
     // เก็บ ID นักเรียนที่ถูกเลือกในหน้าคุมประพฤติ
     window.selectedPunishmentIds = new Set();
@@ -7495,27 +7524,36 @@ window.getGuildActiveBuffs = (guildId) => {
             showToast('แก้ไขเรียบร้อย');
         }
     };
-    // ลบภารกิจ (ทำสำเร็จ)
+    // ลบภารกิจ (ทำสำเร็จ) + ลดใบเตือน + รีเซ็ตดอกเบี้ยถ้าพ้นโทษ
     window.removeMission = async (studentId, missionIndex) => {
         if(!confirm('ยืนยันว่านักเรียนทำภารกิจนี้สำเร็จแล้ว?')) return;
 
         const s = students.find(x => x.id === studentId);
+        if (!s) return;
+
         let missions = [...(s.active_missions || [])];
         missions.splice(missionIndex, 1); // ลบภารกิจออก
         
-        // ลดใบเตือนลง 1 ใบ อัตโนมัติ (ถ้าคุณออฟต้องการ)
-        const newWarning = Math.max(0, (s.warning_cards || 0) - 1);
+        // ลดใบเตือนลง 1 ใบ
+        const currentWarning = s.warning_cards || 0;
+        const newWarning = Math.max(0, currentWarning - 1);
         
         let updateData = { 
             active_missions: missions,
             warning_cards: newWarning
         };
 
-        // เช็คอีกรอบว่าถ้าหมดโทษแล้ว ให้คืนแต้มทันที
+        // 🔥 LOGIC ที่เพิ่ม: ถ้าพ้นโทษแล้ว (ใบเตือนเป็น 0) ให้รีเซ็ตเวลาฝาก เพื่อเริ่มนับดอกเบี้ยใหม่
+        if (currentWarning > 0 && newWarning === 0) {
+             updateData.bank_deposit_time = serverTimestamp();
+        }
+
+        // คืนแต้มที่อายัด (ถ้ามี)
         if (newWarning === 0 && (s.pending_points || 0) > 0) {
-            updateData.points = increment(s.pending_points);
+            const returnPoints = s.pending_points;
+            updateData.points = increment(returnPoints);
             updateData.pending_points = 0;
-            showToast(`🎉 ${s.full_name} พ้นโทษแล้ว! ได้คืน ${s.pending_points} แต้ม`);
+            showToast(`🎉 ${s.full_name} พ้นโทษแล้ว! ได้คืน ${returnPoints} แต้ม`);
             
             // Log การคืนแต้ม
             const hRef = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
@@ -7523,22 +7561,15 @@ window.getGuildActiveBuffs = (guildId) => {
                 student_id: s.id,
                 student_name: s.full_name,
                 action: 'ทำภารกิจครบ (คืนแต้มอายัด)',
-                amount: s.pending_points,
+                amount: returnPoints,
                 type: 'add_points',
                 timestamp: serverTimestamp()
             });
+        } else {
+            showToast(`✅ ภารกิจสำเร็จ! ใบเตือนเหลือ ${newWarning}`);
         }
 
         await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'students', studentId), updateData);
-    };
-
-    // อัปเดต switchTab ให้เรียก renderPunishmentList เมื่อกดแท็บ
-    const oldSwitch = window.switchTab;
-    window.switchTab = (tabName) => {
-        oldSwitch(tabName);
-        if (tabName === 'punishment') {
-            renderPunishmentList();
-        }
     };
 
    // --- ⚠️ BULK WARNING WITH MODAL ---
