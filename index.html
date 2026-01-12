@@ -3371,66 +3371,93 @@ const appId = 'activeredpoint';
         document.getElementById('student-redeem-modal').classList.remove('hidden');
     };
     
-    function renderShopGrid() {
+   function renderShopGrid() {
         const grid = document.getElementById('shop-grid');
         
-        grid.innerHTML = rewards.map(r => {
-            // 1. คำนวณส่วนลด
-            // 1. คำนวณส่วนลด (แก้ไขใหม่: แยกตัวแปรและเช็ค flag ห้ามลด)
+        // 1. ตรวจสอบว่ามีนักเรียนที่ถูกเลือกหรือไม่
+        if (typeof selectedStudentForRedeem === 'undefined' || !selectedStudentForRedeem) {
+            grid.innerHTML = '<p class="text-center text-gray-500 w-full col-span-3">ไม่พบข้อมูลนักเรียน</p>';
+            return;
+        }
+
+        const s = selectedStudentForRedeem;
+
+        // 2. เตรียมข้อมูล + คำนวณราคา (Map & Pre-calculate)
+        let items = rewards.map(r => {
+            // --- คำนวณส่วนลด ---
             let guildDiscount = 0;
             let pDiscount = 0;
 
-            if (typeof selectedStudentForRedeem !== 'undefined' && selectedStudentForRedeem) {
-                // A. ส่วนลดกิลด์ (เพิ่มเงื่อนไข: !r.no_guild_discount)
-                if (!r.no_guild_discount && selectedStudentForRedeem.guild_id) {
-                    const activeBuffs = getGuildActiveBuffs(selectedStudentForRedeem.guild_id);
-                    if (activeBuffs && activeBuffs.discount) guildDiscount = parseInt(activeBuffs.discount);
-                }
+            if (!r.no_guild_discount && s.guild_id) {
+                const activeBuffs = getGuildActiveBuffs(s.guild_id);
+                if (activeBuffs && activeBuffs.discount) guildDiscount = parseInt(activeBuffs.discount) || 0;
+            }
+            
+            if (!r.no_personal_discount && s.buff_discount_end) {
+                let endTime = s.buff_discount_end;
+                if (typeof endTime.toMillis === 'function') endTime = endTime.toMillis();
+                else if (endTime instanceof Date) endTime = endTime.getTime();
                 
-                // B. ส่วนลดส่วนตัว (เพิ่มเงื่อนไข: !r.no_personal_discount)
-                if (!r.no_personal_discount && selectedStudentForRedeem.buff_discount_end) {
-                    let endTime = selectedStudentForRedeem.buff_discount_end;
-                    if (typeof endTime.toMillis === 'function') endTime = endTime.toMillis();
-                    else if (endTime instanceof Date) endTime = endTime.getTime();
-                    
-                    if (Date.now() < endTime) {
-                        pDiscount = parseInt(selectedStudentForRedeem.buff_discount_val || 0);
-                    }
+                if (Date.now() < endTime) {
+                    pDiscount = parseInt(s.buff_discount_val || 0);
                 }
             }
             
-            // รวมกัน (ไม่เกิน 100%)
             const totalDiscount = Math.min(100, guildDiscount + pDiscount);
 
-            // คำนวณราคาโชว์ (สำหรับของที่ต้องซื้อ)
+            // --- คำนวณราคาสุทธิ ---
             let finalPoints = r.points;
-            let discountBadge = '';
-            
-            // ✅ แก้ไข: ถ้ามีการลดราคา ให้แสดงป้ายและคำนวณราคาใหม่
             if (r.points > 0 && totalDiscount > 0) {
                 finalPoints = Math.ceil(r.points * (100 - totalDiscount) / 100);
-                discountBadge = `<span class="ml-2 bg-red-100 text-red-600 text-[10px] px-1.5 py-0.5 rounded font-bold">-${totalDiscount}%</span>`;
             }
 
-            // ✅ แก้ไข: ใช้ finalPoints ในการเช็คว่าซื้อได้ไหม
-            const canAfford = selectedStudentForRedeem ? selectedStudentForRedeem.points >= finalPoints : false; 
+            // --- เช็คสิทธิ์การซื้อ ---
+            const isGain = r.points < 0; // ของแจกแต้ม
+            const canAfford = s.points >= finalPoints;
+            const isUnlimited = (r.stock === -1 || r.stock === '-1');
+            const hasStock = isUnlimited || parseInt(r.stock) > 0;
             
-            const isUnlimited = r.stock === -1;
-            const hasStock = isUnlimited || r.stock > 0;
-            const disabled = !canAfford || !hasStock;
+            // สถานะพร้อมแลกหรือไม่ (มีเงินพอ หรือเป็นของแจก และมีของในสต็อก)
+            const available = (canAfford || isGain) && hasStock;
 
-            // เช็คว่าเป็นของแจกแต้มหรือไม่ (ถ้าแต้มติดลบ = แจกแต้ม)
-            const isGain = r.points < 0;
-            let pointsDisplay = '';
+            return {
+                ...r,
+                finalPoints,
+                totalDiscount,
+                isGain,
+                canAfford,
+                hasStock,
+                isUnlimited,
+                available // ตัวแปรสำหรับใช้เรียงลำดับ
+            };
+        });
+
+        // 3. 🔥 จัดเรียงลำดับ (Smart Sorting)
+        items.sort((a, b) => {
+            // กฎข้อ 1: เอาที่ "แลกได้" ขึ้นก่อน
+            if (a.available && !b.available) return -1;
+            if (!a.available && b.available) return 1;
+
+            // กฎข้อ 2: เรียงตามราคา (ถูก -> แพง)
+            return a.finalPoints - b.finalPoints;
+        });
+
+        // 4. แสดงผล (Render)
+        grid.innerHTML = items.map(r => {
+            const disabled = !r.available;
             
-            if (isGain) {
+            // สร้างป้ายราคา
+            let pointsDisplay = '';
+            let discountBadge = '';
+
+            if (r.isGain) {
                 pointsDisplay = `<span class="text-green-600 font-bold text-sm">+${Math.abs(r.points)} แต้ม</span>`;
             } else {
-                // ✅ แก้ไข: แสดงราคาเดิม(ขีดฆ่า) ถ้ามีการลดราคา
-                if (totalDiscount > 0) {
+                if (r.totalDiscount > 0) {
+                    discountBadge = `<span class="ml-2 bg-red-100 text-red-600 text-[10px] px-1.5 py-0.5 rounded font-bold">-${r.totalDiscount}%</span>`;
                     pointsDisplay = `
                         <span class="text-gray-400 line-through text-xs mr-1">${r.points}</span>
-                        <span class="text-red-600 font-bold text-sm">${finalPoints} แต้ม</span>
+                        <span class="text-red-600 font-bold text-sm">${r.finalPoints} แต้ม</span>
                         ${discountBadge}
                     `;
                 } else {
@@ -3439,23 +3466,25 @@ const appId = 'activeredpoint';
             }
 
             return `
-            <div class="border rounded-xl p-3 flex flex-col justify-between bg-white shadow-sm ${disabled && !isGain ? 'opacity-60' : ''}">
+            <div class="border rounded-xl p-3 flex flex-col justify-between bg-white shadow-sm transition-all ${disabled ? 'opacity-60 bg-gray-50' : 'hover:shadow-md hover:border-amber-300'}">
                 <div class="h-24 bg-gray-50 rounded-lg flex items-center justify-center mb-2 overflow-hidden border border-gray-100 relative">
                      ${r.image ? `<img src="${r.image}" class="w-full h-full object-cover">` : `<span class="text-2xl">🎁</span>`}
-                     ${!hasStock ? '<div class="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-bold text-xs">หมด</div>' : ''}
+                     ${!r.hasStock ? '<div class="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-bold text-xs">หมด</div>' : ''}
                 </div>
                 <div>
                     <h4 class="font-bold text-gray-800 text-sm line-clamp-1" title="${r.name}">${r.name}</h4>
                     <div class="mt-1 mb-1">
-                        ${pointsDisplay} </div>
-                    <p class="text-[10px] text-gray-500">คงเหลือ: ${isUnlimited ? 'ไม่จำกัด' : r.stock}</p>
+                        ${pointsDisplay}
+                    </div>
+                    <p class="text-[10px] text-gray-500">คงเหลือ: ${r.isUnlimited ? 'ไม่จำกัด' : r.stock}</p>
                 </div>
+                
                 <button onclick="selectRewardForRedeem('${r.id}')" ${disabled ? 'disabled' : ''} 
-                    class="mt-2 w-full py-1.5 rounded-lg text-xs font-bold text-white transition-colors ${disabled ? 'bg-gray-300 cursor-not-allowed' : (isGain ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-green-500 hover:bg-green-600 shadow-sm')}">
-                    ${isGain ? 'รับแต้ม' : 'แลกของ'}
+                    class="mt-2 w-full py-1.5 rounded-lg text-xs font-bold text-white transition-colors 
+                    ${disabled ? 'bg-gray-300 cursor-not-allowed' : (r.isGain ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-green-500 hover:bg-green-600')}">
+                    ${r.isGain ? '🎁 รับเลย' : '💰 แลกเลย'}
                 </button>
-            </div>
-            `;
+            </div>`;
         }).join('');
     }
 
