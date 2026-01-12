@@ -412,7 +412,7 @@
                     ⚠️ รายชื่อนักเรียนที่ถูกคุมประพฤติ
                     <span id="punishment-count" class="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded-full">0</span>
                 </h2>
-                <p class="text-sm text-gray-500">นักเรียนเหล่านี้จะฝาก-ถอนแต้มไม่ได้ แต้มใหม่จะถูกอายัดไว้ และไม่คำนวณดอกเบี้ยใหม่เพิ่มจนกว่าจะหมดโทษ </p>
+                <p class="text-sm text-gray-500">นักเรียนเหล่านี้จะถอนเงินไม่ได้ และแต้มใหม่จะถูกอายัดไว้จนกว่าจะหมดโทษ</p>
             </div>
             
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex-1">
@@ -510,20 +510,10 @@
         <!-- ============ REWARDS TAB (UPDATED) ============ -->
         <div id="content-rewards" class="tab-content hidden h-full flex flex-col">
             <!-- Teacher Controls -->
-            <div class="mb-4 shrink-0">
-                <div id="teacher-reward-controls" class="hidden flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">🎁 จัดการของรางวัล</h2>
-                    <div class="flex gap-2">
-                        <button onclick="openManageRewardCategoriesModal()" class="bg-white border border-amber-200 text-amber-600 hover:bg-amber-50 px-4 py-2.5 rounded-lg font-bold shadow-sm transition-colors text-sm flex items-center gap-2">
-                            📂 จัดการหมวดหมู่
-                        </button>
-                        <button onclick="showAddRewardModal()" class="bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2">
-                            <span class="text-xl leading-none">+</span> เพิ่มของรางวัล
-                        </button>
-                    </div>
-                </div>
-                <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar" id="reward-category-filters">
-                    </div>
+            <div id="teacher-reward-controls" class="mb-6 hidden shrink-0">
+                <button onclick="showAddRewardModal()" class="bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2">
+                    <span class="text-xl leading-none">+</span> เพิ่มของรางวัล
+                </button>
             </div>
             
             <!-- Teacher View (Table) -->
@@ -1095,15 +1085,6 @@
                         <label class="text-xs text-gray-500">ชื่อของรางวัล/กล่อง</label>
                         <input type="text" id="add-reward-name" required placeholder="เช่น กล่องสุ่มเทพเจ้า" class="w-full px-4 py-2 border rounded-lg">
                     </div>
-                    <div class="mb-2">
-                        <label class="text-xs text-gray-500">หมวดหมู่</label>
-                        <select id="add-reward-category" class="w-full px-4 py-2 border rounded-lg bg-white">
-                            </select>
-                    </div>
-                    <div class="flex items-center gap-2 mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <input type="checkbox" id="add-reward-active" checked class="w-5 h-5 text-green-600 rounded focus:ring-green-500">
-                        <label for="add-reward-active" class="text-sm font-bold text-gray-700 cursor-pointer">✅ เปิดขายทันที</label>
-                    </div>
                     <div>
                         <label class="text-xs text-gray-500">ราคา (แต้ม)</label>
                         <input type="number" id="add-reward-points" required class="w-full px-4 py-2 border rounded-lg">
@@ -1186,15 +1167,6 @@
                     <div>
                         <label class="text-xs text-gray-500">ชื่อของรางวัล/กล่อง</label>
                         <input type="text" id="edit-reward-name" required class="w-full px-4 py-2 border rounded-lg">
-                    </div>
-                    <div class="mb-2">
-                        <label class="text-xs text-gray-500">หมวดหมู่</label>
-                        <select id="edit-reward-category" class="w-full px-4 py-2 border rounded-lg bg-white">
-                            </select>
-                    </div>
-                    <div class="flex items-center gap-2 mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <input type="checkbox" id="edit-reward-active" class="w-5 h-5 text-green-600 rounded focus:ring-green-500">
-                        <label for="edit-reward-active" class="text-sm font-bold text-gray-700 cursor-pointer">✅ เปิดขาย / มีของในสต็อก</label>
                     </div>
                     <div>
                         <label class="text-xs text-gray-500">ราคา (แต้ม)</label>
@@ -1651,22 +1623,6 @@
     </div>
 </div>
 
-<div id="manage-reward-categories-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-xl shadow-xl max-w-sm w-full p-6">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-bold text-gray-800">📂 จัดการหมวดหมู่รางวัล</h3>
-            <button onclick="document.getElementById('manage-reward-categories-modal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
-        </div>
-        
-        <div id="reward-category-list" class="space-y-2 mb-4 max-h-[300px] overflow-y-auto"></div>
-
-        <div class="flex gap-2 border-t pt-4">
-            <input type="text" id="new-reward-category-input" class="flex-1 border rounded-lg px-3 py-2 text-sm" placeholder="ชื่อหมวดหมู่ใหม่...">
-            <button onclick="addRewardCategory()" class="bg-green-600 text-white px-3 py-2 rounded-lg font-bold text-sm hover:bg-green-700">+</button>
-        </div>
-    </div>
-   </div>
-
 
   </div> <!-- End App -->
 
@@ -1898,7 +1854,6 @@ const appId = 'activeredpoint';
         setupNavigation();
         subscribeToData();
         loadQuestCategories();
-        loadRewardCategories();
         
         // Clear previous intervals if any
         if (window.interestInterval) clearInterval(window.interestInterval);
@@ -2531,51 +2486,9 @@ const appId = 'activeredpoint';
 
     function renderRewards() {
         const tbody = document.getElementById('rewards-list');
-        
-
-       let displayRewards = [...rewards];
-
-        // กรองหมวดหมู่
-        if (typeof currentRewardCategoryFilter !== 'undefined' && currentRewardCategoryFilter !== 'all') {
-            displayRewards = displayRewards.filter(r => (r.category || 'ทั่วไป') === currentRewardCategoryFilter);
-        }
-
-        // กรองสถานะ Active (นักเรียนไม่เห็นของปิด / ครูเห็นหมดแต่จางๆ)
-        if (userRole === 'student') {
-            displayRewards = displayRewards.filter(r => r.is_active !== false);
-        }
-
-        // 🔥 เรียงลำดับ: เอาที่ซื้อไหวขึ้นก่อน (Smart Sort)
-        // เช็คว่าใครเป็นคนซื้อ? (นักเรียนดูเอง หรือ ครูเลือกให้นักเรียน)
-        let buyerPoints = -1;
-        
-        if (userRole === 'student' && currentStudentData) {
-            buyerPoints = currentStudentData.points || 0;
-        } else if (userRole === 'teacher' && typeof selectedStudentIds !== 'undefined' && selectedStudentIds.size === 1) {
-            // กรณีครูเลือกนักเรียน 1 คนเพื่อแลกของ
-            const studentId = [...selectedStudentIds][0];
-            const s = students.find(x => x.id === studentId);
-            if (s) buyerPoints = s.points || 0;
-        }
-
-        if (buyerPoints >= 0) {
-            displayRewards.sort((a, b) => {
-                const canAffordA = buyerPoints >= a.points;
-                const canAffordB = buyerPoints >= b.points;
-                
-                // ถ้า A ซื้อได้แต่ B ซื้อไม่ได้ -> A มาก่อน
-                if (canAffordA && !canAffordB) return -1;
-                // ถ้า A ซื้อไม่ได้แต่ B ซื้อได้ -> B มาก่อน
-                if (!canAffordA && canAffordB) return 1;
-                
-                // ถ้าสถานะเหมือนกัน ให้เรียงตามแต้ม (น้อยไปหามาก)
-                return a.points - b.points;
-            });
-        }
         // Teacher view (Table)
         if (userRole === 'teacher' && tbody) {
-             tbody.innerHTML = displayRewards.map(r => {
-                const catBadge = `<span class="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full border border-gray-200">${r.category || 'ทั่วไป'}</span>`;
+             tbody.innerHTML = rewards.map(r => {
                 const stockText = r.stock === -1 ? 'ไม่จำกัด' : r.stock;
                 const quotaText = r.quota && r.quota > 0 ? r.quota : 'ไม่จำกัด';
                 
@@ -2592,7 +2505,7 @@ const appId = 'activeredpoint';
                              ${r.image ? `<img src="${r.image}" class="w-full h-full object-cover">` : `<span class="text-lg">🎁</span>`}
                         </div>
                     </td>
-                    <td class="px-4 py-3 font-medium text-gray-800">${r.name}<br> ${catBadge}</td>
+                    <td class="px-4 py-3 font-medium text-gray-800">${r.name}</td>
                     <td class="px-4 py-3 text-center font-bold ${pointsClass}">${pointsDisplay}</td>
                     <td class="px-4 py-3 text-center text-gray-600">${stockText}</td>
                     <td class="px-4 py-3 text-center text-gray-500">${quotaText}</td>
@@ -2613,7 +2526,7 @@ const appId = 'activeredpoint';
         // Student view (Grid)
         const grid = document.getElementById('rewards-grid');
         if (userRole === 'student' && grid) {
-            grid.innerHTML = displayRewards.map(r => {
+            grid.innerHTML = rewards.map(r => {
                 // --- 🟢 ส่วนที่แก้: Logic แสดงผลฝั่งนักเรียน ---
                 const isGain = r.points < 0; // ถ้าแต้มติดลบ แปลว่า "แจกแต้ม"
                 
@@ -2629,7 +2542,7 @@ const appId = 'activeredpoint';
                 // ปรับ UI ตามประเภท (งาน vs รางวัล)
                 const pointsLabel = isGain ? `+${Math.abs(r.points)} แต้ม` : `🪙 ${r.points} แต้ม`;
                 const pointsBg = isGain ? 'bg-green-100 text-green-700' : 'bg-amber-50 text-amber-600';
-                const btnText = disabled ? (hasStock ? 'แต้มไม่พอ' : 'หมดแล้ว') : (isGain ? 'ส่งงาน / รับแต้ม' : 'แลกรางวัล โปรดติดต่อครู');
+                const btnText = disabled ? (hasStock ? 'แต้มไม่พอ' : 'หมดแล้ว') : (isGain ? 'ส่งงาน / รับแต้ม' : 'แลกรางวัล');
                 const btnColor = disabled ? 'bg-gray-300 cursor-not-allowed' : (isGain ? 'bg-indigo-600 hover:bg-indigo-700 shadow-sm' : 'bg-green-500 hover:bg-green-600 shadow-sm');
                 // -----------------------------------------------
 
@@ -3229,13 +3142,10 @@ const appId = 'activeredpoint';
         document.getElementById('edit-reward-name').value = r.name;
         document.getElementById('edit-reward-img').value = r.image || '';
         document.getElementById('edit-reward-points').value = r.points;
-        const catSelect = document.getElementById('edit-reward-category');
-            if(catSelect) catSelect.value = r.category || rewardCategories[0];
         document.getElementById('edit-reward-quota').value = r.quota || 0;
         // ✅ เพิ่ม: โหลดค่า Checkbox กลับมาแสดง
         document.getElementById('edit-reward-no-guild').checked = r.no_guild_discount || false;
         document.getElementById('edit-reward-no-personal').checked = r.no_personal_discount || false;
-        document.getElementById('edit-reward-active').checked = (r.is_active !== false);
         
         // 2. จัดการสต็อก
         if (r.stock === -1) {
@@ -3291,8 +3201,6 @@ const appId = 'activeredpoint';
         const quota = isQuotaUnlimited ? 0 : (parseInt(document.getElementById('edit-reward-quota').value) || 0);
 
         const updates = {
-            category: document.getElementById('edit-reward-category').value,
-            is_active: document.getElementById('edit-reward-active').checked,
             name: document.getElementById('edit-reward-name').value,
             points: parseInt(document.getElementById('edit-reward-points').value),
             stock: stock,
@@ -3463,77 +3371,66 @@ const appId = 'activeredpoint';
         document.getElementById('student-redeem-modal').classList.remove('hidden');
     };
     
-   function renderShopGrid() {
+    function renderShopGrid() {
         const grid = document.getElementById('shop-grid');
-        const s = selectedStudentForRedeem;
-        if (!s) return;
-
-        // 1. เตรียมข้อมูล & คำนวณราคา
-        let items = rewards.map(r => {
+        
+        grid.innerHTML = rewards.map(r => {
+            // 1. คำนวณส่วนลด
+            // 1. คำนวณส่วนลด (แก้ไขใหม่: แยกตัวแปรและเช็ค flag ห้ามลด)
             let guildDiscount = 0;
             let pDiscount = 0;
 
-            // A. ส่วนลดกิลด์
-            if (!r.no_guild_discount && s.guild_id) {
-                const activeBuffs = getGuildActiveBuffs(s.guild_id);
-                if (activeBuffs && activeBuffs.discount) guildDiscount = parseInt(activeBuffs.discount);
-            }
-            
-            // B. ส่วนลดส่วนตัว
-            if (!r.no_personal_discount && s.buff_discount_end) {
-                let endTime = s.buff_discount_end;
-                if (typeof endTime.toMillis === 'function') endTime = endTime.toMillis();
-                else if (endTime instanceof Date) endTime = endTime.getTime();
+            if (typeof selectedStudentForRedeem !== 'undefined' && selectedStudentForRedeem) {
+                // A. ส่วนลดกิลด์ (เพิ่มเงื่อนไข: !r.no_guild_discount)
+                if (!r.no_guild_discount && selectedStudentForRedeem.guild_id) {
+                    const activeBuffs = getGuildActiveBuffs(selectedStudentForRedeem.guild_id);
+                    if (activeBuffs && activeBuffs.discount) guildDiscount = parseInt(activeBuffs.discount);
+                }
                 
-                if (Date.now() < endTime) {
-                    pDiscount = parseInt(s.buff_discount_val || 0);
+                // B. ส่วนลดส่วนตัว (เพิ่มเงื่อนไข: !r.no_personal_discount)
+                if (!r.no_personal_discount && selectedStudentForRedeem.buff_discount_end) {
+                    let endTime = selectedStudentForRedeem.buff_discount_end;
+                    if (typeof endTime.toMillis === 'function') endTime = endTime.toMillis();
+                    else if (endTime instanceof Date) endTime = endTime.getTime();
+                    
+                    if (Date.now() < endTime) {
+                        pDiscount = parseInt(selectedStudentForRedeem.buff_discount_val || 0);
+                    }
                 }
             }
-
+            
+            // รวมกัน (ไม่เกิน 100%)
             const totalDiscount = Math.min(100, guildDiscount + pDiscount);
+
+            // คำนวณราคาโชว์ (สำหรับของที่ต้องซื้อ)
             let finalPoints = r.points;
+            let discountBadge = '';
+            
+            // ✅ แก้ไข: ถ้ามีการลดราคา ให้แสดงป้ายและคำนวณราคาใหม่
             if (r.points > 0 && totalDiscount > 0) {
                 finalPoints = Math.ceil(r.points * (100 - totalDiscount) / 100);
+                discountBadge = `<span class="ml-2 bg-red-100 text-red-600 text-[10px] px-1.5 py-0.5 rounded font-bold">-${totalDiscount}%</span>`;
             }
 
-            return { 
-                ...r, 
-                finalPoints, 
-                totalDiscount,
-                isGain: r.points < 0 
-            };
-        });
-
-        // 2. กรองและเรียงลำดับ
-        items = items.filter(r => r.is_active !== false);
-
-        const myPoints = s.points || 0;
-        items.sort((a, b) => {
-             const affordA = a.isGain || myPoints >= a.finalPoints;
-             const affordB = b.isGain || myPoints >= b.finalPoints;
-             if (affordA && !affordB) return -1;
-             if (!affordA && affordB) return 1;
-             return a.finalPoints - b.finalPoints;
-        });
-
-        // 3. วาดลงหน้าจอ
-        grid.innerHTML = items.map(r => {
-            const canAfford = s.points >= r.finalPoints;
+            // ✅ แก้ไข: ใช้ finalPoints ในการเช็คว่าซื้อได้ไหม
+            const canAfford = selectedStudentForRedeem ? selectedStudentForRedeem.points >= finalPoints : false; 
+            
             const isUnlimited = r.stock === -1;
             const hasStock = isUnlimited || r.stock > 0;
-            const disabled = (!canAfford && !r.isGain) || !hasStock;
+            const disabled = !canAfford || !hasStock;
 
+            // เช็คว่าเป็นของแจกแต้มหรือไม่ (ถ้าแต้มติดลบ = แจกแต้ม)
+            const isGain = r.points < 0;
             let pointsDisplay = '';
-            let discountBadge = '';
-
-            if (r.isGain) {
+            
+            if (isGain) {
                 pointsDisplay = `<span class="text-green-600 font-bold text-sm">+${Math.abs(r.points)} แต้ม</span>`;
             } else {
-                if (r.totalDiscount > 0) {
-                    discountBadge = `<span class="ml-2 bg-red-100 text-red-600 text-[10px] px-1.5 py-0.5 rounded font-bold">-${r.totalDiscount}%</span>`;
+                // ✅ แก้ไข: แสดงราคาเดิม(ขีดฆ่า) ถ้ามีการลดราคา
+                if (totalDiscount > 0) {
                     pointsDisplay = `
                         <span class="text-gray-400 line-through text-xs mr-1">${r.points}</span>
-                        <span class="text-red-600 font-bold text-sm">${r.finalPoints} แต้ม</span>
+                        <span class="text-red-600 font-bold text-sm">${finalPoints} แต้ม</span>
                         ${discountBadge}
                     `;
                 } else {
@@ -3541,172 +3438,25 @@ const appId = 'activeredpoint';
                 }
             }
 
-            // ✅ เปลี่ยนคำสั่ง onclick เป็น openRedeemQuantityModal
-            const btnHtml = `
-            <button onclick="openRedeemQuantityModal('${r.id}')" 
-                class="w-full mt-3 py-2 rounded-lg font-bold text-white shadow-sm transition-all flex items-center justify-center gap-2
-                ${disabled ? 'bg-gray-300 cursor-not-allowed' : 'bg-amber-500 hover:bg-amber-600 hover:scale-105 active:scale-95'}"
-                ${disabled ? 'disabled' : ''}>
-                ${r.isGain ? '🎁 รับฟรี' : '💰 แลกเลย'}
-            </button>`;
-
             return `
-            <div class="border rounded-xl p-3 flex flex-col justify-between bg-white shadow-sm transition-all ${disabled ? 'opacity-80' : 'hover:shadow-md hover:border-amber-300'}">
+            <div class="border rounded-xl p-3 flex flex-col justify-between bg-white shadow-sm ${disabled && !isGain ? 'opacity-60' : ''}">
                 <div class="h-24 bg-gray-50 rounded-lg flex items-center justify-center mb-2 overflow-hidden border border-gray-100 relative">
                      ${r.image ? `<img src="${r.image}" class="w-full h-full object-cover">` : `<span class="text-2xl">🎁</span>`}
                      ${!hasStock ? '<div class="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-bold text-xs">หมด</div>' : ''}
                 </div>
-                
                 <div>
-                    <h4 class="font-bold text-gray-800 text-sm mb-1 leading-tight line-clamp-2">${r.name}</h4>
-                    <div class="flex justify-between items-center mt-1">
-                        <div class="flex items-center flex-wrap">${pointsDisplay}</div>
-                        <div class="text-[10px] text-gray-400 font-mono">
-                           ${isUnlimited ? '∞' : `เหลือ ${r.stock}`}
-                        </div>
-                    </div>
-                    ${btnHtml}
+                    <h4 class="font-bold text-gray-800 text-sm line-clamp-1" title="${r.name}">${r.name}</h4>
+                    <div class="mt-1 mb-1">
+                        ${pointsDisplay} </div>
+                    <p class="text-[10px] text-gray-500">คงเหลือ: ${isUnlimited ? 'ไม่จำกัด' : r.stock}</p>
                 </div>
-            </div>`;
+                <button onclick="selectRewardForRedeem('${r.id}')" ${disabled ? 'disabled' : ''} 
+                    class="mt-2 w-full py-1.5 rounded-lg text-xs font-bold text-white transition-colors ${disabled ? 'bg-gray-300 cursor-not-allowed' : (isGain ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-green-500 hover:bg-green-600 shadow-sm')}">
+                    ${isGain ? 'รับแต้ม' : 'แลกของ'}
+                </button>
+            </div>
+            `;
         }).join('');
-    }
-
-    // --- 🛍️ REDEEM MODAL CONTROLLER (LOGIC FIXED) ---
-
-    window.openRedeemQuantityModal = (rewardId) => {
-        const reward = rewards.find(r => r.id === rewardId);
-        if (!reward) return;
-
-        const s = selectedStudentForRedeem;
-        if (!s) return;
-
-        // 1. คำนวณราคาจริง (Actual Price)
-        let guildDiscount = 0;
-        let pDiscount = 0;
-
-        if (!reward.no_guild_discount && s.guild_id) {
-            const activeBuffs = getGuildActiveBuffs(s.guild_id);
-            if (activeBuffs && activeBuffs.discount) guildDiscount = parseInt(activeBuffs.discount);
-        }
-        if (!reward.no_personal_discount && s.buff_discount_end) {
-            let endTime = s.buff_discount_end;
-            if (typeof endTime.toMillis === 'function') endTime = endTime.toMillis();
-            else if (endTime instanceof Date) endTime = endTime.getTime();
-            if (Date.now() < endTime) pDiscount = parseInt(s.buff_discount_val || 0);
-        }
-        
-        const totalDiscount = Math.min(100, guildDiscount + pDiscount);
-        let actualPrice = reward.points;
-        if (reward.points > 0 && totalDiscount > 0) {
-            actualPrice = Math.ceil(reward.points * (100 - totalDiscount) / 100);
-        }
-
-        // 2. 🔥 คำนวณเพดานสูงสุด (Max Redeemable) จาก 3 ปัจจัย
-        
-        // A. จำกัดด้วยสต็อก (Stock)
-        let limitByStock = (reward.stock === -1) ? 9999 : parseInt(reward.stock);
-
-        // B. จำกัดด้วยโควตา (Quota)
-        let limitByQuota = 9999;
-        if (reward.quota > 0) {
-            const used = (s.redeemed_history && s.redeemed_history[reward.id]) || 0;
-            limitByQuota = Math.max(0, parseInt(reward.quota) - used);
-        }
-
-        // C. จำกัดด้วยเงิน (Affordability)
-        let limitByPoints = 9999;
-        if (actualPrice > 0) {
-            limitByPoints = Math.floor((s.points || 0) / actualPrice);
-        }
-
-        // สรุปยอดที่แลกได้จริง (เอาค่าน้อยที่สุด)
-        const maxRedeemable = Math.min(limitByStock, limitByQuota, limitByPoints);
-
-        // ตั้งค่าตัวแปรเป้าหมาย
-        redeemTarget = { 
-            ...reward, 
-            actualPrice: actualPrice,
-            maxRedeemable: maxRedeemable 
-        };
-        
-        // เซ็ตค่าแสดงผล
-        document.getElementById('redeem-modal-title').textContent = reward.name;
-        document.getElementById('redeem-modal-subtitle').textContent = 
-            `ราคาต่อชิ้น: ${reward.points < 0 ? 'ฟรี' : actualPrice + ' แต้ม'} ` +
-            `(โควตาเหลือ: ${limitByQuota >= 999 ? 'ไม่จำกัด' : limitByQuota})`;
-        
-        const qtyInput = document.getElementById('redeem-qty');
-        
-        // กรณีไม่มีสิทธิ์แลกเลย (เช่น เงินไม่พอ หรือโควตาเต็ม)
-        if (maxRedeemable <= 0) {
-            qtyInput.value = 0;
-            qtyInput.disabled = true;
-            document.getElementById('redeem-total-points').textContent = "ไม่สามารถแลกได้";
-            document.getElementById('redeem-total-points').className = "font-bold text-red-600 text-lg";
-        } else {
-            qtyInput.value = 1;
-            qtyInput.disabled = false;
-            qtyInput.max = maxRedeemable; // ตั้งค่า max ให้ input ด้วย
-            updateRedeemTotal(1);
-        }
-
-        document.getElementById('redeem-quantity-modal').classList.remove('hidden');
-        document.getElementById('redeem-quantity-modal').classList.add('flex');
-    };
-
-    window.hideRedeemQuantityModal = () => {
-        document.getElementById('redeem-quantity-modal').classList.add('hidden');
-        document.getElementById('redeem-quantity-modal').classList.remove('flex');
-        redeemTarget = null;
-    };
-
-    window.adjustRedeemQty = (delta) => {
-        if (!redeemTarget || redeemTarget.maxRedeemable <= 0) return;
-
-        const input = document.getElementById('redeem-qty');
-        let val = parseInt(input.value) || 0;
-        val += delta;
-        
-        // ตรวจสอบขอบเขต (1 - Max)
-        if (val < 1) val = 1;
-        if (val > redeemTarget.maxRedeemable) val = redeemTarget.maxRedeemable;
-        
-        input.value = val;
-        validateRedeemInput(input);
-    };
-
-    window.validateRedeemInput = (input) => {
-        if (!redeemTarget) return;
-
-        let val = parseInt(input.value);
-        if (isNaN(val) || val < 1) val = 1;
-        
-        // ถ้าค่าเกิน Max ให้ตบกลับมาที่ Max
-        if (val > redeemTarget.maxRedeemable) {
-            val = redeemTarget.maxRedeemable;
-        }
-        
-        input.value = val;
-        updateRedeemTotal(val);
-    };
-
-    function updateRedeemTotal(qty) {
-        if (!redeemTarget) return;
-        
-        const total = qty * redeemTarget.actualPrice;
-        const totalEl = document.getElementById('redeem-total-points');
-
-        if (redeemTarget.points < 0) {
-            totalEl.textContent = `ได้รับ ${Math.abs(total)} แต้ม`;
-            totalEl.className = "font-bold text-green-600 text-lg";
-        } else {
-            // เช็คอีกทีว่าเงินพอไหม (เผื่อกรณีบั๊ก)
-            const s = selectedStudentForRedeem;
-            const canAfford = (s.points || 0) >= total;
-            
-            totalEl.textContent = total.toLocaleString();
-            totalEl.className = canAfford ? "font-bold text-amber-600 text-lg" : "font-bold text-red-600 text-lg";
-        }
     }
 
     let currentDiscountPercent = 0;
@@ -3935,39 +3685,21 @@ const appId = 'activeredpoint';
         
     // 5. Bank Logic
     function calculatePendingInterest(student) {
-        // ✅ 1. ถ้ามีใบเตือน ให้คืนค่าดอกเบี้ยที่ถูกแช่แข็งไว้ (Frozen Interest)
-        // และไม่คำนวณดอกเบี้ยใหม่เพิ่ม (หยุดนับ)
-        if ((student.warning_cards || 0) > 0) {
-            return parseFloat(student.frozen_interest || 0);
-        }
-
         if (!student.bank_points || !student.bank_deposit_time) return 0;
 
         // แปลงเวลาฝาก
         let depositTime = student.bank_deposit_time;
         if (depositTime && typeof depositTime.toMillis === 'function') depositTime = depositTime.toMillis();
         else if (depositTime instanceof Date) depositTime = depositTime.getTime();
-        else if (depositTime.seconds) depositTime = depositTime.seconds * 1000;
+        else if (depositTime.seconds) depositTime = depositTime.seconds * 1000; // กันเหนียว
         else return 0;
 
         const now = Date.now();
-        const hours = (now - depositTime) / (1000 * 60 * 60);
-
-        // ✅ 2. เช็คดอกเบี้ยโปรโมชั่นส่วนตัว
-        if (student.special_interest_end) {
-            let endTime = student.special_interest_end;
-            if (typeof endTime.toMillis === 'function') endTime = endTime.toMillis();
-            else if (endTime instanceof Date) endTime = endTime.getTime();
-            
-            if (now < endTime) {
-                const specialRate = parseFloat(student.special_interest_rate);
-                return student.bank_points * (specialRate / 100) * hours;
-            }
-        }
-
-        // ✅ 3. ถ้าไม่มีโปรส่วนตัว ให้ใช้เรทปกติ + บัฟกิลด์
+        
+        // --- ส่วนที่แก้ 1: ใช้ getGuildActiveBuffs เพื่อดึงค่าสดๆ ---
         let guildBonus = 0;
         if (student.guild_id) {
+            // เรียกฟังก์ชันคำนวณสดที่เราเพิ่งทำ
             const activeBuffs = getGuildActiveBuffs(student.guild_id);
             if (activeBuffs && activeBuffs.interest) {
                 guildBonus = parseFloat(activeBuffs.interest);
@@ -3975,6 +3707,17 @@ const appId = 'activeredpoint';
         }
         
         const globalRate = config.interest_rate || 1.0;
+
+        // ... (Logic เช็คดอกเบี้ยโปรโมชั่นส่วนตัว คงไว้เหมือนเดิม) ...
+        // ... (ข้ามมาดูตอนจบ) ...
+
+        // กรณีปกติ: ใช้เรทกองกลาง + บัฟกิลด์
+        const hours = (now - depositTime) / (1000 * 60 * 60);
+        
+        // --- ส่วนที่แก้ 2: ต้องบวก guildBonus เข้าไปในสูตรด้วย! ---
+        // ของเดิม: return student.bank_points * (globalRate / 100) * hours; 
+        
+        // ของใหม่ (ถูกต้อง):
         return student.bank_points * ((globalRate + guildBonus) / 100) * hours;
     }
     
@@ -5240,8 +4983,6 @@ const appId = 'activeredpoint';
         const noPersonal = document.getElementById('add-reward-no-personal').checked;
 
         await addDoc(collections.rewards(), {
-            category: document.getElementById('add-reward-category').value,
-            is_active: document.getElementById('add-reward-active').checked,
             name: document.getElementById('add-reward-name').value,
             points: parseInt(document.getElementById('add-reward-points').value),
             image: document.getElementById('add-reward-img').value || '',
@@ -5252,8 +4993,7 @@ const appId = 'activeredpoint';
             gacha_pool: gachaPool,
             // ✅ บันทึกค่าใหม่ลง DB
             no_guild_discount: document.getElementById('add-reward-no-guild').checked,
-            no_personal_discount: document.getElementById('add-reward-no-personal').checked
-            
+            no_personal_discount: document.getElementById('add-reward-no-personal').checked,
         });
         
         document.getElementById('add-reward-modal').classList.add('hidden');
@@ -6927,99 +6667,8 @@ window.getGuildActiveBuffs = (guildId) => {
         renderQuests(); // Re-render table
     };
 
-    // --- 🎁 REWARD CATEGORIES SYSTEM ---
-    
-    let rewardCategories = ["ทั่วไป", "อุปกรณ์การเรียน", "ขนม/เครื่องดื่ม", "สิทธิพิเศษ"];
-    let currentRewardCategoryFilter = 'all';
-
-    // 1. โหลดหมวดหมู่
-    async function loadRewardCategories() {
-        try {
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'config', 'reward_categories');
-            const snap = await getDoc(docRef);
-            if (snap.exists() && snap.data().list) {
-                rewardCategories = snap.data().list;
-            } else {
-                saveRewardCategoriesToDB(rewardCategories);
-            }
-            renderRewardCategoryFilters();
-        } catch (e) {
-            console.error("Load Reward Cat Error", e);
-        }
-    }
-
-    async function saveRewardCategoriesToDB(list) {
-        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'reward_categories'), { list: list });
-    }
-
-    // 2. จัดการ Modal
-    window.openManageRewardCategoriesModal = () => {
-        renderManageRewardCategoryList();
-        document.getElementById('manage-reward-categories-modal').classList.remove('hidden');
-    };
-
-    function renderManageRewardCategoryList() {
-        const div = document.getElementById('reward-category-list');
-        div.innerHTML = rewardCategories.map((cat, index) => `
-            <div class="flex justify-between items-center bg-gray-50 p-2 rounded border border-gray-100">
-                <span class="text-gray-700 text-sm">${cat}</span>
-                <button onclick="deleteRewardCategory(${index})" class="text-red-500 hover:text-red-700 text-xs font-bold">ลบ</button>
-            </div>
-        `).join('');
-    }
-
-    window.addRewardCategory = async () => {
-        const input = document.getElementById('new-reward-category-input');
-        const val = input.value.trim();
-        if (!val) return;
-        
-        if (!rewardCategories.includes(val)) {
-            rewardCategories.push(val);
-            await saveRewardCategoriesToDB(rewardCategories);
-            renderManageRewardCategoryList();
-            renderRewardCategoryFilters();
-            input.value = '';
-        } else {
-            alert('มีหมวดหมู่นี้อยู่แล้ว');
-        }
-    };
-
-    window.deleteRewardCategory = async (index) => {
-        if (!confirm('ยืนยันลบหมวดหมู่นี้?')) return;
-        rewardCategories.splice(index, 1);
-        if(rewardCategories.length === 0) rewardCategories.push('ทั่วไป');
-        await saveRewardCategoriesToDB(rewardCategories);
-        renderManageRewardCategoryList();
-        renderRewardCategoryFilters();
-    };
-
-    // 3. Render Filters & Select Options
-    function renderRewardCategoryFilters() {
-        // A. Render Tabs
-        const container = document.getElementById('reward-category-filters');
-        if (container) {
-            let html = `<button onclick="filterRewardCategory('all')" class="whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold border transition-colors ${currentRewardCategoryFilter === 'all' ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'}">ทั้งหมด</button>`;
-            
-            rewardCategories.forEach(cat => {
-                const isActive = currentRewardCategoryFilter === cat;
-                html += `<button onclick="filterRewardCategory('${cat}')" class="whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold border transition-colors ${isActive ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'}">${cat}</button>`;
-            });
-            container.innerHTML = html;
-        }
-
-        // B. Update Select in Modals
-        const optionsHtml = rewardCategories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
-        const addSelect = document.getElementById('add-reward-category');
-        const editSelect = document.getElementById('edit-reward-category');
-        if(addSelect) addSelect.innerHTML = optionsHtml;
-        if(editSelect) editSelect.innerHTML = optionsHtml;
-    }
-
-    window.filterRewardCategory = (cat) => {
-        currentRewardCategoryFilter = cat;
-        renderRewardCategoryFilters();
-        renderRewards(); // สั่งวาดหน้าร้านใหม่ตามฟิลเตอร์
-    };
+    // --- 🚀 UPDATE QUEST RENDER (TABLE VERSION) ---
+    // แทนที่ renderQuests เดิม
    
     // ==========================================
     // 🏦 BANK TRANSACTION SYSTEM (ระบบฝากถอน - ฉบับสมบูรณ์)
@@ -7419,62 +7068,42 @@ window.getGuildActiveBuffs = (guildId) => {
     // --- ⚠️ PUNISHMENT & WARNING SYSTEM ---
 
     // เพิ่ม/ลด ใบเตือน
-   window.adjustWarning = async (id, amount) => {
+    window.adjustWarning = async (id, amount) => {
         const s = students.find(x => x.id === id);
         if (!s) return;
         
-        const currentWarning = s.warning_cards || 0;
-        const newWarning = Math.max(0, currentWarning + amount);
+        const newWarning = Math.max(0, (s.warning_cards || 0) + amount);
         
-        // เตรียมข้อมูลอัปเดต
+        // ถ้าใบเตือนหมด -> คืนแต้มที่ยึดไว้ทั้งหมด!
         let updateData = { warning_cards: newWarning };
         let msg = '';
 
-        // 🔥 Logic ดอกเบี้ยใหม่:
-        
-        // A. กรณีโดนใบเตือนเพิ่ม (จาก 0 -> 1) : ให้แช่แข็งดอกเบี้ย (Freeze)
-        if (currentWarning === 0 && newWarning > 0) {
-            const pending = calculatePendingInterest(s); // คำนวณดอกเบี้ยถึงปัจจุบัน
-            updateData.frozen_interest = pending;        // เก็บใส่ช่องแช่แข็ง
-            // *ไม่ต้องอัปเดต bank_points และ bank_deposit_time ตอนนี้*
-        }
-
-        // B. กรณีหมดโทษ (จาก >0 -> 0) : คืนดอกเบี้ยเข้าเงินต้น + เริ่มนับเวลาใหม่
-        if (currentWarning > 0 && newWarning === 0) {
-            const frozen = parseFloat(s.frozen_interest || 0);
-            if (frozen > 0) {
-                updateData.bank_points = (s.bank_points || 0) + frozen; // ทบต้น
-                updateData.frozen_interest = 0; // เคลียร์ช่องแช่แข็ง
-            }
-            updateData.bank_deposit_time = serverTimestamp(); // 🕒 เริ่มนับเวลาใหม่ ณ ตอนนี้
-        }
-
-        // C. Logic เดิม: คืนแต้มที่ถูกอายัด (Pending Points) ถ้ามี
         if (newWarning === 0 && (s.pending_points || 0) > 0) {
             const returnPoints = s.pending_points;
-            if (updateData.points) {
-                 // ถ้ามีการแก้ points จากส่วนอื่นแล้ว ให้บวกเพิ่ม
-                 // (แต่ในเคสนี้ปกติ points ไม่ได้ถูกแก้จาก frozen_interest เพราะเข้า bank_points)
-                 updateData.points = increment(returnPoints); 
-            } else {
-                 updateData.points = increment(returnPoints);
-            }
+            updateData.points = increment(returnPoints);
             updateData.pending_points = 0;
             msg = ` และได้รับคืน ${returnPoints} แต้มที่ถูกอายัดไว้!`;
             
+            // บันทึกประวัติการคืนแต้ม
             const hRef = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
             await setDoc(hRef, {
                 student_id: s.id,
                 student_name: s.full_name,
-                action: 'พ้นโทษ (คืนแต้มอายัด)',
+                action: 'พ้นโทษแบน (คืนแต้มอายัด)',
                 amount: returnPoints,
-                type: 'point_adjustment',
+                type: 'add_points',
                 timestamp: serverTimestamp()
             });
         }
+
+        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'students', id), updateData);
         
-        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'students', s.id), updateData);
-        showToast(`อัปเดตใบเตือนเรียบร้อย${msg}`);
+        if (newWarning === 0) {
+            showToast(`🎉 ${s.full_name} พ้นโทษแล้ว!${msg}`);
+        } else {
+            // ถ้าเพิ่มใบเตือน ให้แจ้งเตือนด้วย (Optional)
+            if (amount > 0) showToast(`⚠️ เพิ่มใบเตือนให้ ${s.full_name}`);
+        }
     };
 
     // แสดงหน้าคุมประพฤติ (เรียกตอนกดแท็บ หรือ refresh)
@@ -7606,7 +7235,6 @@ window.getGuildActiveBuffs = (guildId) => {
         }
     };
     // ลบภารกิจ (ทำสำเร็จ)
-   // ลบภารกิจ (ทำสำเร็จ)
     window.removeMission = async (studentId, missionIndex) => {
         if(!confirm('ยืนยันว่านักเรียนทำภารกิจนี้สำเร็จแล้ว?')) return;
 
@@ -7614,43 +7242,33 @@ window.getGuildActiveBuffs = (guildId) => {
         let missions = [...(s.active_missions || [])];
         missions.splice(missionIndex, 1); // ลบภารกิจออก
         
-        const currentWarning = s.warning_cards || 0;
-        const newWarning = Math.max(0, currentWarning - 1);
+        // ลดใบเตือนลง 1 ใบ อัตโนมัติ (ถ้าคุณออฟต้องการ)
+        const newWarning = Math.max(0, (s.warning_cards || 0) - 1);
         
         let updateData = { 
             active_missions: missions,
             warning_cards: newWarning
         };
 
-        // 🔥 Logic ดอกเบี้ยใหม่: หมดโทษแล้วคืนดอกเบี้ยเข้าเงินต้น
-        if (currentWarning > 0 && newWarning === 0) {
-            const frozen = parseFloat(s.frozen_interest || 0);
-            if (frozen > 0) {
-                updateData.bank_points = (s.bank_points || 0) + frozen;
-                updateData.frozen_interest = 0;
-            }
-            updateData.bank_deposit_time = serverTimestamp(); // 🕒 เริ่มนับเวลาใหม่
-        }
-
-        // Logic เดิม: คืนแต้มอายัด (Pending Points)
+        // เช็คอีกรอบว่าถ้าหมดโทษแล้ว ให้คืนแต้มทันที
         if (newWarning === 0 && (s.pending_points || 0) > 0) {
             updateData.points = increment(s.pending_points);
             updateData.pending_points = 0;
             showToast(`🎉 ${s.full_name} พ้นโทษแล้ว! ได้คืน ${s.pending_points} แต้ม`);
             
+            // Log การคืนแต้ม
             const hRef = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
             await setDoc(hRef, {
                 student_id: s.id,
                 student_name: s.full_name,
-                action: 'ภารกิจสำเร็จ (คืนแต้มอายัด)',
+                action: 'ทำภารกิจครบ (คืนแต้มอายัด)',
                 amount: s.pending_points,
-                type: 'mission_log',
+                type: 'add_points',
                 timestamp: serverTimestamp()
             });
         }
-        
-        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'students', s.id), updateData);
-        renderStudentList(false);
+
+        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'students', studentId), updateData);
     };
 
     // อัปเดต switchTab ให้เรียก renderPunishmentList เมื่อกดแท็บ
@@ -7711,12 +7329,18 @@ window.getGuildActiveBuffs = (guildId) => {
         const reason = document.getElementById('bulk-warning-reason').value.trim();
         const isAdd = type === 'add';
 
+        // ปิด Modal
         document.getElementById('bulk-warning-modal').classList.add('hidden');
         document.getElementById('bulk-warning-modal').classList.remove('flex');
 
         showToast('กำลังบันทึกข้อมูล... ⏳');
 
         const batch = writeBatch(db);
+        const timestamp = serverTimestamp();
+        let count = 0;
+        let releasedCount = 0;
+
+        // คำนวณค่าที่จะบวก/ลบ (ถ้าลบใบเตือน ให้ค่าติดลบ)
         const changeAmount = isAdd ? amountInput : -amountInput;
 
         selectedStudentIds.forEach(id => {
@@ -7725,50 +7349,68 @@ window.getGuildActiveBuffs = (guildId) => {
 
             const sRef = doc(db, 'artifacts', appId, 'public', 'data', 'students', s.id);
             const currentWarnings = s.warning_cards || 0;
+            
+            // คำนวณใบเตือนใหม่ (ห้ามต่ำกว่า 0)
             const newWarnings = Math.max(0, currentWarnings + changeAmount);
             
+            // ถ้าค่าไม่เปลี่ยน (เช่น เป็น 0 อยู่แล้ว แล้วกดลบ) ก็ข้ามไป
             if (newWarnings === currentWarnings) return;
 
-            let updates = { warning_cards: newWarnings };
-
-            // 🔥 Logic ดอกเบี้ยใหม่:
-            // A. เริ่มโดนใบเตือน (0 -> >0) : แช่แข็งดอกเบี้ย
-            if (currentWarnings === 0 && newWarnings > 0) {
-                const pending = calculatePendingInterest(s);
-                updates.frozen_interest = pending;
-            }
-
-            // B. หมดโทษ ( >0 -> 0) : คืนดอกเบี้ย + รีเซ็ตเวลา
-            if (currentWarnings > 0 && newWarnings === 0) {
-                const frozen = parseFloat(s.frozen_interest || 0);
-                if (frozen > 0) {
-                    updates.bank_points = (s.bank_points || 0) + frozen;
-                    updates.frozen_interest = 0;
-                }
-                updates.bank_deposit_time = serverTimestamp();
-            }
-
-            batch.update(sRef, updates);
-
+            const updates = { warning_cards: newWarnings };
             const hRef = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
+
+            // 📝 1. บันทึกประวัติใบเตือน
             batch.set(hRef, {
                 student_id: s.id,
                 student_name: s.full_name,
                 action: isAdd ? `โดนใบเตือน (${amountInput} ใบ)` : `ลบใบเตือน (${amountInput} ใบ)`,
-                amount: amountInput,
+                amount: amountInput, // บันทึกจำนวนใบเตือนลงไป
                 reason: reason || (isAdd ? 'พฤติกรรมไม่เหมาะสม' : 'ทำความดีชดเชย'),
-                type: 'warning_card_log',
-                timestamp: serverTimestamp()
+                type: 'warning_card_log', // Type ใหม่สำหรับ log นี้โดยเฉพาะ
+                timestamp: timestamp
             });
+
+            // 🔓 2. เช็คเงื่อนไขพิเศษ: ถ้าใบเตือนหมด -> คืนแต้มที่อายัด!
+            if (newWarnings === 0 && (s.pending_points || 0) > 0) {
+                const returnPoints = s.pending_points;
+                updates.points = increment(returnPoints);
+                updates.pending_points = 0;
+                
+                // Log การคืนแต้ม (แยกอีกบรรทัดให้ชัดเจน)
+                const hRef2 = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
+                batch.set(hRef2, {
+                    student_id: s.id,
+                    student_name: s.full_name,
+                    action: 'พ้นโทษแบน (คืนแต้มอายัด)',
+                    amount: returnPoints,
+                    type: 'add_points',
+                    reason: 'ใบเตือนเหลือ 0',
+                    timestamp: timestamp
+                });
+                releasedCount++;
+            }
+
+            batch.update(sRef, updates);
+            count++;
         });
 
-        try {
-            await batch.commit();
-            showToast(`บันทึกใบเตือนเรียบร้อย ✅`);
-            cancelBulkSelection();
-        } catch (e) {
-            console.error(e);
-            showToast('เกิดข้อผิดพลาดในการบันทึก ❌');
+        if (count > 0) {
+            try {
+                await batch.commit();
+                let msg = `✅ บันทึกสำเร็จ ${count} คน`;
+                if (releasedCount > 0) msg += ` (พ้นโทษ ${releasedCount} คน)`;
+                showToast(msg);
+                
+                // เคลียร์การเลือก
+                selectedStudentIds.clear();
+                updateBulkUI();
+                renderStudentList(false);
+            } catch (e) {
+                console.error(e);
+                alert('เกิดข้อผิดพลาด: ' + e.message);
+            }
+        } else {
+            showToast('ไม่มีการเปลี่ยนแปลงข้อมูล (ใบเตือนเป็น 0 อยู่แล้ว)');
         }
     };
 
