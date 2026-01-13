@@ -2490,7 +2490,7 @@ const appId = 'activeredpoint';
                 } 
 
                 // Tooltip แจกแจงที่มาของตัวเลข
-                const tooltipTitle = `รวม: ${finalRate.toFixed(2)}% (พื้นฐาน ${baseRate}% + กิลด์ ${guildBonus}% + ส่วนตัว ${personalInterest}%)`;
+                const tooltipTitle = `รวม: ${finalRate.toFixed(2)}% (พื้นฐาน ${(baseRate).toFixed(2)}% + กิลด์ ${(guildBonus).toFixed(2)}% + ส่วนตัว ${(personalInterest).toFixed(2)}%)`;
 
                 rateTag = `
                 <div class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md border ${colorClass} cursor-help" title="${tooltipTitle}">
