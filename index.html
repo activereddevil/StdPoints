@@ -3935,21 +3935,40 @@ const appId = 'activeredpoint';
 
         
     // 5. Bank Logic
+    // ฟังก์ชันคำนวณดอกเบี้ย (แก้ไข: รองรับบัฟส่วนตัวแบบ Override)
     function calculatePendingInterest(student) {
-        // 1. 🔒 เช็คใบเตือน: ถ้ามีใบเตือน ดอกเบี้ยเป็น 0 ทันที (แช่แข็ง)
+        // 1. 🔒 เช็คใบเตือน: ถ้ามีใบเตือน ดอกเบี้ยเป็น 0 ทันที
         if ((student.warning_cards || 0) > 0) return 0;
 
         if (!student.bank_points || !student.bank_deposit_time) return 0;
 
         let depositTime = student.bank_deposit_time;
+        // แปลงเวลาให้ชัวร์
         if (depositTime && typeof depositTime.toMillis === 'function') depositTime = depositTime.toMillis();
         else if (depositTime instanceof Date) depositTime = depositTime.getTime();
         else if (depositTime.seconds) depositTime = depositTime.seconds * 1000;
         else return 0;
 
         const now = Date.now();
-        
-        // 2. ดึงบัฟกิลด์
+        const hours = (now - depositTime) / (1000 * 60 * 60);
+        if (isNaN(hours) || hours < 0) return 0;
+
+        // --- 🆕 ส่วนที่แก้ไข: เช็คบัฟส่วนตัวก่อน ---
+        if (student.special_interest_end) {
+            let endTime = student.special_interest_end;
+            if (typeof endTime.toMillis === 'function') endTime = endTime.toMillis();
+            else if (endTime instanceof Date) endTime = endTime.getTime();
+            else if (endTime.seconds) endTime = endTime.seconds * 1000;
+
+            // ถ้าบัฟส่วนตัวยังไม่หมดอายุ -> ใช้เรทพิเศษนี้คำนวณเลย (Override)
+            if (now < endTime) {
+                const specialRate = parseFloat(student.special_interest_rate || 0);
+                return student.bank_points * (specialRate / 100) * hours;
+            }
+        }
+        // ----------------------------------------
+
+        // 2. ถ้าไม่มีบัฟส่วนตัว -> ใช้สูตรเดิม (พื้นฐาน + กิลด์)
         let guildBonus = 0;
         if (student.guild_id && typeof getGuildActiveBuffs === 'function') {
             const activeBuffs = getGuildActiveBuffs(student.guild_id);
@@ -3960,12 +3979,7 @@ const appId = 'activeredpoint';
         
         const globalRate = config.interest_rate || 1.0;
         
-        // 3. คำนวณดอกเบี้ย (ตามเรท + บัฟ)
-        const hours = (now - depositTime) / (1000 * 60 * 60);
-        
-        // ตรวจสอบว่าเป็น NaN หรือไม่ (กันเหนียว)
-        if (isNaN(hours) || hours < 0) return 0;
-
+        // 3. คำนวณดอกเบี้ยปกติ
         return student.bank_points * ((globalRate + guildBonus) / 100) * hours;
     }
     
