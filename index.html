@@ -2592,7 +2592,7 @@ const appId = 'activeredpoint';
 
         document.getElementById('std-dash-name').textContent = s.full_name;
         document.getElementById('std-dash-class').textContent = `เลขประจำตัว: ${s.student_id} | ชั้น: ${s.class_name}`;
-        document.getElementById('std-dash-points').textContent = Math.floor(s.points);
+        document.getElementById('std-dash-points').textContent = Math.floor(s.points).toLocaleString();
         document.getElementById('std-dash-bank').textContent = Math.floor(totalWithdrawable).toLocaleString();
         document.getElementById('std-dash-interest').textContent = Math.floor(interest).toLocaleString();
         const warningSection = document.getElementById('std-warning-section');
@@ -2733,7 +2733,7 @@ const appId = 'activeredpoint';
                     <td class="px-4 py-3 font-medium text-gray-800">
                         ${r.name} ${statusBadge}
                     </td>
-                    <td class="px-4 py-3 text-center font-bold ${pointsClass}">${pointsDisplay}</td>
+                    <td class="px-4 py-3 text-center font-bold ${pointsClass}">${(pointsDisplay).toLocaleString()}</td>
                     <td class="px-4 py-3 text-center font-mono text-gray-500">${stockText}</td>
                     <td class="px-4 py-3 text-center">
                         <button onclick="openEditRewardModal('${r.id}')" class="text-blue-600 hover:text-blue-800 font-bold text-sm px-2">แก้ไข</button>
@@ -3682,17 +3682,17 @@ const appId = 'activeredpoint';
             let discountBadge = '';
 
             if (r.isGain) {
-                pointsDisplay = `<span class="text-green-600 font-bold text-sm">+${Math.abs(r.points)} แต้ม</span>`;
+                pointsDisplay = `<span class="text-green-600 font-bold text-sm">+${Math.abs(r.points).toLocaleString()} แต้ม</span>`;
             } else {
                 if (r.totalDiscount > 0) {
                     discountBadge = `<span class="ml-2 bg-red-100 text-red-600 text-[10px] px-1.5 py-0.5 rounded font-bold">-${r.totalDiscount}%</span>`;
                     pointsDisplay = `
-                        <span class="text-gray-400 line-through text-xs mr-1">${r.points}</span>
-                        <span class="text-red-600 font-bold text-sm">${r.finalPoints} แต้ม</span>
+                        <span class="text-gray-400 line-through text-xs mr-1">${(r.points).toLocaleString()}</span>
+                        <span class="text-red-600 font-bold text-sm">${(r.finalPoints).toLocaleString()} แต้ม</span>
                         ${discountBadge}
                     `;
                 } else {
-                    pointsDisplay = `<span class="text-amber-600 font-bold text-sm">${r.points} แต้ม</span>`;
+                    pointsDisplay = `<span class="text-amber-600 font-bold text-sm">${(r.points).toLocaleString()} แต้ม</span>`;
                 }
             }
 
@@ -4288,7 +4288,7 @@ const appId = 'activeredpoint';
                         batch.delete(historyRef);
                         
                         // เพิ่ม Log การคืนของ (Optional: ถ้าอยากเก็บประวัติการคืน)
-                        /*
+                        
                         const refundLogRef = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
                         batch.set(refundLogRef, {
                             student_id: hData.student_id,
@@ -4298,7 +4298,7 @@ const appId = 'activeredpoint';
                             type: 'refund',
                             timestamp: serverTimestamp()
                         });
-                        */
+                        
 
                         await batch.commit();
                         showToast('คืนแต้มและของรางวัลเรียบร้อย');
@@ -4718,7 +4718,7 @@ const appId = 'activeredpoint';
                 <td class="px-6 py-4 text-center">
                     <span class="px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded-full border border-gray-200 font-bold">${catName}</span>
                 </td>
-                <td class="px-6 py-4 text-center font-bold text-green-600">+${q.points}</td>
+                <td class="px-6 py-4 text-center font-bold text-green-600">+${(q.points).toLocaleString()}</td>
                 <td class="px-6 py-4 text-center">
                     <div class="flex justify-center gap-2">
                         <button onclick="executeBulkQuest('${q.id}')" class="bg-indigo-100 hover:bg-indigo-600 hover:text-white text-indigo-600 p-2 rounded-lg transition-colors font-bold text-xs flex items-center gap-1" title="แจกแต้ม">
@@ -4838,7 +4838,7 @@ const appId = 'activeredpoint';
                         <span class="text-2xl">${q.icon}</span>
                         <span class="font-bold text-gray-700 group-hover:text-indigo-700 text-left">${q.title}</span>
                     </div>
-                    <span class="font-bold text-green-600 whitespace-nowrap">+${q.points}</span>
+                    <span class="font-bold text-green-600 whitespace-nowrap">+${(q.points).toLocaleString()}</span>
                 </button>
             `).join('');
         }
