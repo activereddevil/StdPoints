@@ -5823,37 +5823,48 @@ window.calculateQuestPointsWithBuffs = (student, basePoints) => {
         }
     };
 
-    // ฟังก์ชันแสดงหน้ากิลด์ (เพิ่มค้นหา + Pagination)
-    window.renderGuildsDashboard = (resetPage = true) => {
+   // ฟังก์ชันแสดงหน้ากิลด์ (ค้นหาเทพๆ: ชื่อกิลด์ + ชื่อสมาชิก + เลขประจำตัว + ชั้นเรียน)
+   window.renderGuildsDashboard = (resetPage = true) => {
         if (resetPage) paginationState.guilds = 1;
 
         const board = document.getElementById('guild-leaderboard');
         const listBody = document.getElementById('guild-list-body');
+        
+        // อัปเดต Placeholder ให้รู้ว่าค้นหาอะไรได้บ้าง
         const searchInput = document.getElementById('guild-search-input');
+        if (searchInput) {
+             searchInput.placeholder = "ค้นหาชื่อกิลด์, สมาชิก, เลขประจำตัว หรือชั้นเรียน...";
+        }
         const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
         
         if(!board || !listBody) return;
 
-        // 1. คำนวณ Stat พื้นฐาน (และเตรียมข้อมูลสำหรับค้นหา)
+        // 1. คำนวณ Stat และเตรียมข้อมูลสำหรับ Search Engine
         const guildStats = guilds.map(g => {
             const members = students.filter(s => s.guild_id === g.id);
             const totalPoints = members.reduce((sum, s) => sum + (s.points || 0), 0);
             
-            // เก็บชื่อสมาชิกทั้งหมดเป็น string เดียวเพื่อค้นหาง่ายๆ
-            const memberNames = members.map(s => s.full_name).join(' ').toLowerCase();
+            // 🔥 รวมพลัง Search: เอาทุกอย่างมายำรวมกันเป็นก้อนเดียว
+            // - ชื่อสมาชิก (full_name)
+            // - เลขประจำตัว (student_id)
+            // - ชั้นเรียน (class_name)
+            const searchContext = members.map(s => 
+                `${s.full_name} ${s.student_id || ''} ${s.class_name || ''}`
+            ).join(' ').toLowerCase();
             
             return { 
                 ...g, 
                 memberCount: members.length, 
                 totalPoints: totalPoints,
-                memberNames: memberNames 
+                // เอาชื่อกิลด์มารวมกับข้อมูลสมาชิกเพื่อใช้ค้นหา
+                fullSearchText: `${g.name.toLowerCase()} ${searchContext}`
             };
         });
 
-        // 2. เรียงลำดับตามแต้มรวม (จากมากไปน้อย) เพื่อหาอันดับ
+        // 2. เรียงลำดับตามแต้มรวม (Top 3)
         guildStats.sort((a, b) => b.totalPoints - a.totalPoints);
 
-        // 3. Render Top 3 Cards (แสดง 3 อันดับแรกเสมอ ไม่สน Filter เพื่อให้เห็นผู้นำ)
+        // 3. Render Top 3 Cards (คงเดิม)
         board.innerHTML = guildStats.slice(0, 3).map((g, index) => {
             const colors = [
                 'bg-yellow-100 border-yellow-300 text-yellow-800',
@@ -5880,23 +5891,18 @@ window.calculateQuestPointsWithBuffs = (student, basePoints) => {
             </div>`;
         }).join('');
 
-        // 4. กรองข้อมูลตามคำค้นหา (ชื่อกิลด์ หรือ ชื่อสมาชิก)
-        const filteredGuilds = guildStats.filter(g => 
-            g.name.toLowerCase().includes(searchTerm) || 
-            g.memberNames.includes(searchTerm)
-        );
+        // 4. กรองข้อมูล (ค้นหาจากก้อน fullSearchText ที่เตรียมไว้)
+        const filteredGuilds = guildStats.filter(g => g.fullSearchText.includes(searchTerm));
 
         // 5. แบ่งหน้า (Pagination)
         const { data: paginatedData } = getPaginatedData(filteredGuilds, paginationState.guilds);
 
-        // 6. Render List Table
+        // 6. Render List Table (Logic เดิม)
         if (paginatedData.length === 0) {
             listBody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-400">ไม่พบกิลด์ที่ค้นหา</td></tr>`;
         } else {
             listBody.innerHTML = paginatedData.map(g => {
-                // หาอันดับจริงจาก list เต็ม (guildStats)
                 const realRank = guildStats.findIndex(x => x.id === g.id) + 1;
-                
                 const buffs = getGuildActiveBuffs(g.id);
                 let buffBadges = '';
                 if(buffs.interest > 0) buffBadges += `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700 border border-green-200">📈 +${parseFloat(buffs.interest).toFixed(2)}%</span> `;
