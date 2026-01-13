@@ -8277,35 +8277,101 @@ window.getGuildActiveBuffs = (guildId) => {
         document.getElementById('quiz-step-1').classList.add('hidden');
         document.getElementById('quiz-step-2').classList.remove('hidden');
 
-        // แสดงจำนวนคนที่เจอ
         const matchedCount = quizData.filter(d => d.studentId).length;
         document.getElementById('quiz-student-count').textContent = `${matchedCount} / ${quizData.length}`;
+        
+        // ลองเดารหัสกิจกรรมจากชื่อไฟล์ (เช่น "ครั้งที่ 8" -> "quiz_8")
+        // quizFilename เก็บชื่อไฟล์ตอน upload (ต้องประกาศตัวแปร global เพิ่มถ้ายังไม่มี หรือใช้ค่า default)
+        let defaultTag = 'quiz_' + new Date().toISOString().slice(0,10); 
+        // ถ้าท่านอยากให้ฉลาดขึ้น สามารถดึงจากชื่อไฟล์ใน handleQuizFile ได้ (แต่เอาแบบง่ายก่อนคือให้ครูกรอกเอง)
 
-        // สร้างตารางกรอกเฉลย
-        const tbody = document.getElementById('quiz-config-list');
-        tbody.innerHTML = quizQuestions.map(q => `
-            <tr class="bg-white hover:bg-gray-50">
-                <td class="px-4 py-3 align-top">
-                    <div class="text-sm font-bold text-gray-800">${q.text}</div>
-                </td>
-                <td class="px-4 py-3 align-top">
-                    <input type="text" class="quiz-ans-input w-full border border-blue-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-blue-700 font-bold" 
-                        data-qid="${q.id}" placeholder="วางคำตอบที่ถูกที่นี่...">
-                </td>
-                <td class="px-4 py-3 align-top">
-                    <input type="number" class="quiz-score-input w-full border border-gray-300 rounded px-2 py-2 text-center font-bold text-green-600" 
-                        data-qid="${q.id}" value="${q.points}">
-                </td>
-            </tr>
-        `).join('');
+        // 🔥 ส่วนที่เพิ่ม: กล่องตั้งค่าโบนัส + รหัสกิจกรรม (Activity Tag)
+        const configHtml = `
+            <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-yellow-50 p-3 rounded-lg border border-yellow-200 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl">🏆</span>
+                        <div>
+                            <h4 class="font-bold text-yellow-800 text-sm">โบนัสตอบถูกหมด</h4>
+                            <p class="text-xs text-yellow-600">บวกเพิ่มเมื่อ Perfect</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <input type="number" id="quiz-bonus-points" value="0" min="0" class="w-16 text-center border border-yellow-300 rounded px-1 py-1 font-bold text-yellow-700 outline-none">
+                        <span class="text-xs font-bold text-gray-500">แต้ม</span>
+                    </div>
+                </div>
+
+                <div class="bg-indigo-50 p-3 rounded-lg border border-indigo-200 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl">🏷️</span>
+                        <div>
+                            <h4 class="font-bold text-indigo-800 text-sm">รหัสกิจกรรมนี้ (Tag)</h4>
+                            <p class="text-xs text-indigo-600">ใช้เช็คว่าใครเคยรับไปแล้ว</p>
+                        </div>
+                    </div>
+                    <div>
+                        <input type="text" id="quiz-activity-tag" value="${defaultTag}" class="w-28 text-center border border-indigo-300 rounded px-2 py-1 font-bold text-indigo-700 outline-none text-sm" placeholder="เช่น quiz_8">
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const listContainer = document.querySelector('#quiz-step-2 .overflow-y-auto'); 
+        
+        // สร้างตาราง
+        const tableHtml = `
+            <table class="w-full text-sm">
+                <thead class="bg-gray-100 text-gray-700 sticky top-0 shadow-sm">
+                    <tr>
+                        <th class="px-4 py-2 text-left w-1/3">คำถาม</th>
+                        <th class="px-4 py-2 text-left w-1/3">เฉลยคำตอบ</th>
+                        <th class="px-4 py-2 text-center w-24">คะแนน</th>
+                    </tr>
+                </thead>
+                <tbody id="quiz-config-list" class="divide-y divide-gray-100">
+                    ${quizQuestions.map(q => `
+                        <tr class="bg-white hover:bg-gray-50">
+                            <td class="px-4 py-3 align-top">
+                                <div class="text-sm font-bold text-gray-800">${q.text}</div>
+                            </td>
+                            <td class="px-4 py-3 align-top">
+                                <input type="text" class="quiz-ans-input w-full border border-blue-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-blue-700 font-bold" 
+                                    data-qid="${q.id}" placeholder="คำตอบ...">
+                            </td>
+                            <td class="px-4 py-3 align-top">
+                                <input type="number" class="quiz-score-input w-full border border-gray-300 rounded px-2 py-2 text-center font-bold text-green-600" 
+                                    data-qid="${q.id}" value="${q.points}">
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+
+        const step2Div = document.getElementById('quiz-step-2');
+        const header = step2Div.children[0].outerHTML;
+        const footer = step2Div.children[step2Div.children.length - 1].outerHTML;
+        
+        step2Div.innerHTML = `
+            ${header}
+            ${configHtml}
+            <div class="flex-1 overflow-y-auto custom-scrollbar border rounded-lg">
+                ${tableHtml}
+            </div>
+            ${footer}
+        `;
     }
 
     window.previewQuizCalculation = () => {
-        // 1. เก็บค่าเฉลยจาก Input ลงตัวแปร
         const ansInputs = document.querySelectorAll('.quiz-ans-input');
-        const scoreInputs = document.querySelectorAll('.quiz-score-input');
-        
+        const bonusPoints = parseInt(document.getElementById('quiz-bonus-points').value) || 0;
+        const activityTag = document.getElementById('quiz-activity-tag').value.trim(); // รับ Tag
+
+        if (!activityTag) return alert('กรุณาระบุรหัสกิจกรรม (Tag) เพื่อป้องกันการแจกซ้ำครับ');
+
         let hasAnswer = false;
+        let totalQuestionsWithAnswer = 0;
 
         ansInputs.forEach(input => {
             const qid = input.dataset.qid;
@@ -8316,105 +8382,142 @@ window.getGuildActiveBuffs = (guildId) => {
             if (q) {
                 q.correctAnswer = correct;
                 q.points = points;
-                if(correct) hasAnswer = true;
+                if(correct) {
+                    hasAnswer = true;
+                    totalQuestionsWithAnswer++;
+                }
             }
         });
 
         if (!hasAnswer) return alert('กรุณากรอกเฉลยอย่างน้อย 1 ข้อครับ');
 
-        // 2. คำนวณแต้ม
         const previewList = document.getElementById('quiz-preview-list');
         let html = '';
-        let totalStudentPoints = 0;
+        let newRecipientCount = 0;
 
-        // วนลูปเฉพาะคนที่มีชื่อในระบบ
         const validStudents = quizData.filter(d => d.studentId);
         
         if (validStudents.length === 0) {
-            html = `<tr><td colspan="3" class="text-center py-4 text-red-500">ไม่พบชื่อนักเรียนที่ตรงกันเลย (โปรดตรวจสอบชื่อในไฟล์ CSV)</td></tr>`;
+            html = `<tr><td colspan="4" class="text-center py-4 text-red-500">ไม่พบชื่อนักเรียนที่ตรงกันเลย</td></tr>`;
         } else {
             validStudents.forEach(d => {
+                const s = students.find(x => x.id === d.studentId);
+                
+                // 🔥 เช็คว่าเคยรับ Tag นี้ไปหรือยัง?
+                // ดูใน array 'completed_activities' ของนักเรียน
+                const alreadyReceived = s.completed_activities && s.completed_activities.includes(activityTag);
+
                 let correctCount = 0;
                 let totalScore = 0;
+                let isPerfect = false;
 
                 quizQuestions.forEach(q => {
-                    // เทียบคำตอบ (ตัดช่องว่าง, ไม่สนตัวพิมพ์เล็กใหญ่)
-                    if (q.correctAnswer && d.answers[q.id]) {
-                        const studentAns = d.answers[q.id].trim().toLowerCase();
+                    if (q.correctAnswer) {
+                        const studentAns = (d.answers[q.id] || '').trim().toLowerCase();
                         const teacherAns = q.correctAnswer.trim().toLowerCase();
-                        
-                        if (studentAns === teacherAns) {
+                        if (studentAns && studentAns === teacherAns) {
                             correctCount++;
                             totalScore += q.points;
                         }
                     }
                 });
-
-                d.totalScore = totalScore; // ฝากค่าไว้ใช้ตอนบันทึก
                 
-                if (totalScore > 0) { // โชว์เฉพาะคนได้แต้ม
+                if (correctCount === totalQuestionsWithAnswer && totalQuestionsWithAnswer > 0) {
+                    isPerfect = true;
+                    totalScore += bonusPoints;
+                }
+
+                d.totalScore = totalScore; 
+                d.isPerfect = isPerfect;
+                d.alreadyReceived = alreadyReceived; // เก็บสถานะ
+                
+                // แสดงผล (แยกสีคนรับแล้ว)
+                if (totalScore > 0 || alreadyReceived) {
+                    const rowClass = alreadyReceived ? 'bg-gray-100 text-gray-400' : 'bg-white border-b hover:bg-gray-50';
+                    const scoreText = alreadyReceived ? '<span class="text-gray-400 font-bold">รับแล้ว</span>' : `<span class="text-green-600 font-bold">+${totalScore}</span>`;
+                    
+                    if (!alreadyReceived && totalScore > 0) newRecipientCount++;
+
                     html += `
-                    <tr class="bg-white border-b">
-                        <td class="px-4 py-2 font-medium text-gray-700">${d.name}</td>
-                        <td class="px-4 py-2 text-center text-gray-500">${correctCount} ข้อ</td>
-                        <td class="px-4 py-2 text-center font-bold text-green-600">+${totalScore}</td>
+                    <tr class="${rowClass}">
+                        <td class="px-4 py-2 font-medium">
+                            ${d.name} 
+                            ${isPerfect && !alreadyReceived ? '<span class="ml-2 text-[10px] bg-yellow-100 text-yellow-700 px-1 rounded font-bold">🏆 Perfect</span>' : ''}
+                            ${alreadyReceived ? '<span class="ml-2 text-[10px] bg-gray-200 text-gray-500 px-1 rounded">✅ เคยรับแล้ว</span>' : ''}
+                        </td>
+                        <td class="px-4 py-2 text-center text-sm">${correctCount} / ${totalQuestionsWithAnswer}</td>
+                        <td class="px-4 py-2 text-center">${scoreText}</td>
                     </tr>`;
                 }
             });
         }
 
-        previewList.innerHTML = html || `<tr><td colspan="3" class="text-center py-4 text-gray-400">ไม่มีใครได้คะแนนเลย (เฉลยไม่ตรง?)</td></tr>`;
+        previewList.innerHTML = html || `<tr><td colspan="3" class="text-center py-4 text-gray-400">ไม่มีใครได้คะแนนเพิ่ม</td></tr>`;
+        
+        // แจ้งเตือนยอดคนที่จะได้รับจริง
+        const confirmBtn = document.querySelector('#quiz-step-3 button.bg-green-600');
+        if(confirmBtn) confirmBtn.textContent = `✅ ยืนยันแจกแต้ม (${newRecipientCount} คนใหม่)`;
 
-        // เปลี่ยนหน้า UI
         document.getElementById('quiz-step-2').classList.add('hidden');
         document.getElementById('quiz-step-3').classList.remove('hidden');
     };
 
     window.confirmQuizDistribution = async () => {
-        if (!confirm('ยืนยันแจกแต้มให้นักเรียนทุกคนตามรายการนี้?')) return;
+        const activityTag = document.getElementById('quiz-activity-tag').value.trim();
+        if (!confirm(`ยืนยันการแจกแต้มสำหรับกิจกรรม "${activityTag}" ?\n(เฉพาะคนที่ยังไม่เคยได้รับ)`)) return;
 
         const batch = writeBatch(db);
         const timestamp = serverTimestamp();
         let count = 0;
 
         quizData.forEach(d => {
-            if (d.studentId && d.totalScore > 0) {
+            // เงื่อนไข: มี ID + มีแต้ม + 🔥 ต้องยังไม่เคยรับ (alreadyReceived = false)
+            if (d.studentId && d.totalScore > 0 && !d.alreadyReceived) {
                 const s = students.find(x => x.id === d.studentId);
                 if (s) {
                     const sRef = doc(db, 'artifacts', appId, 'public', 'data', 'students', s.id);
                     const hRef = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
 
-                    // เพิ่มแต้ม (เช็คใบเตือนด้วยตามสูตรปกติ)
-                    // หมายเหตุ: แต้มจากแบบฝึกหัด ถือเป็น "รายได้พิเศษ" อาจจะให้เข้ากระเป๋าเลย หรือเข้า Pending ก็ได้
-                    // ในที่นี้ใช้ Logic เดียวกับ Add Points ปกติ
+                    const updates = {};
+                    
+                    // 1. เพิ่มแต้ม (ตามสูตรใบเตือน)
                     if ((s.warning_cards || 0) > 0) {
-                        batch.update(sRef, { pending_points: increment(d.totalScore) });
+                        updates.pending_points = increment(d.totalScore);
                     } else {
-                        batch.update(sRef, { points: increment(d.totalScore) });
+                        updates.points = increment(d.totalScore);
                     }
+
+                    // 2. 🔥 ประทับตราว่ารับกิจกรรมนี้แล้ว (สำคัญ!)
+                    updates.completed_activities = arrayUnion(activityTag);
+
+                    batch.update(sRef, updates);
 
                     batch.set(hRef, {
                         student_id: s.id,
                         student_name: s.full_name,
-                        action: `ตอบคำถามนอกห้องเรียน (ครั้งที่ 8)`,
+                        action: `ตอบคำถาม (${activityTag})`,
                         amount: d.totalScore,
-                        type: 'add_points', // หรือจะใช้ type 'quiz_reward' ก็ได้ถ้าอยากแยกสี
+                        type: 'add_points',
                         timestamp: timestamp,
-                        reason: 'ตอบถูกตามเกณฑ์'
+                        reason: d.isPerfect ? 'ตอบถูกครบทุกข้อ (Perfect)' : 'ตอบถูกตามเกณฑ์'
                     });
                     count++;
                 }
             }
         });
 
-        try {
-            await batch.commit();
-            showToast(`✅ แจกแต้มเรียบร้อย ${count} คน`);
-            if(window.soundCoin) window.soundCoin.play();
-            document.getElementById('quiz-modal').classList.add('hidden');
-        } catch (e) {
-            console.error(e);
-            alert('เกิดข้อผิดพลาด: ' + e.message);
+        if (count > 0) {
+            try {
+                await batch.commit();
+                showToast(`✅ แจกแต้มสำเร็จ ${count} คน`);
+                if(window.soundCoin) window.soundCoin.play();
+                document.getElementById('quiz-modal').classList.add('hidden');
+            } catch (e) {
+                console.error(e);
+                alert('เกิดข้อผิดพลาด: ' + e.message);
+            }
+        } else {
+            alert('ไม่มีรายชื่อใหม่ที่ต้องแจกแต้ม (ทุกคนได้รับไปหมดแล้ว)');
         }
     };
    
