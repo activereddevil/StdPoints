@@ -438,7 +438,12 @@
                 </div>
 
                 <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar" id="quest-category-filters">
-                    </div>
+                </div>
+                
+                <div class="mt-3 relative">
+                    <input type="text" id="quest-search-input" placeholder="🔍 ค้นหาชื่อภารกิจ..." class="w-full pl-10 pr-4 py-2.5 border border-indigo-100 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white" oninput="renderQuests()">
+                    <svg class="w-5 h-5 text-gray-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
             </div>
 
             <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200 flex-1 flex flex-col">
@@ -454,7 +459,7 @@
                             </tr>
                         </thead>
                         <tbody id="quests-list-table" class="divide-y divide-gray-100">
-                            </tbody>
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -1380,17 +1385,14 @@
     </div>
    </div>
 
-  <div id="bulk-quest-modal" class="fixed inset-0 modal-backdrop hidden z-50 overflow-y-auto">
-    
+   <div id="bulk-quest-modal" class="fixed inset-0 modal-backdrop hidden z-50 overflow-y-auto">
     <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-        
         <div class="relative transform overflow-hidden rounded-xl bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-md p-6">
             
              <div class="text-center mb-4">
                  <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-2 text-2xl">⚡</div>
                  <h2 class="text-xl font-bold text-gray-800">เลือกภารกิจที่สำเร็จ</h2>
                  <p class="text-xs text-gray-500">แต้มจะถูกมอบให้นักเรียนที่เลือกทุกคนทันที</p>
-                 
                  <div id="bulk-quest-students-preview" class="text-xs text-indigo-600 bg-indigo-50 p-2 rounded-lg max-h-20 overflow-y-auto border border-indigo-100 mt-2 custom-scrollbar"></div>
              </div>
 
@@ -1405,13 +1407,17 @@
                 </div>
              </div>
              
-             <div id="bulk-quest-list" class="space-y-2 min-h-[300px]">
-                 </div>
+             <div class="mb-2 relative">
+                <input type="text" id="bulk-quest-search" placeholder="🔍 ค้นหาภารกิจ..." class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" oninput="renderBulkQuestList()">
+                <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+             </div>
              
-             <div class="pt-6 mt-4 border-t">
+             <div id="bulk-quest-list" class="space-y-2 min-h-[300px] max-h-[400px] overflow-y-auto custom-scrollbar">
+             </div>
+             
+             <div class="pt-4 mt-4 border-t">
                 <button onclick="document.getElementById('bulk-quest-modal').classList.add('hidden')" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 py-3 rounded-xl font-bold transition-colors">ปิดหน้าต่าง</button>
              </div>
-
         </div>
     </div>
    </div>
@@ -2368,7 +2374,29 @@ const appId = 'activeredpoint';
         renderStudentList();
     };
 
+    // ฟังก์ชันช่วยคำนวณเวลาที่เหลือเป็นข้อความ (เช่น "2 ชม. 30 น.")
+    function getRemainingTimeText(endTime) {
+        if (!endTime) return null;
+        
+        let end = endTime;
+        // แปลง Timestamp ของ Firestore ให้เป็น Milliseconds
+        if (typeof end.toMillis === 'function') end = end.toMillis();
+        else if (end instanceof Date) end = end.getTime();
+        else if (end.seconds) end = end.seconds * 1000;
+
+        const diff = end - Date.now();
+        if (diff <= 0) return null; // หมดเวลาแล้ว
+
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+        if (hours > 48) return Math.ceil(hours / 24) + ' วัน'; // นานกว่า 2 วัน บอกเป็นวัน
+        if (hours > 0) return `${hours} ชม. ${minutes} น.`;
+        return `${minutes} นาที`;
+    }
+
     // ✅ ฟังก์ชันแสดงรายชื่อนักเรียน (ฉบับ Super Dashboard)
+    // ✅ ฟังก์ชันแสดงรายชื่อนักเรียน (อัปเดต: เพิ่มแท็กเวลาบัฟ 🕒)
     window.renderStudentList = (resetPage = true) => {
         if (resetPage) paginationState.home = 1;
         const tbody = document.getElementById('student-list');
@@ -2398,76 +2426,86 @@ const appId = 'activeredpoint';
             selectAllCheckbox.checked = allOnPageSelected;
         }
 
-        // 3. ค่า Config พื้นฐานสำหรับคำนวณดอกเบี้ย
         const baseRate = (config && config.interest_rate) ? config.interest_rate : 1.0;
 
         // 4. วาดตาราง HTML
         tbody.innerHTML = paginatedData.map(s => {
-            // --- 🏰 ส่วนที่ 1: จัดการกิลด์และป้ายชื่อ ---
+            // --- 🏰 1. กิลด์ ---
             let guildBadge = '';
             let guildName = '';
             let guildBonus = 0;
-
             if (s.guild_id) {
                 const g = guilds.find(x => x.id === s.guild_id);
                 if (g) {
                     guildName = g.name;
                     if (g.buff_interest) guildBonus = parseFloat(g.buff_interest);
-                    guildBadge = `<span class="ml-1 text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 border border-gray-200">${g.icon}</span>`;
+                    guildBadge = `<span class="ml-1 text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 border border-gray-200 cursor-help" title="สมาชิกกิลด์ ${g.name}">${g.icon}</span>`;
                 }
             }
 
-            // --- 🏦 ส่วนที่ 2: คำนวณดอกเบี้ยและบัฟ (Logic จากหน้าธนาคาร) ---
-            let activeSpecialRate = null;
-            if (s.special_interest_end) {
-                let endTime = s.special_interest_end;
-                if (typeof endTime.toMillis === 'function') endTime = endTime.toMillis();
-                else if (endTime instanceof Date) endTime = endTime.getTime();
+            // --- 🕒 2. คำนวณเวลาบัฟ (ส่วนที่เพิ่มใหม่) ---
+            let buffBadgesHtml = '';
 
-                if (Date.now() < endTime) {
-                    activeSpecialRate = parseFloat(s.special_interest_rate);
-                }
+            // A. บัฟดอกเบี้ยพิเศษ (Interest)
+            const interestTime = getRemainingTimeText(s.special_interest_end);
+            if (interestTime) {
+                // ถ้ามีบัฟดอกเบี้ย จะแสดงป้ายสีเขียวบอกเวลา
+                buffBadgesHtml += `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap" title="ดอกเบี้ยพิเศษ ${s.special_interest_rate}% เหลือเวลา ${interestTime}">
+                    📈 ${interestTime}
+                </span>`;
             }
 
+            // B. บัฟส่วนลด (Discount)
+            const discountTime = getRemainingTimeText(s.buff_discount_end);
+            if (discountTime) {
+                buffBadgesHtml += `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-red-50 text-red-700 border border-red-200 whitespace-nowrap" title="ส่วนลด ${s.buff_discount_val}% เหลือเวลา ${discountTime}">
+                    🏷️ ${discountTime}
+                </span>`;
+            }
+
+            // C. บัฟบูสต์แต้ม (Point Boost)
+            const boostTime = getRemainingTimeText(s.buff_points_end);
+            if (boostTime) {
+                buffBadgesHtml += `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-blue-50 text-blue-700 border border-blue-200 whitespace-nowrap" title="บูสต์แต้ม +${s.buff_points_val}% เหลือเวลา ${boostTime}">
+                    🚀 ${boostTime}
+                </span>`;
+            }
+
+            // --- 🏦 3. คำนวณดอกเบี้ย ---
+            let activeSpecialRate = interestTime ? parseFloat(s.special_interest_rate) : null;
             let finalRate = (activeSpecialRate !== null) ? activeSpecialRate : (baseRate + guildBonus);
             
-            // สร้างป้าย Tag บัฟดอกเบี้ย (สีเขียวๆ)
             let rateTag = '';
             if (finalRate > baseRate) {
                 let icon = '🔥';
-                let titleText = 'บัฟพิเศษ';
-                if (activeSpecialRate !== null) { icon = '🌟'; titleText = 'บัฟส่วนตัว'; }
-                else if (guildBonus > 0) { icon = '🛡️'; titleText = `บัฟกิลด์ ${guildName}`; }
+                let colorClass = 'bg-green-50 text-green-700 border-green-200';
+                
+                if (activeSpecialRate !== null) { icon = '🌟'; colorClass = 'bg-yellow-50 text-yellow-700 border-yellow-200'; } // บัฟส่วนตัว สีทอง
+                else if (guildBonus > 0) { icon = '🛡️'; } // บัฟกิลด์
 
                 rateTag = `
-                <div class="inline-flex items-center gap-1 ml-1 px-1.5 py-0.5 rounded-md bg-green-50 border border-green-200 cursor-help" title="${titleText}">
+                <div class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md border ${colorClass} cursor-help" title="อัตราดอกเบี้ยปัจจุบัน">
                     <span class="text-[10px]">${icon}</span>
-                    <span class="text-[10px] font-bold text-green-700">+${(finalRate - baseRate).toFixed(2)}%</span>
+                    <span class="text-[10px] font-bold">+${(finalRate - baseRate).toFixed(2)}%</span>
                 </div>`;
             }
-            // --- 🎒 ส่วนที่เพิ่มใหม่: คำนวณไอคอนกระเป๋า ---
+
+            // --- 🎒 4. ไอเทมในกระเป๋า ---
             const inv = s.inventory || []; 
             const totalItems = inv.length;
             const unopenedBoxCount = inv.filter(i => i.type === 'gacha_box').length;
-
             let itemBadge = '';
             if (totalItems > 0) {
                 if (unopenedBoxCount > 0) {
-                    // 🎁 มีกล่องสุ่มรอเปิด (สีม่วง + กระพริบ)
                     itemBadge = `<span class="ml-1 inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 border border-purple-200 font-bold animate-pulse cursor-help" title="มีกล่องสุ่มรอเปิด ${unopenedBoxCount} กล่อง">🎁 ${unopenedBoxCount}</span>`;
                 } else {
-                    // 🎒 มีไอเทมทั่วไป (สีฟ้า)
                     itemBadge = `<span class="ml-1 inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600 border border-indigo-100 cursor-help" title="มีไอเทมในตัว ${totalItems} ชิ้น">🎒 ${totalItems}</span>`;
                 }
             }
-            // ---------------------------------------------
 
-
-            // คำนวณตัวเลขเงิน
+            // คำนวณเงิน
             const pendingInterest = calculatePendingInterest(s);
             const totalWithdrawable = (s.bank_points || 0) + pendingInterest;
-
-            // --- 🎨 ส่วนที่ 3: การแสดงผลแถว (Row) ---
             const isSelected = selectedStudentIds.has(s.id);
             const rowClass = isSelected ? 'bg-green-50 border-l-4 border-l-green-500' : 'hover:bg-gray-50 border-l-4 border-l-transparent';
 
@@ -2482,11 +2520,15 @@ const appId = 'activeredpoint';
                 <td class="px-2 py-3 text-xs text-gray-500 font-mono">${s.student_id}</td>
                 
                 <td class="px-2 py-3">
-                    <div class="flex flex-col">
-                        <span class="font-bold text-gray-800 text-sm flex items-center flex-wrap gap-1">
+                    <div class="flex flex-col items-start gap-1">
+                        <span class="font-bold text-gray-800 text-sm flex items-center flex-wrap gap-1 leading-snug">
                             ${s.full_name} ${guildBadge} ${itemBadge}
                         </span>
-                        <div class="mt-0.5">${rateTag}</div>
+                        
+                        <div class="flex flex-wrap gap-1">
+                            ${rateTag}
+                            ${buffBadgesHtml}
+                        </div>
                     </div>
                 </td>
 
@@ -2512,8 +2554,6 @@ const appId = 'activeredpoint';
                     </div>
                 </td>
 
-                
-
                 <td class="px-2 py-3 text-center" onclick="event.stopPropagation()">
                     <div class="flex items-center justify-center gap-1">
                         <button onclick="openBankModal('${s.id}')" class="p-1.5 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg border border-green-200 transition-colors" title="ธุรกรรมธนาคาร">
@@ -2522,7 +2562,6 @@ const appId = 'activeredpoint';
                         <button onclick="openEditStudentModal('${s.id}')" class="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="แก้ไข">
                             ✏️
                         </button>
-                        
                     </div>
                 </td>
             </tr>
@@ -4620,24 +4659,31 @@ const appId = 'activeredpoint';
         showToast('สร้างภารกิจสำเร็จ');
     };
 
-    window.renderQuests = () => {
+   // ✅ อัปเดต: renderQuests รองรับการค้นหา
+   window.renderQuests = () => {
         const tbody = document.getElementById('quests-list-table');
         if (!tbody) return;
 
-        // กรองตามหมวดหมู่
-        let displayQuests = quests;
-        if (currentCategoryFilter !== 'all') {
-            displayQuests = quests.filter(q => (q.category || 'ทั่วไป') === currentCategoryFilter);
-        }
+        // รับค่าจากช่องค้นหา (ถ้ามี)
+        const searchInput = document.getElementById('quest-search-input');
+        const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
-        // เรียงลำดับตามชื่อ (หรือตามหมวดหมู่ก็ได้)
+        // 1. กรองข้อมูล (หมวดหมู่ + คำค้นหา)
+        let displayQuests = quests.filter(q => {
+            const matchesCategory = currentCategoryFilter === 'all' || (q.category || 'ทั่วไป') === currentCategoryFilter;
+            const matchesSearch = q.title.toLowerCase().includes(searchTerm);
+            return matchesCategory && matchesSearch;
+        });
+
+        // 2. เรียงลำดับ
         displayQuests.sort((a,b) => (a.category || 'ทั่วไป').localeCompare(b.category || 'ทั่วไป'));
 
         if (displayQuests.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-400">ไม่พบภารกิจในหมวดหมู่นี้</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-400">ไม่พบภารกิจ</td></tr>`;
             return;
         }
 
+        // 3. Render
         tbody.innerHTML = displayQuests.map(q => {
             const catName = q.category || 'ทั่วไป';
             return `
@@ -4709,19 +4755,20 @@ const appId = 'activeredpoint';
         }
     };
 
+
+
     // Bulk Quest Assignment
     // --- ส่วนที่แก้ไข: เพิ่มตัวแปรและปรับ Logic ภารกิจ ---
    
     let currentQuestTargetId = null;
+    // ✅ อัปเดต: เปิด Modal แล้วเรียกฟังก์ชัน Render
     window.showBulkQuestModal = (singleId = null) => {
-        currentQuestTargetId = singleId; // เก็บค่า ID (ถ้ามี)
+        currentQuestTargetId = singleId;
         const qtyInput = document.getElementById('bulk-quest-qty');
-          if(qtyInput) qtyInput.value = 1;
+        if(qtyInput) qtyInput.value = 1;
 
-        // ถ้าไม่ได้ระบุรายคน และไม่ได้เลือกใครไว้เลย
         if (!singleId && selectedStudentIds.size === 0) return alert('กรุณาเลือกนักเรียนก่อน');
 
-        // ดึงชื่อนักเรียนมาแสดง
         let names = '';
         if (singleId) {
             const s = students.find(std => std.id === singleId);
@@ -4738,22 +4785,40 @@ const appId = 'activeredpoint';
             previewEl.textContent = names ? `กำลังทำรายการให้: ${names}` : '';
         }
         
-        // ... (ส่วน Render รายการภารกิจ เหมือนเดิม) ...
-        const list = document.getElementById('bulk-quest-list');
-        if (quests.length === 0) {
-            list.innerHTML = '<p class="text-center text-gray-400">ยังไม่มีภารกิจ (ไปสร้างที่แท็บ "ภารกิจ" ก่อน)</p>';
+        // เคลียร์ค่าค้นหาเก่า
+        const searchInput = document.getElementById('bulk-quest-search');
+        if(searchInput) searchInput.value = '';
+
+        // เรียกวาดรายการ
+        renderBulkQuestList();
+        
+        document.getElementById('bulk-quest-modal').classList.remove('hidden');
+    };
+
+    // ✅ ฟังก์ชันใหม่: แสดงรายการใน Modal แบบมีค้นหา
+    window.renderBulkQuestList = () => {
+        const container = document.getElementById('bulk-quest-list');
+        const searchInput = document.getElementById('bulk-quest-search');
+        const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+        if (!container) return;
+
+        // กรองตามคำค้นหา
+        const filteredQuests = quests.filter(q => q.title.toLowerCase().includes(searchTerm));
+
+        if (filteredQuests.length === 0) {
+            container.innerHTML = '<p class="text-center text-gray-400 py-4">ไม่พบภารกิจที่ค้นหา</p>';
         } else {
-            list.innerHTML = quests.map(q => `
+            container.innerHTML = filteredQuests.map(q => `
                 <button onclick="executeBulkQuest('${q.id}')" class="w-full flex items-center justify-between p-3 bg-white border hover:border-indigo-500 hover:bg-indigo-50 rounded-lg transition-all group">
                     <div class="flex items-center gap-3">
                         <span class="text-2xl">${q.icon}</span>
-                        <span class="font-bold text-gray-700 group-hover:text-indigo-700">${q.title}</span>
+                        <span class="font-bold text-gray-700 group-hover:text-indigo-700 text-left">${q.title}</span>
                     </div>
-                    <span class="font-bold text-green-600">+${q.points}</span>
+                    <span class="font-bold text-green-600 whitespace-nowrap">+${q.points}</span>
                 </button>
             `).join('');
         }
-        document.getElementById('bulk-quest-modal').classList.remove('hidden');
     };
 
     window.adjustBulkQuestQty = (delta) => {
