@@ -2744,7 +2744,9 @@ const appId = 'activeredpoint';
             document.getElementById('rewards-grid-container').classList.remove('hidden');
         }
     }
+    
     // Exposed to window for inline HTML calls
+    // ✅ อัปเดต: เพิ่มการค้นหาจาก "เหตุผล" (reason)
     window.renderHistory = (resetPage = true) => {
         if (resetPage) paginationState.history = 1;
         const tbody = document.getElementById('history-list');
@@ -2754,7 +2756,8 @@ const appId = 'activeredpoint';
         if (filter) {
             filtered = history.filter(h => 
                 h.student_name.toLowerCase().includes(filter) || 
-                h.action.toLowerCase().includes(filter)
+                h.action.toLowerCase().includes(filter) ||
+                (h.reason && h.reason.toLowerCase().includes(filter)) // 🔥 เพิ่มบรรทัดนี้ครับ
             );
         }
         
