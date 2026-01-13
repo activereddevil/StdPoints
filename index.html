@@ -2443,7 +2443,7 @@ const appId = 'activeredpoint';
                     if(activeBuffs.discount) guildDiscount = parseFloat(activeBuffs.discount);
                     if(activeBuffs.point_boost) guildBoost = parseFloat(activeBuffs.point_boost);
 
-                    guildBadge = `<span class="ml-1 text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 border border-gray-200 cursor-help" title="กิลด์ ${g.name} (ดอกเบี้ย +${guildBonus}%, ลด ${guildDiscount}%, บูสต์ +${guildBoost}%)">${g.icon}</span>`;
+                    guildBadge = `<span class="ml-1 text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 border border-gray-200 cursor-help" title="กิลด์ ${g.name} (ดอกเบี้ย +${(guildBonus).toFixed(2)}%, ลด ${guildDiscount}%, บูสต์ +${guildBoost}%)">${g.icon}</span>`;
                 }
             }
 
