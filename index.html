@@ -563,7 +563,7 @@
                     <canvas id="chart-points"></canvas>
                 </div>
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-                    <h3 class="font-bold text-gray-700 mb-4 text-center">จำนวนใบแดงแต่ละห้อง</h3>
+                    <h3 class="font-bold text-gray-700 mb-4 text-center">จำนวนใบเตือนแต่ละห้อง</h3>
                     <canvas id="chart-redcards"></canvas>
                 </div>
             </div>
@@ -577,7 +577,7 @@
                                 <th class="px-6 py-4 text-center">จำนวนนักเรียน</th>
                                 <th class="px-6 py-4 text-center">คะแนนรวม</th>
                                 <th class="px-6 py-4 text-center">คะแนนเฉลี่ย</th>
-                                <th class="px-6 py-4 text-center text-red-600">ใบแดงรวม</th>
+                                <th class="px-6 py-4 text-center text-yellow-600">ใบเตือนรวม</th>
                             </tr>
                         </thead>
                         <tbody id="report-class-list" class="divide-y divide-gray-100">
@@ -4467,18 +4467,20 @@ const appId = 'activeredpoint';
     let pointsChartInstance = null;
     let redCardsChartInstance = null;
 
+    // ✅ 1. คำนวณและแสดงตารางรายงาน (เปลี่ยนเป็นใบเตือน)
     window.renderClassReport = () => {
         // 1. Group Data by Class
         const classStats = {};
         
         students.forEach(s => {
             const cls = s.class_name ? s.class_name.trim() : 'ไม่ระบุ';
+            // เปลี่ยนจาก red_cards เป็น warning_cards
             if (!classStats[cls]) {
-                classStats[cls] = { name: cls, count: 0, points: 0, red_cards: 0 };
+                classStats[cls] = { name: cls, count: 0, points: 0, warning_cards: 0 };
             }
             classStats[cls].count++;
             classStats[cls].points += (s.points || 0);
-            classStats[cls].red_cards += (s.red_cards || 0);
+            classStats[cls].warning_cards += (s.warning_cards || 0);
         });
 
         // Convert to Array & Sort by Name
@@ -4492,25 +4494,26 @@ const appId = 'activeredpoint';
                 <td class="px-6 py-4 text-center">${c.count} คน</td>
                 <td class="px-6 py-4 text-center font-bold text-blue-600">${c.points.toLocaleString()}</td>
                 <td class="px-6 py-4 text-center text-gray-500">${(c.points / c.count).toFixed(2)}</td>
-                <td class="px-6 py-4 text-center font-bold ${c.red_cards > 0 ? 'text-red-600' : 'text-gray-300'}">${c.red_cards}</td>
+                <td class="px-6 py-4 text-center font-bold ${c.warning_cards > 0 ? 'text-yellow-600' : 'text-gray-300'}">${c.warning_cards}</td>
             </tr>
         `).join('');
 
-        // 3. Render Charts (Using Chart.js)
+        // 3. Render Charts
         renderCharts(reportData);
     };
 
+    // ✅ 2. สร้างกราฟ (เปลี่ยนกราฟขวาเป็นใบเตือน สีเหลือง)
     function renderCharts(data) {
         // Prepare Data
         const labels = data.map(d => d.name);
         const pointsData = data.map(d => d.points);
-        const redCardsData = data.map(d => d.red_cards);
+        const warningsData = data.map(d => d.warning_cards); // ใช้ข้อมูลใบเตือน
 
-        // Destroy old instances if exist to prevent glitch
+        // Destroy old instances if exist
         if (pointsChartInstance) pointsChartInstance.destroy();
         if (redCardsChartInstance) redCardsChartInstance.destroy();
 
-        // Chart 1: Points
+        // Chart 1: Points (เหมือนเดิม)
         const ctxPoints = document.getElementById('chart-points').getContext('2d');
         pointsChartInstance = new Chart(ctxPoints, {
             type: 'bar',
@@ -4527,17 +4530,17 @@ const appId = 'activeredpoint';
             options: { responsive: true, scales: { y: { beginAtZero: true } } }
         });
 
-        // Chart 2: Red Cards
-        const ctxRed = document.getElementById('chart-redcards').getContext('2d');
+        // Chart 2: Warning Cards (เปลี่ยนสีและข้อมูล)
+        const ctxRed = document.getElementById('chart-redcards').getContext('2d'); // ใช้ ID เดิมก็ได้ ไม่ต้องแก HTML
         redCardsChartInstance = new Chart(ctxRed, {
-            type: 'line', // หรือ 'bar' ตามชอบ
+            type: 'line', 
             data: {
                 labels: labels,
                 datasets: [{
-                    label: 'ใบแดงรวม',
-                    data: redCardsData,
-                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
-                    borderColor: 'rgba(239, 68, 68, 1)',
+                    label: 'ใบเตือนรวม', // เปลี่ยนป้ายชื่อ
+                    data: warningsData,
+                    backgroundColor: 'rgba(234, 179, 8, 0.2)', // สีเหลือง (Yellow-500)
+                    borderColor: 'rgba(234, 179, 8, 1)',
                     borderWidth: 2,
                     tension: 0.3,
                     fill: true
@@ -4547,24 +4550,25 @@ const appId = 'activeredpoint';
         });
     }
 
+    // ✅ 3. Export CSV (อัปเดตหัวตารางและข้อมูล)
     window.exportClassReportCSV = () => {
         // Recalculate Data for Export
         const classStats = {};
         students.forEach(s => {
             const cls = s.class_name ? s.class_name.trim() : 'ไม่ระบุ';
-            if (!classStats[cls]) classStats[cls] = { name: cls, count: 0, points: 0, red_cards: 0 };
+            if (!classStats[cls]) classStats[cls] = { name: cls, count: 0, points: 0, warning_cards: 0 };
             classStats[cls].count++;
             classStats[cls].points += (s.points || 0);
-            classStats[cls].red_cards += (s.red_cards || 0);
+            classStats[cls].warning_cards += (s.warning_cards || 0);
         });
         const reportData = Object.values(classStats).sort((a, b) => a.name.localeCompare(b.name, 'th'));
 
-        // CSV Header with BOM for Thai support
-        let csvContent = "\uFEFFชั้นเรียน,จำนวนนักเรียน,คะแนนรวม,คะแนนเฉลี่ย,จำนวนใบแดง\n";
+        // CSV Header (เปลี่ยน "จำนวนใบแดง" -> "จำนวนใบเตือน")
+        let csvContent = "\uFEFFชั้นเรียน,จำนวนนักเรียน,คะแนนรวม,คะแนนเฉลี่ย,จำนวนใบเตือน\n";
         
         reportData.forEach(row => {
             const avg = (row.points / row.count).toFixed(2);
-            csvContent += `${row.name},${row.count},${row.points},${avg},${row.red_cards}\n`;
+            csvContent += `${row.name},${row.count},${row.points},${avg},${row.warning_cards}\n`;
         });
 
         const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -5341,7 +5345,9 @@ window.calculateQuestPointsWithBuffs = (student, basePoints) => {
 
         container.innerHTML = items.map(item => `
             <div class="border rounded-lg p-3 flex flex-col items-center bg-gray-50 relative group">
-                <div class="text-3xl mb-2 transition-transform hover:scale-110">${item.image ? `<img src="${item.image}" class="w-10 h-10 object-contain">` : '🃏'}</div>
+                <div class="text-3xl mb-2 transition-transform hover:scale-110 h-10 flex items-center justify-center">
+    ${item.image || '🎟'}
+                </div>
                 <div class="font-bold text-xs text-center text-gray-700 leading-tight">${item.name}</div>
                 </div>
         `).join('');
@@ -5691,7 +5697,9 @@ window.calculateQuestPointsWithBuffs = (student, basePoints) => {
 
         container.innerHTML = items.map(item => `
             <div class="border border-indigo-100 rounded-xl p-4 flex flex-col items-center bg-indigo-50/50 hover:bg-white hover:shadow-md transition-all">
-                <div class="text-4xl mb-3">${item.image ? `<img src="${item.image}" class="w-12 h-12 object-contain">` : '📦'}</div>
+                <div class="text-5xl mb-3 h-12 flex items-center justify-center">
+                    ${item.image || '📦'}
+                </div>
                 <h4 class="font-bold text-sm text-center text-gray-800 mb-1">${item.name}</h4>
                 <p class="text-xs text-gray-500 mb-3 text-center">${getItemTypeLabel(item)}</p>
                 <button onclick="useItem('${item.id}', '${item.name}')" 
@@ -5833,7 +5841,7 @@ window.calculateQuestPointsWithBuffs = (student, basePoints) => {
             // ดึงบัฟมาโชว์ที่การ์ดด้วย
             const buffs = getGuildActiveBuffs(g.id);
             let buffText = '';
-            if(buffs.interest > 0) buffText += `<div>📈 ดอกเบี้ย +${buffs.interest}%</div>`;
+            if(buffs.interest > 0) buffText += `<div>📈 ดอกเบี้ย +${parseFloat(buffs.interest).toFixed(2)}%</div>`;
             if(buffs.discount > 0) buffText += `<div>🏷️ ส่วนลด ${buffs.discount}%</div>`;
             if(buffs.point_boost > 0) buffText += `<div>🚀 แต้ม +${buffs.point_boost}%</div>`;
             
@@ -5854,7 +5862,7 @@ window.calculateQuestPointsWithBuffs = (student, basePoints) => {
             const buffs = getGuildActiveBuffs(g.id);
             let buffBadges = '';
             
-            if(buffs.interest > 0) buffBadges += `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700 border border-green-200">📈 +${buffs.interest}%</span> `;
+            if(buffs.interest > 0) buffBadges += `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700 border border-green-200">📈 +${parseFloat(buffs.interest).toFixed(2)}%</span> `;
             if(buffs.discount > 0) buffBadges += `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 border border-red-200">🏷️ -${buffs.discount}%</span> `;
             if(buffs.point_boost > 0) buffBadges += `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200">🚀 +${buffs.point_boost}%</span>`;
 
