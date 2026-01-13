@@ -3596,7 +3596,7 @@ const appId = 'activeredpoint';
         selectedStudentForRedeem = students.find(s => s.id === studentId);
         if(!selectedStudentForRedeem) return;
         
-        document.getElementById('shop-student-name').textContent = `สำหรับ: ${selectedStudentForRedeem.full_name} (แต้ม: ${Math.floor(selectedStudentForRedeem.points)})`;
+        document.getElementById('shop-student-name').textContent = `สำหรับ: ${selectedStudentForRedeem.full_name} (แต้ม: ${Math.floor(selectedStudentForRedeem.points).toLocaleString()})`;
         renderShopGrid();
         document.getElementById('student-redeem-modal').classList.remove('hidden');
     };
@@ -3796,7 +3796,7 @@ const appId = 'activeredpoint';
         if (isGain) {
             priceHtml = `<span class="text-green-600 font-bold">ได้รับ +${Math.abs(redeemTarget.points)} แต้ม/ชิ้น</span>`;
         } else {
-            priceHtml = `ราคา ${redeemTarget.actualPrice} แต้ม/ชิ้น`;
+            priceHtml = `ราคา ${(redeemTarget.actualPrice).toLocaleString()} แต้ม/ชิ้น`;
             if (totalDiscount > 0) {
                 priceHtml += ` <span class="text-red-500 font-bold">(-${totalDiscount}%)</span>`;
             }
@@ -5532,7 +5532,7 @@ window.calculateQuestPointsWithBuffs = (student, basePoints) => {
                     const discountVal = parseInt(wonSlot.value) || 10;
                     const durationMinutes = parseInt(wonSlot.duration) || 60;
                     
-                    newCard.name = `บัตรส่วนลด ${discountVal}% (${durationMinutes} นาที)`;
+                    newCard.name = `บัตรส่วนลด ${discountVal}% (${durationMinutes} ชั่วโมง)`;
                     newCard.type = 'instant_buff'; // ใช้ Type นี้
                     newCard.image = '🏷️';
                     newCard.value = discountVal;      // เก็บค่า %
@@ -5540,7 +5540,7 @@ window.calculateQuestPointsWithBuffs = (student, basePoints) => {
                     
                     resultIcon = '🏷️';
                     resultTitle = `ได้บัตรส่วนลด ${discountVal}%`;
-                    resultSub = `เก็บไว้ใช้ตอนจะซื้อของนะ (นาน ${durationMinutes} นาที)`;
+                    resultSub = `เก็บไว้ใช้ตอนจะซื้อของนะ (นาน ${durationMinutes} ชั่วโมง)`;
                 }
 
                 else if (wonSlot.type === 'buff_points') {
@@ -5657,7 +5657,7 @@ window.calculateQuestPointsWithBuffs = (student, basePoints) => {
                 });
                 
                 logMsg = `ใช้บัตรส่วนลด: ลด ${val}% นาน ${dur} ชั่วโมง`;
-                alertMsg = `เริ่มใช้ส่วนลด ${val}% เรียบร้อย! รีบไปช้อปเลย! (หมดเวลา: ${endTime.toLocaleTimeString()})`;
+                alertMsg = `เริ่มใช้ส่วนลด ${val}% เรียบร้อย! รีบไปช้อปเลย! (หมดเวลา: ${endTime.toLocaleDateString()} ${endTime.toLocaleTimeString()})`;
             }
             else if (inventoryItem.type === 'instant_buff_points') {
                 const val = parseInt(inventoryItem.value) || 10;
@@ -5671,7 +5671,7 @@ window.calculateQuestPointsWithBuffs = (student, basePoints) => {
                 });
                 
                 logMsg = `ใช้บัตรบูสต์แต้ม: เพิ่ม ${val}% นาน ${dur} ชั่วโมง`;
-                alertMsg = `🚀 เปิดใช้งานบูสต์แต้ม +${val}% เรียบร้อย! (หมดเวลา: ${endTime.toLocaleTimeString()})`;
+                alertMsg = `🚀 เปิดใช้งานบูสต์แต้ม +${val}% เรียบร้อย! (หมดเวลา: ${endTime.toLocaleDateString()} ${endTime.toLocaleTimeString()})`;
             }
             else {
                 logMsg = `ใช้งานไอเทม: ${itemName}`;
