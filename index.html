@@ -1885,29 +1885,41 @@ const appId = 'activeredpoint';
 
     // --- MAIN APP LOGIC ---
 
-    // ฟังก์ชันโหลดหมวดหมู่ (เรียกตอนเริ่มต้น)
-    async function loadRewardCategories() {
+   // 1. โหลดหมวดหมู่ (แก้ไข Path ให้ถูกต้อง)
+   async function loadRewardCategories() {
         try {
-            const docRef = doc(db, 'artifacts', appId, 'public', 'config');
+            // แก้ Path: ย้ายมาเก็บใน data/config/reward_categories
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'config', 'reward_categories');
             const docSnap = await getDoc(docRef);
-            if (docSnap.exists() && docSnap.data().reward_categories) {
-                rewardCategories = docSnap.data().reward_categories;
+            
+            if (docSnap.exists() && docSnap.data().list) {
+                rewardCategories = docSnap.data().list;
             } else {
+                // ค่าเริ่มต้นถ้ายังไม่มีข้อมูล
                 rewardCategories = ['ทั่วไป', 'อุปกรณ์การเรียน', 'ขนม/เครื่องดื่ม', 'สิทธิพิเศษ', 'ของสะสม'];
             }
-            renderRewardCategoryOptions(); // อัปเดต Dropdown
-        } catch (e) { console.error("Error loading categories:", e); }
+            renderRewardCategoryOptions(); // อัปเดต Dropdown ทันทีที่โหลดเสร็จ
+        } catch (e) { 
+            console.error("Error loading categories:", e); 
+            // กรณีโหลดพลาด ให้ใช้ค่า Default ไปก่อน
+            renderRewardCategoryOptions(); 
+        }
     }
 
-    // ฟังก์ชันบันทึกหมวดหมู่
-    async function saveRewardCategoriesToDB() {
+  // 2. บันทึกหมวดหมู่ (แก้ไข Path และ Field ให้ตรงกัน)
+  async function saveRewardCategoriesToDB() {
         try {
-            await setDoc(doc(db, 'artifacts', appId, 'public', 'config'), { 
-                reward_categories: rewardCategories 
+            // แก้ Path: บันทึกลง data/config/reward_categories (Field: list)
+            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'reward_categories'), { 
+                list: rewardCategories 
             }, { merge: true });
-            renderRewardCategoryOptions();
-            showToast('บันทึกหมวดหมู่เรียบร้อย');
-        } catch (e) { console.error(e); alert('บันทึกไม่สำเร็จ'); }
+            
+            renderRewardCategoryOptions(); // อัปเดต Dropdown หลังบันทึก
+            showToast('บันทึกหมวดหมู่เรียบร้อย ✅');
+        } catch (e) { 
+            console.error(e); 
+            alert('เกิดข้อผิดพลาดในการบันทึก: ' + e.message); 
+        }
     }
 
     // ฟังก์ชันอัปเดตตัวเลือกใน Dropdown (Add/Edit Modal)
