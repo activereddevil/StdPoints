@@ -2397,12 +2397,12 @@ const appId = 'activeredpoint';
 
     // ✅ ฟังก์ชันแสดงรายชื่อนักเรียน (ฉบับ Super Dashboard)
     // ✅ ฟังก์ชันแสดงรายชื่อนักเรียน (อัปเดต: เพิ่มแท็กเวลาบัฟ 🕒)
+    // ✅ ฟังก์ชันแสดงรายชื่อนักเรียน (อัปเกรด: แสดงยอดบัฟแบบทบกัน ➕)
     window.renderStudentList = (resetPage = true) => {
         if (resetPage) paginationState.home = 1;
         const tbody = document.getElementById('student-list');
         const filter = document.getElementById('search-input').value.toLowerCase();
         
-        // 1. กรองและค้นหา
         let filtered = students.filter(s => {
             const gName = s.guild_id ? (guilds.find(g => g.id === s.guild_id)?.name || '') : '';
             return s.full_name.toLowerCase().includes(filter) || 
@@ -2411,7 +2411,6 @@ const appId = 'activeredpoint';
             gName.toLowerCase().includes(filter);
         });
 
-        // 2. เรียงลำดับ
         if (sortState.student.col) {
             filtered = sortList(filtered, sortState.student.col, sortState.student.asc);
         }
@@ -2419,7 +2418,7 @@ const appId = 'activeredpoint';
         document.getElementById('student-count') && (document.getElementById('student-count').textContent = filtered.length);
         const { data: paginatedData } = getPaginatedData(filtered, paginationState.home);
         
-        // Sync Checkbox เลือกทั้งหมด
+        // Sync Checkbox
         const selectAllCheckbox = document.getElementById('select-all');
         if(selectAllCheckbox) {
             const allOnPageSelected = paginatedData.length > 0 && paginatedData.every(s => selectedStudentIds.has(s.id));
@@ -2428,78 +2427,88 @@ const appId = 'activeredpoint';
 
         const baseRate = (config && config.interest_rate) ? config.interest_rate : 1.0;
 
-        // 4. วาดตาราง HTML
         tbody.innerHTML = paginatedData.map(s => {
-            // --- 🏰 1. กิลด์ ---
+            // --- 🏰 1. ข้อมูลกิลด์ ---
             let guildBadge = '';
-            let guildName = '';
             let guildBonus = 0;
+            let guildDiscount = 0;
+            let guildBoost = 0;
+
             if (s.guild_id) {
                 const g = guilds.find(x => x.id === s.guild_id);
                 if (g) {
-                    guildName = g.name;
                     if (g.buff_interest) guildBonus = parseFloat(g.buff_interest);
-                    guildBadge = `<span class="ml-1 text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 border border-gray-200 cursor-help" title="สมาชิกกิลด์ ${g.name}">${g.icon}</span>`;
+                    // เก็บค่าบัฟกิลด์ไว้นำไปรวม
+                    const activeBuffs = getGuildActiveBuffs(g.id); 
+                    if(activeBuffs.discount) guildDiscount = parseFloat(activeBuffs.discount);
+                    if(activeBuffs.point_boost) guildBoost = parseFloat(activeBuffs.point_boost);
+
+                    guildBadge = `<span class="ml-1 text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 border border-gray-200 cursor-help" title="กิลด์ ${g.name} (ดอกเบี้ย +${guildBonus}%, ลด ${guildDiscount}%, บูสต์ +${guildBoost}%)">${g.icon}</span>`;
                 }
             }
 
-            // --- 🕒 2. คำนวณเวลาบัฟ (ส่วนที่เพิ่มใหม่) ---
+            // --- 🕒 2. คำนวณเวลาและค่าบัฟส่วนตัว ---
             let buffBadgesHtml = '';
-
-            // A. บัฟดอกเบี้ยพิเศษ (Interest)
+            
+            // A. ดอกเบี้ยส่วนตัว
             const interestTime = getRemainingTimeText(s.special_interest_end);
+            let personalInterest = interestTime ? parseFloat(s.special_interest_rate || 0) : 0;
             if (interestTime) {
-                // ถ้ามีบัฟดอกเบี้ย จะแสดงป้ายสีเขียวบอกเวลา
-                buffBadgesHtml += `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap" title="ดอกเบี้ยพิเศษ ${s.special_interest_rate}% เหลือเวลา ${interestTime}">
-                    📈 ${interestTime}
-                </span>`;
+                buffBadgesHtml += `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap" title="บัฟส่วนตัว: ดอกเบี้ย +${personalInterest}% เหลือ ${interestTime}">📈 ${interestTime}</span>`;
             }
 
-            // B. บัฟส่วนลด (Discount)
+            // B. ส่วนลดส่วนตัว (Discount)
             const discountTime = getRemainingTimeText(s.buff_discount_end);
+            let personalDiscount = discountTime ? parseFloat(s.buff_discount_val || 0) : 0;
             if (discountTime) {
-                buffBadgesHtml += `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-red-50 text-red-700 border border-red-200 whitespace-nowrap" title="ส่วนลด ${s.buff_discount_val}% เหลือเวลา ${discountTime}">
-                    🏷️ ${discountTime}
-                </span>`;
+                buffBadgesHtml += `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-red-50 text-red-700 border border-red-200 whitespace-nowrap" title="บัฟส่วนตัว: ลดราคา ${personalDiscount}% เหลือ ${discountTime}">🏷️ ${discountTime}</span>`;
             }
 
-            // C. บัฟบูสต์แต้ม (Point Boost)
+            // C. บูสต์แต้มส่วนตัว (Point Boost)
             const boostTime = getRemainingTimeText(s.buff_points_end);
+            let personalBoost = boostTime ? parseFloat(s.buff_points_val || 0) : 0;
             if (boostTime) {
-                buffBadgesHtml += `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-blue-50 text-blue-700 border border-blue-200 whitespace-nowrap" title="บูสต์แต้ม +${s.buff_points_val}% เหลือเวลา ${boostTime}">
-                    🚀 ${boostTime}
-                </span>`;
+                buffBadgesHtml += `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-blue-50 text-blue-700 border border-blue-200 whitespace-nowrap" title="บัฟส่วนตัว: บูสต์แต้ม +${personalBoost}% เหลือ ${boostTime}">🚀 ${boostTime}</span>`;
             }
 
-            // --- 🏦 3. คำนวณดอกเบี้ย ---
-            let activeSpecialRate = interestTime ? parseFloat(s.special_interest_rate) : null;
-            let finalRate = (activeSpecialRate !== null) ? activeSpecialRate : (baseRate + guildBonus);
+            // --- 🏦 3. คำนวณดอกเบี้ยรวม (ทบกัน: Base + Guild + Personal) ---
+            // 🔥 ตรงนี้คือหัวใจสำคัญ: บวกทบกันให้หมด
+            let finalRate = baseRate + guildBonus + personalInterest;
             
             let rateTag = '';
             if (finalRate > baseRate) {
                 let icon = '🔥';
                 let colorClass = 'bg-green-50 text-green-700 border-green-200';
                 
-                if (activeSpecialRate !== null) { icon = '🌟'; colorClass = 'bg-yellow-50 text-yellow-700 border-yellow-200'; } // บัฟส่วนตัว สีทอง
-                else if (guildBonus > 0) { icon = '🛡️'; } // บัฟกิลด์
+                // ถ้ามีบัฟส่วนตัว ให้สีม่วง (Premium)
+                if (personalInterest > 0) { 
+                    icon = '🌟'; 
+                    colorClass = 'bg-purple-50 text-purple-700 border-purple-200'; 
+                } 
+                else if (guildBonus > 0) { 
+                    icon = '🛡️'; 
+                } 
+
+                // Tooltip แจกแจงที่มาของตัวเลข
+                const tooltipTitle = `รวม: ${finalRate.toFixed(2)}% (พื้นฐาน ${baseRate}% + กิลด์ ${guildBonus}% + ส่วนตัว ${personalInterest}%)`;
 
                 rateTag = `
-                <div class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md border ${colorClass} cursor-help" title="อัตราดอกเบี้ยปัจจุบัน">
+                <div class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md border ${colorClass} cursor-help" title="${tooltipTitle}">
                     <span class="text-[10px]">${icon}</span>
                     <span class="text-[10px] font-bold">+${(finalRate - baseRate).toFixed(2)}%</span>
                 </div>`;
             }
 
-            // --- 🎒 4. ไอเทมในกระเป๋า ---
+            // --- 🎒 4. ไอเทม ---
             const inv = s.inventory || []; 
             const totalItems = inv.length;
             const unopenedBoxCount = inv.filter(i => i.type === 'gacha_box').length;
             let itemBadge = '';
             if (totalItems > 0) {
                 if (unopenedBoxCount > 0) {
-                    itemBadge = `<span class="ml-1 inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 border border-purple-200 font-bold animate-pulse cursor-help" title="มีกล่องสุ่มรอเปิด ${unopenedBoxCount} กล่อง">🎁 ${unopenedBoxCount}</span>`;
+                    itemBadge = `<span class="ml-1 inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 border border-purple-200 font-bold animate-pulse cursor-help" title="มีกล่องสุ่ม ${unopenedBoxCount} กล่อง">🎁 ${unopenedBoxCount}</span>`;
                 } else {
-                    itemBadge = `<span class="ml-1 inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600 border border-indigo-100 cursor-help" title="มีไอเทมในตัว ${totalItems} ชิ้น">🎒 ${totalItems}</span>`;
+                    itemBadge = `<span class="ml-1 inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600 border border-indigo-100 cursor-help" title="ไอเทม ${totalItems} ชิ้น">🎒 ${totalItems}</span>`;
                 }
             }
 
@@ -3936,14 +3945,14 @@ const appId = 'activeredpoint';
         
     // 5. Bank Logic
     // ฟังก์ชันคำนวณดอกเบี้ย (แก้ไข: รองรับบัฟส่วนตัวแบบ Override)
-    function calculatePendingInterest(student) {
-        // 1. 🔒 เช็คใบเตือน: ถ้ามีใบเตือน ดอกเบี้ยเป็น 0 ทันที
+  // ฟังก์ชันคำนวณดอกเบี้ย (ฉบับอัปเกรด: ทบทุกบัฟ! 🚀)
+  function calculatePendingInterest(student) {
+        // 1. 🔒 เช็คใบเตือน: ถ้ามีใบเตือน ดอกเบี้ยเป็น 0 เสมอ
         if ((student.warning_cards || 0) > 0) return 0;
 
         if (!student.bank_points || !student.bank_deposit_time) return 0;
 
         let depositTime = student.bank_deposit_time;
-        // แปลงเวลาให้ชัวร์
         if (depositTime && typeof depositTime.toMillis === 'function') depositTime = depositTime.toMillis();
         else if (depositTime instanceof Date) depositTime = depositTime.getTime();
         else if (depositTime.seconds) depositTime = depositTime.seconds * 1000;
@@ -3953,34 +3962,34 @@ const appId = 'activeredpoint';
         const hours = (now - depositTime) / (1000 * 60 * 60);
         if (isNaN(hours) || hours < 0) return 0;
 
-        // --- 🆕 ส่วนที่แก้ไข: เช็คบัฟส่วนตัวก่อน ---
+        // --- เริ่มรวมพลังบัฟ ---
+        
+        // 1. เรทพื้นฐาน
+        let totalRate = config.interest_rate || 1.0;
+
+        // 2. บวกบัฟกิลด์
+        if (student.guild_id && typeof getGuildActiveBuffs === 'function') {
+            const activeBuffs = getGuildActiveBuffs(student.guild_id);
+            if (activeBuffs && activeBuffs.interest) {
+                totalRate += parseFloat(activeBuffs.interest);
+            }
+        }
+
+        // 3. บวกบัฟส่วนตัว (ถ้ามีและยังไม่หมดอายุ)
         if (student.special_interest_end) {
             let endTime = student.special_interest_end;
             if (typeof endTime.toMillis === 'function') endTime = endTime.toMillis();
             else if (endTime instanceof Date) endTime = endTime.getTime();
             else if (endTime.seconds) endTime = endTime.seconds * 1000;
 
-            // ถ้าบัฟส่วนตัวยังไม่หมดอายุ -> ใช้เรทพิเศษนี้คำนวณเลย (Override)
             if (now < endTime) {
-                const specialRate = parseFloat(student.special_interest_rate || 0);
-                return student.bank_points * (specialRate / 100) * hours;
+                // 🔥 เปลี่ยนจาก = เป็น += (บวกทบเข้าไปเลย!)
+                totalRate += parseFloat(student.special_interest_rate || 0);
             }
         }
-        // ----------------------------------------
 
-        // 2. ถ้าไม่มีบัฟส่วนตัว -> ใช้สูตรเดิม (พื้นฐาน + กิลด์)
-        let guildBonus = 0;
-        if (student.guild_id && typeof getGuildActiveBuffs === 'function') {
-            const activeBuffs = getGuildActiveBuffs(student.guild_id);
-            if (activeBuffs && activeBuffs.interest) {
-                guildBonus = parseFloat(activeBuffs.interest);
-            }
-        }
-        
-        const globalRate = config.interest_rate || 1.0;
-        
-        // 3. คำนวณดอกเบี้ยปกติ
-        return student.bank_points * ((globalRate + guildBonus) / 100) * hours;
+        // คำนวณยอดเงินสุดท้าย
+        return student.bank_points * (totalRate / 100) * hours;
     }
     
     let currentBankTarget = null;
