@@ -2512,6 +2512,9 @@ const appId = 'activeredpoint';
             activeBtn.classList.remove('border-transparent', 'text-gray-500');
             activeBtn.classList.add('border-red-500', 'text-red-600');
         }
+        if (tabName === 'groups' && typeof renderCustomGroups === 'function') {
+            renderCustomGroups();
+        }
         renderBuffRulesSettings();
     };
     
@@ -8655,26 +8658,32 @@ window.getGuildActiveBuffs = (guildId) => {
         }
     };
 
-    // ================= 👥 CUSTOM GROUPS LOGIC =================
+    // ================= 👥 CUSTOM GROUPS LOGIC (วางส่วนนี้ท้ายสุด) =================
 
-    let customGroups = []; // ตัวแปรเก็บข้อมูลกลุ่ม
-    let currentGroupMembers = new Set(); // ใช้ตอนสร้าง/แก้ไขกลุ่ม
-    let targetGroupId = null; // ใช้ตอนแจกแต้ม
+    let customGroups = [];
+    let currentGroupMembers = new Set();
+    let targetGroupId = null;
 
-    // 1. โหลดข้อมูลกลุ่ม (ใช้ Firestore Listener แยกต่างหาก)
-    // หมายเหตุ: ใช้ document ชื่อ 'custom_groups' ใน collection 'data'
-    const groupsDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'custom_groups');
-    
-    onSnapshot(groupsDocRef, (docSnap) => {
-        if (docSnap.exists()) {
-            customGroups = docSnap.data().list || [];
-        } else {
-            customGroups = [];
-        }
-        if (currentTab === 'groups') renderCustomGroups();
-    });
+    // 1. โหลดข้อมูลกลุ่ม (ทำงานอัตโนมัติเมื่อวางโค้ดนี้)
+    try {
+        const groupsDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'custom_groups');
+        onSnapshot(groupsDocRef, (docSnap) => {
+            if (docSnap.exists()) {
+                customGroups = docSnap.data().list || [];
+            } else {
+                customGroups = [];
+            }
+            // ถ้าเปิดหน้ากลุ่มอยู่ ให้วาดใหม่ทันที
+            const groupsTab = document.getElementById('content-groups');
+            if (groupsTab && !groupsTab.classList.contains('hidden')) {
+                renderCustomGroups();
+            }
+        });
+    } catch(e) {
+        console.error("Error init groups listener:", e);
+    }
 
-    // 2. ฟังก์ชัน Render หน้ากลุ่ม
+    // 2. ฟังก์ชันแสดงรายชื่อกลุ่ม
     window.renderCustomGroups = () => {
         const container = document.getElementById('custom-groups-list');
         if (!container) return;
@@ -8691,9 +8700,9 @@ window.getGuildActiveBuffs = (guildId) => {
 
         container.innerHTML = customGroups.map(g => {
             const memberCount = g.student_ids ? g.student_ids.length : 0;
-            // สุ่มสีพื้นหลังให้ดูสดใส
+            // สุ่มสีพื้นหลัง
             const bgColors = ['bg-pink-50', 'bg-purple-50', 'bg-indigo-50', 'bg-blue-50', 'bg-teal-50', 'bg-orange-50'];
-            const colorClass = bgColors[g.name.length % bgColors.length]; // สุ่มจากความยาวชื่อ
+            const colorClass = bgColors[(g.name.length || 0) % bgColors.length];
 
             return `
             <div class="relative group p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all ${colorClass}">
@@ -8718,9 +8727,11 @@ window.getGuildActiveBuffs = (guildId) => {
         }).join('');
     };
 
-    // 3. จัดการ Modal สร้าง/แก้ไขกลุ่ม
+    // 3. ฟังก์ชันเปิด Modal (แก้ชื่อให้ตรงกับ HTML)
     window.openManageGroupModal = (groupId = null) => {
         const modal = document.getElementById('manage-group-modal');
+        if(!modal) return console.error('Modal not found');
+
         const title = document.getElementById('manage-group-title');
         const idInput = document.getElementById('group-id-input');
         const nameInput = document.getElementById('group-name-input');
@@ -8745,13 +8756,15 @@ window.getGuildActiveBuffs = (guildId) => {
 
         renderGroupMemberSelector();
         modal.classList.remove('hidden');
-        modal.classList.add('flex');
+        modal.classList.add('flex'); // ใช้ flex เพื่อจัดกลาง
     };
 
     window.renderGroupMemberSelector = () => {
         const list = document.getElementById('group-member-list');
-        const search = document.getElementById('group-member-search').value.toLowerCase();
+        const searchInput = document.getElementById('group-member-search');
+        if(!list) return;
 
+        const search = searchInput ? searchInput.value.toLowerCase() : '';
         const filtered = students.filter(s => 
             s.full_name.toLowerCase().includes(search) || 
             s.student_id.includes(search)
@@ -8802,6 +8815,7 @@ window.getGuildActiveBuffs = (guildId) => {
         }
 
         try {
+            const groupsDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'custom_groups');
             await setDoc(groupsDocRef, { list: newList });
             document.getElementById('manage-group-modal').classList.add('hidden');
             showToast('บันทึกกลุ่มเรียบร้อย ✅');
@@ -8815,6 +8829,7 @@ window.getGuildActiveBuffs = (guildId) => {
         if (!confirm('ยืนยันที่จะลบกลุ่มนี้? (ข้อมูลนักเรียนไม่หาย)')) return;
         const newList = customGroups.filter(x => x.id !== gid);
         try {
+            const groupsDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'custom_groups');
             await setDoc(groupsDocRef, { list: newList });
             showToast('ลบกลุ่มแล้ว 🗑️');
         } catch (e) {
@@ -8822,7 +8837,7 @@ window.getGuildActiveBuffs = (guildId) => {
         }
     };
 
-    // 4. จัดการแจกแต้มกลุ่ม
+    // --- ส่วนแจกแต้มกลุ่ม ---
     window.openGroupPointModal = (gid) => {
         targetGroupId = gid;
         const g = customGroups.find(x => x.id === gid);
@@ -8831,12 +8846,9 @@ window.getGuildActiveBuffs = (guildId) => {
         document.getElementById('gp-modal-icon').textContent = g.icon;
         document.getElementById('gp-modal-name').textContent = `แจกแต้มกลุ่ม: ${g.name}`;
         document.getElementById('gp-modal-count').textContent = `สมาชิก ${g.student_ids.length} คน`;
-
-        // Reset inputs
         document.getElementById('gp-amount').value = 10;
         document.getElementById('gp-reason').value = '';
         
-        // Load Missions
         const select = document.getElementById('gp-mission-select');
         select.innerHTML = '<option value="">-- เลือกภารกิจ --</option>' + 
             quests.map(q => `<option value="${q.id}">[${q.category||'ทั่วไป'}] ${q.title} (+${q.points})</option>`).join('');
@@ -8904,7 +8916,6 @@ window.getGuildActiveBuffs = (guildId) => {
         }
 
         if (isNaN(amount) || amount <= 0) return alert('จำนวนแต้มต้องมากกว่า 0');
-
         if (!confirm(`ยืนยันแจกแต้ม ${amount} คะแนน ให้สมาชิกกลุ่ม "${g.name}" ทั้ง ${g.student_ids.length} คน?`)) return;
 
         const batch = writeBatch(db);
@@ -8914,14 +8925,12 @@ window.getGuildActiveBuffs = (guildId) => {
         g.student_ids.forEach(sid => {
             const s = students.find(x => x.id === sid);
             if (s) {
-                // 🔥 ใช้ฟังก์ชันเดิมที่มีอยู่แล้ว เพื่อคำนวณ Buff ให้อัตโนมัติ
-                // (ต้องมั่นใจว่า window.calculateBuffedPoints ถูกประกาศไว้แล้วในโค้ดเก่า)
+                // เรียกฟังก์ชันคำนวณบัฟที่มีอยู่แล้ว
                 const finalPoints = typeof calculateBuffedPoints === 'function' ? calculateBuffedPoints(s, amount) : amount;
                 
                 const sRef = doc(db, 'artifacts', appId, 'public', 'data', 'students', s.id);
                 const hRef = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
 
-                // เช็คใบเตือนเหมือนระบบหลัก
                 if ((s.warning_cards || 0) > 0) {
                     batch.update(sRef, { pending_points: increment(finalPoints) });
                 } else {
