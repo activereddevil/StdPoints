@@ -8658,15 +8658,17 @@ window.getGuildActiveBuffs = (guildId) => {
         }
     };
 
-    // ================= 👥 CUSTOM GROUPS LOGIC (วางส่วนนี้ท้ายสุด) =================
+    // ================= 👥 CUSTOM GROUPS LOGIC (ฉบับแก้ไข Path) =================
 
     let customGroups = [];
     let currentGroupMembers = new Set();
     let targetGroupId = null;
 
-    // 1. โหลดข้อมูลกลุ่ม (ทำงานอัตโนมัติเมื่อวางโค้ดนี้)
+    // 1. โหลดข้อมูลกลุ่ม (แก้ Path ให้มี 6 ท่อน)
     try {
-        const groupsDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'custom_groups');
+        // 🔥 แก้ไขตรงนี้: เพิ่ม 'core' ต่อท้าย เพื่อให้อ้างอิงถึงไฟล์ ไม่ใช่โฟลเดอร์
+        const groupsDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'custom_groups', 'core');
+        
         onSnapshot(groupsDocRef, (docSnap) => {
             if (docSnap.exists()) {
                 customGroups = docSnap.data().list || [];
@@ -8700,7 +8702,6 @@ window.getGuildActiveBuffs = (guildId) => {
 
         container.innerHTML = customGroups.map(g => {
             const memberCount = g.student_ids ? g.student_ids.length : 0;
-            // สุ่มสีพื้นหลัง
             const bgColors = ['bg-pink-50', 'bg-purple-50', 'bg-indigo-50', 'bg-blue-50', 'bg-teal-50', 'bg-orange-50'];
             const colorClass = bgColors[(g.name.length || 0) % bgColors.length];
 
@@ -8727,7 +8728,7 @@ window.getGuildActiveBuffs = (guildId) => {
         }).join('');
     };
 
-    // 3. ฟังก์ชันเปิด Modal (แก้ชื่อให้ตรงกับ HTML)
+    // 3. ฟังก์ชันเปิด Modal
     window.openManageGroupModal = (groupId = null) => {
         const modal = document.getElementById('manage-group-modal');
         if(!modal) return console.error('Modal not found');
@@ -8756,31 +8757,47 @@ window.getGuildActiveBuffs = (guildId) => {
 
         renderGroupMemberSelector();
         modal.classList.remove('hidden');
-        modal.classList.add('flex'); // ใช้ flex เพื่อจัดกลาง
+        modal.classList.add('flex');
     };
 
+    // 4. ฟังก์ชันเลือกสมาชิก (อัปเดตล่าสุด: เรียงคนเลือกไว้บน + ค้นชั้นเรียน)
     window.renderGroupMemberSelector = () => {
         const list = document.getElementById('group-member-list');
         const searchInput = document.getElementById('group-member-search');
         if(!list) return;
 
-        const search = searchInput ? searchInput.value.toLowerCase() : '';
-        const filtered = students.filter(s => 
+        const search = searchInput ? searchInput.value.toLowerCase().trim() : '';
+        
+        let filtered = students.filter(s => 
             s.full_name.toLowerCase().includes(search) || 
-            s.student_id.includes(search)
+            s.student_id.includes(search) ||
+            (s.class_name && s.class_name.toLowerCase().includes(search))
         );
+
+        filtered.sort((a, b) => {
+            const aSelected = currentGroupMembers.has(a.id);
+            const bSelected = currentGroupMembers.has(b.id);
+            if (aSelected && !bSelected) return -1;
+            if (!aSelected && bSelected) return 1;
+            return a.student_id.localeCompare(b.student_id);
+        });
 
         list.innerHTML = filtered.map(s => {
             const isChecked = currentGroupMembers.has(s.id);
+            const classTag = s.class_name ? `<span class="ml-1 text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded border border-gray-200">${s.class_name}</span>` : '';
+            
             return `
-            <div onclick="toggleGroupMember('${s.id}')" class="cursor-pointer p-2 rounded border flex items-center gap-2 ${isChecked ? 'bg-indigo-50 border-indigo-500' : 'bg-white border-gray-200 hover:bg-gray-50'}">
-                <div class="w-5 h-5 rounded border flex items-center justify-center ${isChecked ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-gray-300'}">
+            <div onclick="toggleGroupMember('${s.id}')" class="cursor-pointer p-2 rounded border flex items-center gap-2 transition-all ${isChecked ? 'bg-indigo-50 border-indigo-500 ring-1 ring-indigo-200' : 'bg-white border-gray-200 hover:bg-gray-50'}">
+                <div class="w-5 h-5 rounded border flex items-center justify-center shrink-0 ${isChecked ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-gray-300'}">
                     ${isChecked ? '✓' : ''}
                 </div>
-                <div class="text-sm truncate select-none">
-                    <span class="font-bold text-gray-700">${s.full_name}</span>
-                    <span class="text-xs text-gray-400">(${s.student_id})</span>
+                <div class="text-sm truncate select-none flex-1">
+                    <div class="font-bold text-gray-800 flex items-center">
+                        ${s.full_name} ${classTag}
+                    </div>
+                    <div class="text-[10px] text-gray-400">เลขประจำตัว: ${s.student_id}</div>
                 </div>
+                ${isChecked ? '<span class="text-[10px] font-bold text-indigo-500 shrink-0">เลือกแล้ว</span>' : ''}
             </div>`;
         }).join('');
     };
@@ -8791,6 +8808,7 @@ window.getGuildActiveBuffs = (guildId) => {
         renderGroupMemberSelector();
     };
 
+    // 5. บันทึกกลุ่ม (แก้ Path ให้ตรงกัน)
     window.saveCustomGroup = async () => {
         const id = document.getElementById('group-id-input').value;
         const name = document.getElementById('group-name-input').value.trim();
@@ -8815,7 +8833,8 @@ window.getGuildActiveBuffs = (guildId) => {
         }
 
         try {
-            const groupsDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'custom_groups');
+            // 🔥 แก้ไข Path ให้มี 'core' ต่อท้าย
+            const groupsDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'custom_groups', 'core');
             await setDoc(groupsDocRef, { list: newList });
             document.getElementById('manage-group-modal').classList.add('hidden');
             showToast('บันทึกกลุ่มเรียบร้อย ✅');
@@ -8825,11 +8844,13 @@ window.getGuildActiveBuffs = (guildId) => {
         }
     };
 
+    // 6. ลบกลุ่ม (แก้ Path ให้ตรงกัน)
     window.deleteCustomGroup = async (gid) => {
         if (!confirm('ยืนยันที่จะลบกลุ่มนี้? (ข้อมูลนักเรียนไม่หาย)')) return;
         const newList = customGroups.filter(x => x.id !== gid);
         try {
-            const groupsDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'custom_groups');
+            // 🔥 แก้ไข Path ให้มี 'core' ต่อท้าย
+            const groupsDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'custom_groups', 'core');
             await setDoc(groupsDocRef, { list: newList });
             showToast('ลบกลุ่มแล้ว 🗑️');
         } catch (e) {
