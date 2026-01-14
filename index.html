@@ -9082,12 +9082,13 @@ window.getGuildActiveBuffs = (guildId) => {
 
     let selectedEligibleStudents = new Set(); 
 
-    // 1. ฟังก์ชันเลือกนักเรียน (Targeting)
-    window.renderRewardEligibleSelector = (mode) => {
+   // 1. ฟังก์ชันเลือกนักเรียน (Targeting) - อัปเกรด: รองรับค้นหาชั้นเรียน & แสดงป้ายห้อง
+   window.renderRewardEligibleSelector = (mode) => {
         const list = document.getElementById(`${mode}-reward-eligible-list`);
         const searchInput = document.getElementById(`${mode}-reward-search-eligible`);
-        const search = searchInput ? searchInput.value.toLowerCase() : '';
+        const search = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
+        // เรียงลำดับ: คนที่ถูกติ๊กเลือกไว้ -> จะดันขึ้นไปอยู่บนสุดเสมอ
         let sortedStudents = [...students].sort((a, b) => {
             const aSel = selectedEligibleStudents.has(a.id);
             const bSel = selectedEligibleStudents.has(b.id);
@@ -9096,17 +9097,28 @@ window.getGuildActiveBuffs = (guildId) => {
             return a.student_id.localeCompare(b.student_id);
         });
 
+        // 🔥 กรองข้อมูล: ชื่อ OR รหัส OR ชั้นเรียน
         const filtered = sortedStudents.filter(s => 
-            s.full_name.toLowerCase().includes(search) || s.student_id.includes(search)
+            s.full_name.toLowerCase().includes(search) || 
+            s.student_id.includes(search) ||
+            (s.class_name && s.class_name.toLowerCase().includes(search)) // เพิ่มเงื่อนไขชั้นเรียน
         );
 
         list.innerHTML = filtered.map(s => {
             const isChecked = selectedEligibleStudents.has(s.id);
+            // แสดงป้ายชั้นเรียนเล็กๆ หลังชื่อ
+            const classTag = s.class_name ? `<span class="ml-1 text-[10px] bg-gray-100 text-gray-500 px-1.5 rounded border border-gray-200">${s.class_name}</span>` : '';
+
             return `
-            <label class="flex items-center space-x-2 p-2 rounded cursor-pointer transition-colors ${isChecked ? 'bg-red-100 border border-red-200' : 'hover:bg-gray-50 border border-transparent'}">
-                <input type="checkbox" onchange="toggleEligibleStudent('${s.id}', '${mode}')" ${isChecked ? 'checked' : ''} class="form-checkbox text-red-600 rounded w-4 h-4">
-                <span class="text-sm font-bold ${isChecked ? 'text-red-700' : 'text-gray-700'}">${s.full_name}</span>
-                <span class="text-xs text-gray-400">(${s.student_id})</span>
+            <label class="flex items-center space-x-2 p-2 rounded cursor-pointer transition-colors ${isChecked ? 'bg-red-50 border border-red-200' : 'hover:bg-gray-50 border border-transparent'}">
+                <input type="checkbox" onchange="toggleEligibleStudent('${s.id}', '${mode}')" ${isChecked ? 'checked' : ''} class="form-checkbox text-red-600 rounded w-4 h-4 shrink-0">
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center">
+                        <span class="text-sm font-bold ${isChecked ? 'text-red-700' : 'text-gray-700'} truncate">${s.full_name}</span>
+                        ${classTag}
+                    </div>
+                    <div class="text-xs text-gray-400">รหัส: ${s.student_id}</div>
+                </div>
             </label>`;
         }).join('');
     };
