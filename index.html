@@ -5758,9 +5758,7 @@ window.calculateQuestPointsWithBuffs = (student, basePoints) => {
                     newCard.type = 'instant_points'; // ใช้ Type เดิมของแต้มได้เลย
                     newCard.value = pts;
                     newCard.image = wonSlot.image ? wonSlot.image : '💎';
-                    resultIcon = (newCard.image.startsWith('http')) 
-    ? `<img src="${newCard.image}" class="w-20 h-20 object-contain mx-auto">` 
-    : `<span class="text-6xl">${newCard.image}</span>`;
+                    resultIcon = '💎';
                     resultTitle = `รับไปเลย! ${pts} แต้ม`;
                     resultSub = 'การ์ดแต้มถูกเก็บเข้ากระเป๋าแล้ว';
                 }
