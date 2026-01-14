@@ -468,6 +468,26 @@
                 </div>
             </div>
         </div>
+
+        <!-- GROUP TAB -->
+        <div id="content-groups" class="tab-content hidden h-full flex flex-col space-y-6">
+            <div class="flex justify-between items-center shrink-0">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                        👥 จัดกลุ่มเฉพาะกิจ (Custom Groups)
+                    </h2>
+                    <p class="text-sm text-gray-500">สร้างกลุ่มพิเศษสำหรับกิจกรรมต่างๆ (นักเรียนอยู่ได้หลายกลุ่ม)</p>
+                </div>
+                <button onclick="openManageGroupModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg font-bold shadow-lg flex items-center gap-2">
+                    <span>+</span> สร้างกลุ่มใหม่
+                </button>
+            </div>
+
+            <div id="custom-groups-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto pb-20 p-1">
+                </div>
+        </div>
+
+        
         
 
         <!-- ============ BANK TAB ============ -->
@@ -1748,6 +1768,93 @@
     </div>
 </div>
 
+<!-- GROUP MODAL -->
+
+<div id="manage-group-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full flex flex-col max-h-[90vh]">
+        <div class="p-6 border-b flex justify-between items-center">
+            <h3 class="text-xl font-bold text-gray-800" id="manage-group-title">สร้างกลุ่มใหม่</h3>
+            <button onclick="document.getElementById('manage-group-modal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+        </div>
+        
+        <div class="p-6 overflow-y-auto custom-scrollbar flex-1">
+            <input type="hidden" id="group-id-input">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">ชื่อกลุ่ม</label>
+                    <input type="text" id="group-name-input" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="เช่น กลุ่มโครงงานวิทย์...">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">ไอคอน</label>
+                    <input type="text" id="group-icon-input" class="w-full border border-gray-300 rounded-lg p-2 text-center" placeholder="เช่น 🧪" value="👥">
+                </div>
+            </div>
+
+            <div class="mb-2">
+                <label class="block text-sm font-bold text-gray-700 mb-1">เลือกสมาชิก</label>
+                <input type="text" id="group-member-search" placeholder="🔍 ค้นหาชื่อนักเรียน..." class="w-full border border-gray-200 rounded-lg p-2 text-sm mb-2" oninput="renderGroupMemberSelector()">
+            </div>
+            
+            <div id="group-member-list" class="border rounded-lg h-60 overflow-y-auto p-2 bg-gray-50 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                </div>
+        </div>
+
+        <div class="p-4 border-t bg-gray-50 flex justify-end gap-2 rounded-b-xl">
+            <button onclick="document.getElementById('manage-group-modal').classList.add('hidden')" class="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg font-bold">ยกเลิก</button>
+            <button onclick="saveCustomGroup()" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold shadow">บันทึกกลุ่ม</button>
+        </div>
+    </div>
+</div>
+
+<div id="group-point-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 relative">
+        <button onclick="document.getElementById('group-point-modal').classList.add('hidden')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+        
+        <div class="text-center mb-6">
+            <div id="gp-modal-icon" class="text-5xl mb-2">👥</div>
+            <h3 id="gp-modal-name" class="text-xl font-bold text-gray-800">แจกแต้มกลุ่ม</h3>
+            <p id="gp-modal-count" class="text-sm text-gray-500">สมาชิก 0 คน</p>
+        </div>
+
+        <div class="flex border-b mb-4">
+            <button onclick="switchGroupPointTab('custom')" id="gp-tab-custom" class="flex-1 pb-2 border-b-2 border-indigo-600 text-indigo-600 font-bold text-sm">กำหนดเอง</button>
+            <button onclick="switchGroupPointTab('mission')" id="gp-tab-mission" class="flex-1 pb-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-bold text-sm">เลือกภารกิจ</button>
+        </div>
+
+        <div id="gp-content-custom" class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1">จำนวนแต้ม (ต่อคน)</label>
+                <input type="number" id="gp-amount" class="w-full text-center text-2xl font-bold border border-indigo-200 rounded-lg py-2 text-indigo-700 focus:ring-2 focus:ring-indigo-500 outline-none" value="10">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1">เหตุผล</label>
+                <input type="text" id="gp-reason" class="w-full border border-gray-300 rounded-lg p-2 text-sm" placeholder="เช่น ทำงานกลุ่มสำเร็จ...">
+            </div>
+        </div>
+
+        <div id="gp-content-mission" class="hidden space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1">เลือกภารกิจ</label>
+                <select id="gp-mission-select" class="w-full border border-gray-300 rounded-lg p-2 text-sm" onchange="onGroupMissionSelect()">
+                    <option value="">-- เลือกภารกิจ --</option>
+                </select>
+            </div>
+            <div id="gp-mission-preview" class="hidden bg-indigo-50 p-3 rounded-lg border border-indigo-100 text-center">
+                <div class="text-2xl mb-1" id="gp-mp-icon"></div>
+                <div class="font-bold text-gray-800 text-sm" id="gp-mp-title"></div>
+                <div class="text-green-600 font-bold mt-1" id="gp-mp-points"></div>
+            </div>
+        </div>
+
+        <div class="mt-6">
+            <button onclick="confirmGroupPoints()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold shadow-lg flex items-center justify-center gap-2">
+                <span>🎁</span> แจกแต้มให้ทุกคน
+            </button>
+            <p class="text-[10px] text-center text-gray-400 mt-2">*คำนวณบัฟส่วนตัวให้แต่ละคนอัตโนมัติ</p>
+        </div>
+    </div>
+</div>
+
 
   </div> <!-- End App -->
 
@@ -2086,6 +2193,7 @@ const appId = 'activeredpoint';
                 <button onclick="switchTab('home')" id="tab-home" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-red-500 text-red-600">รายชื่อนักเรียน</button>
                 <button onclick="switchTab('punishment')" id="tab-punishment" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">⚠️ คุมประพฤติ</button>
                 <button onclick="switchTab('guilds')" id="tab-guilds" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">🏰 กิลด์</button>
+                <button onclick="switchTab('groups')" id="tab-btn-groups" class="tab-btn px-4 py-2 rounded-lg font-bold text-gray-500 hover:bg-indigo-50 hover:text-indigo-600 transition-all flex items-center gap-2"><span>👥</span> จัดกลุ่ม</button>
                 <button onclick="switchTab('quests')" id="tab-quests" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">ภารกิจ</button>
                 
                 <button onclick="switchTab('history')" id="tab-history" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">ประวัติ</button>
@@ -8544,6 +8652,306 @@ window.getGuildActiveBuffs = (guildId) => {
             }
         } else {
             alert('ไม่มีรายชื่อใหม่ที่ต้องแจกแต้ม');
+        }
+    };
+
+    // ================= 👥 CUSTOM GROUPS LOGIC =================
+
+    let customGroups = []; // ตัวแปรเก็บข้อมูลกลุ่ม
+    let currentGroupMembers = new Set(); // ใช้ตอนสร้าง/แก้ไขกลุ่ม
+    let targetGroupId = null; // ใช้ตอนแจกแต้ม
+
+    // 1. โหลดข้อมูลกลุ่ม (ใช้ Firestore Listener แยกต่างหาก)
+    // หมายเหตุ: ใช้ document ชื่อ 'custom_groups' ใน collection 'data'
+    const groupsDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'custom_groups');
+    
+    onSnapshot(groupsDocRef, (docSnap) => {
+        if (docSnap.exists()) {
+            customGroups = docSnap.data().list || [];
+        } else {
+            customGroups = [];
+        }
+        if (currentTab === 'groups') renderCustomGroups();
+    });
+
+    // 2. ฟังก์ชัน Render หน้ากลุ่ม
+    window.renderCustomGroups = () => {
+        const container = document.getElementById('custom-groups-list');
+        if (!container) return;
+
+        if (customGroups.length === 0) {
+            container.innerHTML = `
+                <div class="col-span-full text-center py-20 text-gray-400 border-2 border-dashed border-gray-200 rounded-2xl">
+                    <div class="text-6xl mb-4 opacity-50">👥</div>
+                    <p class="text-xl font-bold">ยังไม่มีกลุ่ม</p>
+                    <p class="text-sm">สร้างกลุ่มใหม่เพื่อเริ่มใช้งาน</p>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = customGroups.map(g => {
+            const memberCount = g.student_ids ? g.student_ids.length : 0;
+            // สุ่มสีพื้นหลังให้ดูสดใส
+            const bgColors = ['bg-pink-50', 'bg-purple-50', 'bg-indigo-50', 'bg-blue-50', 'bg-teal-50', 'bg-orange-50'];
+            const colorClass = bgColors[g.name.length % bgColors.length]; // สุ่มจากความยาวชื่อ
+
+            return `
+            <div class="relative group p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all ${colorClass}">
+                <div class="flex justify-between items-start mb-3">
+                    <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center text-3xl shadow-sm border border-gray-100">
+                        ${g.icon || '👥'}
+                    </div>
+                    <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onclick="openManageGroupModal('${g.id}')" class="p-1.5 bg-white text-gray-500 hover:text-indigo-600 rounded-lg border hover:border-indigo-200 shadow-sm" title="แก้ไข">✏️</button>
+                        <button onclick="deleteCustomGroup('${g.id}')" class="p-1.5 bg-white text-gray-500 hover:text-red-500 rounded-lg border hover:border-red-200 shadow-sm" title="ลบ">🗑️</button>
+                    </div>
+                </div>
+                
+                <h3 class="text-lg font-bold text-gray-800 mb-1 truncate">${g.name}</h3>
+                <p class="text-sm text-gray-500 mb-4">${memberCount} สมาชิก</p>
+                
+                <button onclick="openGroupPointModal('${g.id}')" class="w-full bg-white border-2 border-indigo-100 hover:border-indigo-500 hover:text-indigo-700 text-gray-600 py-2 rounded-xl font-bold transition-all flex items-center justify-center gap-2">
+                    <span>🎁</span> แจกแต้มกลุ่ม
+                </button>
+            </div>
+            `;
+        }).join('');
+    };
+
+    // 3. จัดการ Modal สร้าง/แก้ไขกลุ่ม
+    window.openManageGroupModal = (groupId = null) => {
+        const modal = document.getElementById('manage-group-modal');
+        const title = document.getElementById('manage-group-title');
+        const idInput = document.getElementById('group-id-input');
+        const nameInput = document.getElementById('group-name-input');
+        const iconInput = document.getElementById('group-icon-input');
+
+        currentGroupMembers.clear();
+
+        if (groupId) {
+            const g = customGroups.find(x => x.id === groupId);
+            if (!g) return;
+            title.textContent = 'แก้ไขกลุ่ม';
+            idInput.value = g.id;
+            nameInput.value = g.name;
+            iconInput.value = g.icon;
+            if (g.student_ids) g.student_ids.forEach(id => currentGroupMembers.add(id));
+        } else {
+            title.textContent = 'สร้างกลุ่มใหม่';
+            idInput.value = '';
+            nameInput.value = '';
+            iconInput.value = '👥';
+        }
+
+        renderGroupMemberSelector();
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    };
+
+    window.renderGroupMemberSelector = () => {
+        const list = document.getElementById('group-member-list');
+        const search = document.getElementById('group-member-search').value.toLowerCase();
+
+        const filtered = students.filter(s => 
+            s.full_name.toLowerCase().includes(search) || 
+            s.student_id.includes(search)
+        );
+
+        list.innerHTML = filtered.map(s => {
+            const isChecked = currentGroupMembers.has(s.id);
+            return `
+            <div onclick="toggleGroupMember('${s.id}')" class="cursor-pointer p-2 rounded border flex items-center gap-2 ${isChecked ? 'bg-indigo-50 border-indigo-500' : 'bg-white border-gray-200 hover:bg-gray-50'}">
+                <div class="w-5 h-5 rounded border flex items-center justify-center ${isChecked ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-gray-300'}">
+                    ${isChecked ? '✓' : ''}
+                </div>
+                <div class="text-sm truncate select-none">
+                    <span class="font-bold text-gray-700">${s.full_name}</span>
+                    <span class="text-xs text-gray-400">(${s.student_id})</span>
+                </div>
+            </div>`;
+        }).join('');
+    };
+
+    window.toggleGroupMember = (sid) => {
+        if (currentGroupMembers.has(sid)) currentGroupMembers.delete(sid);
+        else currentGroupMembers.add(sid);
+        renderGroupMemberSelector();
+    };
+
+    window.saveCustomGroup = async () => {
+        const id = document.getElementById('group-id-input').value;
+        const name = document.getElementById('group-name-input').value.trim();
+        const icon = document.getElementById('group-icon-input').value.trim();
+
+        if (!name) return alert('กรุณาใส่ชื่อกลุ่ม');
+        if (currentGroupMembers.size === 0) return alert('กรุณาเลือกสมาชิกอย่างน้อย 1 คน');
+
+        const newGroup = {
+            id: id || crypto.randomUUID(),
+            name,
+            icon,
+            student_ids: Array.from(currentGroupMembers)
+        };
+
+        let newList = [...customGroups];
+        if (id) {
+            const idx = newList.findIndex(x => x.id === id);
+            if (idx !== -1) newList[idx] = newGroup;
+        } else {
+            newList.push(newGroup);
+        }
+
+        try {
+            await setDoc(groupsDocRef, { list: newList });
+            document.getElementById('manage-group-modal').classList.add('hidden');
+            showToast('บันทึกกลุ่มเรียบร้อย ✅');
+        } catch (e) {
+            console.error(e);
+            alert('เกิดข้อผิดพลาด: ' + e.message);
+        }
+    };
+
+    window.deleteCustomGroup = async (gid) => {
+        if (!confirm('ยืนยันที่จะลบกลุ่มนี้? (ข้อมูลนักเรียนไม่หาย)')) return;
+        const newList = customGroups.filter(x => x.id !== gid);
+        try {
+            await setDoc(groupsDocRef, { list: newList });
+            showToast('ลบกลุ่มแล้ว 🗑️');
+        } catch (e) {
+            alert('Error: ' + e.message);
+        }
+    };
+
+    // 4. จัดการแจกแต้มกลุ่ม
+    window.openGroupPointModal = (gid) => {
+        targetGroupId = gid;
+        const g = customGroups.find(x => x.id === gid);
+        if (!g) return;
+
+        document.getElementById('gp-modal-icon').textContent = g.icon;
+        document.getElementById('gp-modal-name').textContent = `แจกแต้มกลุ่ม: ${g.name}`;
+        document.getElementById('gp-modal-count').textContent = `สมาชิก ${g.student_ids.length} คน`;
+
+        // Reset inputs
+        document.getElementById('gp-amount').value = 10;
+        document.getElementById('gp-reason').value = '';
+        
+        // Load Missions
+        const select = document.getElementById('gp-mission-select');
+        select.innerHTML = '<option value="">-- เลือกภารกิจ --</option>' + 
+            quests.map(q => `<option value="${q.id}">[${q.category||'ทั่วไป'}] ${q.title} (+${q.points})</option>`).join('');
+
+        switchGroupPointTab('custom');
+        document.getElementById('group-point-modal').classList.remove('hidden');
+    };
+
+    window.switchGroupPointTab = (tab) => {
+        const tCustom = document.getElementById('gp-tab-custom');
+        const tMission = document.getElementById('gp-tab-mission');
+        const cCustom = document.getElementById('gp-content-custom');
+        const cMission = document.getElementById('gp-content-mission');
+
+        if (tab === 'custom') {
+            tCustom.classList.replace('border-transparent', 'border-indigo-600');
+            tCustom.classList.replace('text-gray-500', 'text-indigo-600');
+            tMission.classList.replace('border-indigo-600', 'border-transparent');
+            tMission.classList.replace('text-indigo-600', 'text-gray-500');
+            cCustom.classList.remove('hidden');
+            cMission.classList.add('hidden');
+        } else {
+            tMission.classList.replace('border-transparent', 'border-indigo-600');
+            tMission.classList.replace('text-gray-500', 'text-indigo-600');
+            tCustom.classList.replace('border-indigo-600', 'border-transparent');
+            tCustom.classList.replace('text-indigo-600', 'text-gray-500');
+            cMission.classList.remove('hidden');
+            cCustom.classList.add('hidden');
+        }
+    };
+
+    window.onGroupMissionSelect = () => {
+        const mid = document.getElementById('gp-mission-select').value;
+        const preview = document.getElementById('gp-mission-preview');
+        if (!mid) {
+            preview.classList.add('hidden');
+            return;
+        }
+        const q = quests.find(x => x.id === mid);
+        if (q) {
+            document.getElementById('gp-mp-icon').textContent = q.icon;
+            document.getElementById('gp-mp-title').textContent = q.title;
+            document.getElementById('gp-mp-points').textContent = `+${q.points} แต้ม`;
+            preview.classList.remove('hidden');
+        }
+    };
+
+    window.confirmGroupPoints = async () => {
+        const g = customGroups.find(x => x.id === targetGroupId);
+        if (!g || !g.student_ids || g.student_ids.length === 0) return alert('กลุ่มนี้ไม่มีสมาชิก');
+
+        let amount = 0;
+        let reason = '';
+        const isMission = !document.getElementById('gp-content-mission').classList.contains('hidden');
+
+        if (isMission) {
+            const mid = document.getElementById('gp-mission-select').value;
+            if (!mid) return alert('กรุณาเลือกภารกิจ');
+            const q = quests.find(x => x.id === mid);
+            amount = parseInt(q.points);
+            reason = `ภารกิจกลุ่ม: ${q.title}`;
+        } else {
+            amount = parseInt(document.getElementById('gp-amount').value);
+            reason = document.getElementById('gp-reason').value.trim() || 'รางวัลกลุ่ม';
+        }
+
+        if (isNaN(amount) || amount <= 0) return alert('จำนวนแต้มต้องมากกว่า 0');
+
+        if (!confirm(`ยืนยันแจกแต้ม ${amount} คะแนน ให้สมาชิกกลุ่ม "${g.name}" ทั้ง ${g.student_ids.length} คน?`)) return;
+
+        const batch = writeBatch(db);
+        const timestamp = serverTimestamp();
+        let count = 0;
+
+        g.student_ids.forEach(sid => {
+            const s = students.find(x => x.id === sid);
+            if (s) {
+                // 🔥 ใช้ฟังก์ชันเดิมที่มีอยู่แล้ว เพื่อคำนวณ Buff ให้อัตโนมัติ
+                // (ต้องมั่นใจว่า window.calculateBuffedPoints ถูกประกาศไว้แล้วในโค้ดเก่า)
+                const finalPoints = typeof calculateBuffedPoints === 'function' ? calculateBuffedPoints(s, amount) : amount;
+                
+                const sRef = doc(db, 'artifacts', appId, 'public', 'data', 'students', s.id);
+                const hRef = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
+
+                // เช็คใบเตือนเหมือนระบบหลัก
+                if ((s.warning_cards || 0) > 0) {
+                    batch.update(sRef, { pending_points: increment(finalPoints) });
+                } else {
+                    batch.update(sRef, { points: increment(finalPoints) });
+                }
+
+                let logReason = reason;
+                if (finalPoints > amount) logReason += ` + Boosted 🚀`;
+
+                batch.set(hRef, {
+                    student_id: s.id,
+                    student_name: s.full_name,
+                    action: `รางวัลกลุ่ม (${g.name})`,
+                    amount: finalPoints,
+                    type: 'add_points',
+                    timestamp: timestamp,
+                    reason: logReason
+                });
+                count++;
+            }
+        });
+
+        try {
+            await batch.commit();
+            document.getElementById('group-point-modal').classList.add('hidden');
+            showToast(`✅ แจกแต้มกลุ่มสำเร็จ (${count} คน)`);
+            if (window.soundCoin) window.soundCoin.play();
+        } catch (e) {
+            console.error(e);
+            alert('Error: ' + e.message);
         }
     };
    
