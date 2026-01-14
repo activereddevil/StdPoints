@@ -246,25 +246,6 @@
                     </div>
                 </div>
             </div>
-
-            <div onclick="openRescueCenter()" class="cursor-pointer bg-gradient-to-r from-red-500 to-pink-600 rounded-xl p-4 text-white shadow-lg relative overflow-hidden group hover:shadow-xl transition-all">
-                <div class="absolute right-0 top-0 h-full w-1/2 bg-white/10 skew-x-12 transform origin-bottom-right group-hover:skew-x-6 transition-all"></div>
-                <div class="flex items-center justify-between relative z-10">
-                    <div class="flex items-center gap-4">
-                        <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-4xl backdrop-blur-sm">
-                            🚑
-                        </div>
-                        <div>
-                            <h3 class="text-xl font-bold">ศูนย์บริการแก้ตัว (Exam Clinic)</h3>
-                            <p class="text-red-100 text-sm">สอบตกไม่ต้องเศร้า! ใช้แต้มแลกสิทธิ์สอบแก้ตัวที่นี่</p>
-                        </div>
-                    </div>
-                    <div class="bg-white text-red-600 font-bold px-4 py-2 rounded-lg shadow-sm group-hover:scale-105 transition-transform">
-                        เข้าใช้งาน >
-                    </div>
-                </div>
-            </div>
-
             <div id="std-warning-section" class="mt-6 hidden animate-bounce-in">
                 <div class="bg-yellow-50 rounded-2xl border-2 border-yellow-200 p-5 relative overflow-hidden shadow-sm">
                     <div class="absolute -right-6 -top-6 text-yellow-100 text-9xl select-none pointer-events-none">⚠️</div>
@@ -1161,7 +1142,6 @@
                     <select id="add-reward-type" class="w-full px-4 py-2 border rounded-lg bg-white" onchange="toggleRewardTypeInputs()">
                         <option value="general">🎁 ของรางวัลทั่วไป (แลกแล้วจบ)</option>
                         <option value="gacha_custom">🎲 กล่องสุ่ม (Custom Gacha) ✨</option>
-                        <option value="exam_rescue">🚑 สิทธิ์สอบแก้ตัว (Exam Rescue) 🆕</option>
                     </select>
                 </div>
 
@@ -1253,7 +1233,6 @@
                     <select id="edit-reward-type" class="w-full px-4 py-2 border rounded-lg bg-white" onchange="toggleEditRewardTypeInputs()">
                         <option value="general">🎁 ของรางวัลทั่วไป (แลกแล้วจบ)</option>
                         <option value="gacha_custom">🎲 กล่องสุ่ม (Custom Gacha) ✨</option>
-                        <option value="exam_rescue">🚑 สิทธิ์สอบแก้ตัว (Exam Rescue) 🆕</option>
                     </select>
                 </div>
 
@@ -1871,30 +1850,6 @@
                 <span>🎁</span> แจกแต้มให้ทุกคน
             </button>
             <p class="text-[10px] text-center text-gray-400 mt-2">*คำนวณบัฟส่วนตัวให้แต่ละคนอัตโนมัติ</p>
-        </div>
-    </div>
-</div>
-
-<div id="rescue-center-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-[90] p-4">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full flex flex-col max-h-[85vh] overflow-hidden relative">
-        <div class="bg-red-600 p-6 text-white shrink-0 relative overflow-hidden">
-            <div class="absolute -right-4 -top-4 text-white/10 text-9xl font-bold pointer-events-none">✚</div>
-            <div class="flex justify-between items-start relative z-10">
-                <div>
-                    <h2 class="text-2xl font-bold flex items-center gap-2">
-                        🏥 ศูนย์บริการแก้ตัว
-                    </h2>
-                    <p class="text-red-100 text-sm opacity-90">"โอกาสครั้งที่สอง... มีราคาเสมอ"</p>
-                </div>
-                <button onclick="document.getElementById('rescue-center-modal').classList.add('hidden')" class="bg-white/20 hover:bg-white/30 text-white w-8 h-8 rounded-full flex items-center justify-center transition-colors">✕</button>
-            </div>
-        </div>
-
-        <div id="rescue-list" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50 custom-scrollbar">
-            </div>
-
-        <div class="p-4 border-t bg-white text-center text-xs text-gray-400 shrink-0">
-            * การซื้อสิทธิ์จะถูกบันทึกลงประวัติ โปรดติดต่อครูเพื่อทำการสอบแก้ตัว
         </div>
     </div>
 </div>
@@ -2981,7 +2936,7 @@ const appId = 'activeredpoint';
         // Student view (Grid)
         const grid = document.getElementById('rewards-grid');
         if (userRole === 'student' && grid) {
-            grid.innerHTML = rewards.filter(r => r.type !== 'exam_rescue').map(r => {
+            grid.innerHTML = rewards.map(r => {
                 // --- 🟢 ส่วนที่แก้: Logic แสดงผลฝั่งนักเรียน ---
                 const isGain = r.points < 0; // ถ้าแต้มติดลบ แปลว่า "แจกแต้ม"
                 
@@ -9062,112 +9017,6 @@ window.getGuildActiveBuffs = (guildId) => {
         }
     };
    
-    // ================= 🏥 EXAM RESCUE CENTER LOGIC =================
-
-    // 1. เปิดหน้าศูนย์แก้ตัว
-    window.openRescueCenter = () => {
-        const modal = document.getElementById('rescue-center-modal');
-        const list = document.getElementById('rescue-list');
-        
-        // กรองหาของที่เป็น type 'exam_rescue'
-        const items = rewards.filter(r => r.type === 'exam_rescue' && r.is_active !== false);
-        
-        if (items.length === 0) {
-            list.innerHTML = `
-                <div class="text-center py-12 text-gray-400 flex flex-col items-center">
-                    <div class="text-6xl mb-4 grayscale opacity-30">🏥</div>
-                    <p class="font-bold text-lg text-gray-500">ยังไม่มีรายการเปิดให้แก้ตัว</p>
-                    <p class="text-sm">หนูเก่งอยู่แล้ว ไม่ต้องแก้หรอกเนอะ! 😎</p>
-                </div>`;
-        } else {
-            list.innerHTML = items.map(r => {
-                const canAfford = currentStudentData.points >= r.points;
-                const stockText = r.stock === -1 ? 'ไม่จำกัด' : r.stock;
-                const isOutOfStock = r.stock !== -1 && r.stock <= 0;
-
-                return `
-                <div class="bg-white p-4 rounded-xl border-l-4 ${canAfford ? 'border-l-red-500' : 'border-l-gray-300'} shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 group hover:shadow-md transition-all">
-                    <div class="flex items-center gap-4 w-full sm:w-auto">
-                        <div class="w-16 h-16 bg-red-50 rounded-xl flex items-center justify-center text-3xl shrink-0 border border-red-100">
-                            ${r.image ? `<img src="${r.image}" class="w-full h-full object-cover rounded-xl">` : '💊'}
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-gray-800 text-lg leading-tight">${r.name}</h4>
-                            <div class="flex items-center gap-2 mt-1">
-                                <span class="bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full">
-                                    -${r.points.toLocaleString()} แต้ม
-                                </span>
-                                <span class="text-[10px] text-gray-400">คงเหลือ: ${stockText}</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <button onclick="confirmRescueBuy('${r.id}')" ${!canAfford || isOutOfStock ? 'disabled' : ''} 
-                        class="w-full sm:w-auto px-6 py-2.5 rounded-lg font-bold text-white shadow-md transition-all flex items-center justify-center gap-2
-                        ${canAfford && !isOutOfStock ? 'bg-red-600 hover:bg-red-700 active:scale-95' : 'bg-gray-300 cursor-not-allowed'}">
-                        ${isOutOfStock ? 'หมดแล้ว' : (canAfford ? 'ซื้อสิทธิ์ 🛒' : 'แต้มไม่พอ')}
-                    </button>
-                </div>
-                `;
-            }).join('');
-        }
-        
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-    };
-
-    // 2. ยืนยันการซื้อสิทธิ์
-    window.confirmRescueBuy = (id) => {
-        const item = rewards.find(r => r.id === id);
-        if(!item) return;
-
-        showConfirmModal(
-            'ยืนยันแลกสิทธิ์สอบแก้ตัว', 
-            `คุณต้องการใช้ ${item.points} แต้ม เพื่อแลก "${item.name}" ใช่หรือไม่?\n(แต้มจะถูกหักทันทีและบันทึกลงประวัติ)`,
-            async () => {
-                // Logic การตัดแต้ม (เหมือน Redeem ปกติ แต่เปลี่ยน Type ให้ชัดเจน)
-                const batch = writeBatch(db);
-                const sRef = doc(db, 'artifacts', appId, 'public', 'data', 'students', currentStudentData.id);
-                const rRef = doc(db, 'artifacts', appId, 'public', 'data', 'rewards', item.id);
-                const hRef = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
-
-                // ตัดแต้ม
-                batch.update(sRef, { points: increment(-item.points) });
-                
-                // ตัดสต็อก (ถ้ามี)
-                if (item.stock !== -1) {
-                    batch.update(rRef, { stock: increment(-1) });
-                }
-
-                // บันทึกประวัติ (Highlight: สีแดงแรงฤทธิ์)
-                batch.set(hRef, {
-                    student_id: currentStudentData.id,
-                    student_name: currentStudentData.full_name,
-                    action: `ซื้อสิทธิ์สอบแก้ตัว: ${item.name}`,
-                    amount: -item.points, // บันทึกเป็นลบ
-                    type: 'exam_rescue_buy', // Type พิเศษ
-                    timestamp: serverTimestamp()
-                });
-
-                try {
-                    await batch.commit();
-                    document.getElementById('rescue-center-modal').classList.add('hidden');
-                    // เล่นเสียง Coin หรือเสียง Effect พิเศษก็ได้
-                    if(window.soundCoin) window.soundCoin.play();
-                    
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'แลกสิทธิ์สำเร็จ!',
-                        text: 'กรุณาแจ้งครูผู้สอนเพื่อดำเนินการสอบแก้ตัว',
-                        confirmButtonColor: '#d33',
-                        confirmButtonText: 'รับทราบ'
-                    });
-                } catch (e) {
-                    alert('เกิดข้อผิดพลาด: ' + e.message);
-                }
-            }
-        );
-    };
   </script>
  </body>
 </html>
