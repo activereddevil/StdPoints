@@ -639,7 +639,6 @@
                                 <th class="px-4 py-5 text-left">ชื่อ</th>
                                 <th class="px-4 py-5 text-left">รายการ</th>
                                 <th class="px-4 py-5 text-center">จำนวน</th>
-                                <th class="px-4 py-5 text-left hidden md:table-cell">เหตุผล</th>
                                 <th class="px-4 py-5 text-center">ลบ</th>
                             </tr>
                         </thead>
@@ -2982,42 +2981,77 @@ const appId = 'activeredpoint';
     }
     
     // Exposed to window for inline HTML calls
-    // ✅ อัปเดต: เพิ่มการค้นหาจาก "เหตุผล" (reason)
+    // ✅ ฟังก์ชันแสดงประวัติ (ฉบับอัปเกรด: แยกสีแดง/เขียว ตามประเภทธุรกรรม)
     window.renderHistory = (resetPage = true) => {
         if (resetPage) paginationState.history = 1;
         const tbody = document.getElementById('history-list');
         const filter = document.getElementById('history-search-input').value.toLowerCase();
-        
-        let filtered = history;
-        if (filter) {
-            filtered = history.filter(h => 
-                h.student_name.toLowerCase().includes(filter) || 
-                h.action.toLowerCase().includes(filter) ||
-                (h.reason && h.reason.toLowerCase().includes(filter)) // 🔥 เพิ่มบรรทัดนี้ครับ
-            );
-        }
-        
-        // Pagination Logic
+
+        // กรองข้อมูล
+        let filtered = history.filter(h => 
+            h.student_name.toLowerCase().includes(filter) || 
+            h.action.toLowerCase().includes(filter) ||
+            (h.reason && h.reason.toLowerCase().includes(filter))
+        );
+
+        // เรียงลำดับ (ใหม่สุดขึ้นก่อน)
+        filtered.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+
+        // Pagination
         const { data: paginatedData } = getPaginatedData(filtered, paginationState.history);
         
-        tbody.innerHTML = paginatedData.map(h => `
-            <tr class="hover:bg-gray-50 text-xs md:text-sm group">
-                <td class="px-4 py-5 text-gray-500 whitespace-nowrap">${formatFirestoreTimestamp(h.timestamp)}</td>
-                <td class="px-4 py-5 font-medium">${h.student_name}</td>
-                <td class="px-4 py-5">${h.action}</td>
-                <td class="px-4 py-5 text-center font-bold ${h.type.includes('remove') || h.type === 'redeem' ? 'text-red-500' : 'text-green-600'}">
-                    ${h.type.includes('remove') || h.type === 'redeem' ? '-' : '+'}${h.amount}
+        tbody.innerHTML = paginatedData.map(h => {
+            let dateStr = formatFirestoreTimestamp(h.timestamp);
+
+            // 🔥 LOGIC การแสดงผล +/-
+            // รายการที่ถือว่าเป็นรายจ่าย (ต้องติดลบ)
+            const expenseTypes = [
+                'buy_item',         // ซื้อของ
+                'bank_deposit',     // ฝากเงิน (เงินออกจากกระเป๋า)
+                'deposit',
+                'punishment',       // บทลงโทษ
+                'deduct_points',    // หักแต้ม
+                'remove_points',
+                'create_guild',     // สร้างกิลด์
+                'gacha',            // สุ่มกาชา
+                'clear_red_card',   // ล้างใบแดง
+                'redeem'            // แลกของรางวัล
+            ];
+
+            // เช็คว่าเป็นรายจ่าย หรือ ค่าในฐานข้อมูลติดลบอยู่แล้ว
+            const isNegative = expenseTypes.includes(h.type) || h.amount < 0 || h.action.includes('ถอน'); // ดักคำว่าถอนเผื่อไว้
+            
+            // ถ้าเป็น 'bank_withdraw' (ถอนเงิน) ต้องเป็นบวก (เงินเข้ากระเป๋า)
+            const isPositive = !isNegative || h.type === 'bank_withdraw' || h.type === 'withdraw';
+
+            // จัดรูปแบบตัวเลข
+            const amountVal = Math.abs(h.amount).toLocaleString();
+            
+            // กำหนดสีและเครื่องหมาย
+            const amountHtml = !isPositive 
+                ? `<span class="text-red-600 font-bold">-${amountVal}</span>` 
+                : `<span class="text-green-600 font-bold">+${amountVal}</span>`;
+
+            return `
+            <tr class="hover:bg-gray-50 border-b last:border-b-0 text-sm group">
+                <td class="px-4 py-3 text-gray-500 whitespace-nowrap">${dateStr}</td>
+                <td class="px-4 py-3 font-bold text-gray-700">${h.student_name}</td>
+                <td class="px-4 py-3">
+                    <div class="flex flex-col">
+                        <span class="font-bold text-gray-800">${h.action}</span>
+                        ${h.reason ? `<span class="text-xs text-gray-400">${h.reason}</span>` : ''}
+                    </div>
                 </td>
-                <td class="px-4 py-5 text-gray-500 hidden md:table-cell max-w-xs truncate">${h.reason || '-'}</td>
-                <td class="px-4 py-5 text-center">
-                    <button onclick="deleteHistoryItem('${h.id}')" class="text-gray-300 hover:text-red-500 p-1">🗑️</button>
+                <td class="px-4 py-3 text-right text-base">${amountHtml}</td>
+                <td class="px-4 py-3 text-center">
+                    <button onclick="deleteHistoryItem('${h.id}')" class="text-gray-300 hover:text-red-500 p-1 transition-colors" title="ลบรายการ">🗑️</button>
                 </td>
             </tr>
-        `).join('');
-        
-        // Render Controls
+            `;
+        }).join('');
+
         document.getElementById('pagination-history').innerHTML = renderPaginationControls(filtered.length, 'history');
-    }
+    };
 
     // --- HELPER: CUSTOM CONFIRM MODAL ---
     let pendingConfirmAction = null;
