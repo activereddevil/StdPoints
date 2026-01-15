@@ -945,6 +945,7 @@
     </div>
 </div>
 
+
     </div>
    </main>
 
@@ -1916,7 +1917,6 @@
     </div>
 </div>
 
-
   </div> <!-- End App -->
 
   <script type="module">
@@ -1936,6 +1936,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const appId = 'activeredpoint';
+
 
     // --- Global State ---
     let userRole = 'guest'; // 'teacher' or 'student'
@@ -9346,4 +9347,732 @@ window.getGuildActiveBuffs = (guildId) => {
     
   </script>
  </body>
+ <div id="stock-market-extension-ui" class="hidden">
+    <template id="tmpl-stock-tab-btn">
+        <button onclick="switchTab('stocks')" id="tab-stocks" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 flex items-center gap-1">
+            <span>📈</span> ตลาดหุ้น
+        </button>
+    </template>
+
+    <div id="content-stocks" class="tab-content hidden h-full flex flex-col space-y-6">
+        <div class="flex justify-between items-center shrink-0 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                    📈 ตลาดหุ้นห้องเรียน (Student Stock Exchange)
+                </h2>
+                <p class="text-sm text-gray-500">ลงทุนในความดี เก็งกำไรพฤติกรรมเพื่อน!</p>
+            </div>
+            <div id="market-status-badge" class="px-4 py-2 rounded-lg font-bold text-sm bg-gray-100 text-gray-500">
+                โหลดข้อมูล...
+            </div>
+        </div>
+
+        <div class="bg-gray-900 text-green-400 p-2 rounded-lg overflow-hidden whitespace-nowrap font-mono text-sm shadow-inner flex items-center gap-4" id="stock-ticker">
+            </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full min-h-0">
+            <div class="lg:col-span-2 flex flex-col space-y-6 overflow-y-auto pr-2 custom-scrollbar">
+                <div id="stock-teacher-controls" class="hidden bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                    <h3 class="font-bold text-indigo-900 mb-3 flex items-center gap-2">👮 แผงควบคุมเจ้ามือ (ครู)</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                        <div class="bg-white p-3 rounded-lg border border-indigo-200">
+                            <label class="text-xs font-bold text-gray-500 block mb-1">สถานะตลาด</label>
+                            <button id="btn-toggle-market" onclick="toggleMarketStatus()" class="w-full py-2 rounded-lg font-bold text-white transition-colors bg-gray-500">
+                                ...
+                            </button>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border border-indigo-200">
+                            <label class="text-xs font-bold text-gray-500 block mb-1">อัปเดตราคา (Market Close)</label>
+                            <button onclick="openUpdatePriceModal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-bold shadow-sm">
+                                📊 ปรับราคาหุ้น
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="stock-cards-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    </div>
+
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="font-bold text-gray-800 mb-4 flex justify-between items-center">
+                        <span>กราฟราคา (History)</span>
+                        <select id="chart-stock-select" class="text-sm border rounded-lg px-2 py-1 bg-gray-50" onchange="renderStockChart()">
+                            </select>
+                    </h3>
+                    <div class="h-64 w-full">
+                        <canvas id="stock-main-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col space-y-6 h-full min-h-0">
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex-1 flex flex-col">
+                    <h3 class="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                        💼 พอร์ตของฉัน
+                    </h3>
+                    <div class="bg-gray-50 rounded-lg p-3 mb-3 border border-gray-100 flex justify-between items-center">
+                        <span class="text-xs text-gray-500 font-bold">มูลค่าพอร์ตรวม</span>
+                        <span id="port-total-value" class="text-xl font-bold text-indigo-700">0</span>
+                    </div>
+                    <div class="flex-1 overflow-y-auto custom-scrollbar">
+                        <table class="w-full text-sm">
+                            <thead class="bg-white text-gray-500 text-xs sticky top-0">
+                                <tr>
+                                    <th class="text-left py-2">หุ้น</th>
+                                    <th class="text-center py-2">มี (หุ้น)</th>
+                                    <th class="text-right py-2">P/L</th>
+                                </tr>
+                            </thead>
+                            <tbody id="portfolio-list" class="divide-y divide-gray-100">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl shadow-lg border-2 border-indigo-100 shrink-0">
+                    <h3 class="font-bold text-gray-800 mb-4 border-b pb-2">🛒 ส่งคำสั่งซื้อขาย</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 block mb-1">เลือกหุ้น</label>
+                            <select id="trade-stock-select" class="w-full p-2 border rounded-lg font-bold text-gray-700 bg-gray-50" onchange="updateTradeUI()">
+                                </select>
+                        </div>
+                        
+                        <div class="flex justify-between items-end">
+                            <div class="text-right w-full">
+                                <span class="text-xs text-gray-400 block">ราคาปัจจุบัน</span>
+                                <span id="trade-price-display" class="text-2xl font-bold text-gray-800">0</span>
+                                <span class="text-xs text-gray-400">แต้ม/หุ้น</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center border rounded-xl overflow-hidden">
+                            <button onclick="adjustTradeQty(-1)" class="px-4 py-3 bg-gray-100 hover:bg-gray-200 font-bold text-gray-600">-</button>
+                            <input type="number" id="trade-qty" class="flex-1 text-center font-bold outline-none text-lg" value="1" min="1" oninput="updateTradeUI()">
+                            <button onclick="adjustTradeQty(1)" class="px-4 py-3 bg-gray-100 hover:bg-gray-200 font-bold text-gray-600">+</button>
+                        </div>
+
+                        <div class="flex justify-between text-xs font-bold px-1">
+                            <span class="text-gray-500">รวมเป็นเงิน:</span>
+                            <span id="trade-total-cost" class="text-indigo-600">0</span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 pt-2">
+                            <button id="btn-buy-stock" onclick="executeStockTrade('buy')" class="bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold shadow-md transition-transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                                ซื้อ (Buy)
+                            </button>
+                            <button id="btn-sell-stock" onclick="executeStockTrade('sell')" class="bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-bold shadow-md transition-transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                                ขาย (Sell)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="update-price-modal" class="fixed inset-0 z-[150] bg-black/50 hidden items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">📊 ปรับราคาหุ้นประจำวัน</h3>
+            <div id="update-price-list" class="space-y-4 max-h-[60vh] overflow-y-auto p-1">
+                </div>
+            <div class="flex gap-3 mt-6 border-t pt-4">
+                <button onclick="document.getElementById('update-price-modal').classList.add('hidden')" class="flex-1 py-2 bg-gray-100 text-gray-600 rounded-lg font-bold">ยกเลิก</button>
+                <button onclick="confirmPriceUpdate()" class="flex-1 py-2 bg-blue-600 text-white rounded-lg font-bold shadow-lg hover:bg-blue-700">บันทึกราคาใหม่</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    // Import Firestore functions (ดึงจาก Module เดิมไม่ได้ ต้องประกาศใหม่ใน Scope นี้ หรือใช้ window.db ถ้ามีการ expose)
+    // เพื่อความชัวร์และไม่ไปแก้โค้ดเก่า เราจะใช้ window.db ที่โค้ดหลักประกาศไว้ (หวังว่าโค้ดหลักจะ expose db, auth, etc.)
+    // *แต่* โค้ดหลักเป็น type="module" ตัวแปร db ไม่ได้เป็น Global
+    // ดังนั้นเราต้องใช้เทคนิค "Inject Logic" ผ่านฟังก์ชัน initAppUI ที่เราจะ Override เล็กน้อย
+    
+    import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, onSnapshot, runTransaction, serverTimestamp, arrayUnion, increment } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+    
+    // Config
+    const STOCK_DB_PATH = 'stocks'; // artifacts/{appId}/public/data/stocks
+    let stocksData = [];
+    let stockChartInstance = null;
+    let isMarketOpen = true; // Default
+
+    // ==========================================
+    // 🚀 INITIALIZATION & INJECTION
+    // ==========================================
+    
+    // ฟังก์ชันเริ่มระบบ (เรียกตัวเองเมื่อ Script โหลด)
+    async function initStockMarketExtension() {
+        console.log("🚀 Initializing Stock Market Extension...");
+        
+        // 1. รอให้ DOM พร้อม
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', injectStockUI);
+        } else {
+            injectStockUI();
+        }
+
+        // 2. Override window.switchTab เพื่อรองรับ Tab ใหม่
+        const originalSwitchTab = window.switchTab;
+        window.switchTab = (tabName) => {
+            // ซ่อน Tab หุ้นด้วย (เพราะโค้ดเก่าไม่รู้จัก ID นี้)
+            document.getElementById('content-stocks').classList.add('hidden');
+            document.getElementById('tab-stocks')?.classList.replace('text-indigo-600', 'text-gray-500');
+            document.getElementById('tab-stocks')?.classList.replace('border-indigo-500', 'border-transparent');
+
+            if (tabName === 'stocks') {
+                // ซ่อน Tab อื่นๆ ทั้งหมดโดยเรียก Logic เก่าแบบหลอกๆ
+                originalSwitchTab('none'); // เรียกเพื่อ Clear Active State เดิม
+                
+                // เปิดหน้าหุ้น
+                document.getElementById('content-stocks').classList.remove('hidden');
+                
+                // Highlight ปุ่ม
+                const btn = document.getElementById('tab-stocks');
+                if(btn) {
+                    btn.classList.replace('text-gray-500', 'text-indigo-600');
+                    btn.classList.replace('border-transparent', 'border-indigo-500');
+                }
+                
+                renderStockMarketMain();
+            } else {
+                originalSwitchTab(tabName);
+            }
+        };
+
+        // 3. เริ่มฟังข้อมูล Real-time
+        subscribeToStocks();
+    }
+
+    function injectStockUI() {
+        // 1. ย้ายปุ่ม Tab ไปใส่ใน Nav
+        const nav = document.getElementById('nav-tabs');
+        if (nav && !document.getElementById('tab-stocks')) {
+            const btnTemplate = document.getElementById('tmpl-stock-tab-btn');
+            // ใส่ปุ่มหุ้นเป็นอันดับสุดท้าย
+            nav.insertAdjacentHTML('beforeend', btnTemplate.innerHTML);
+        }
+
+        // 2. ย้ายหน้า Content ไปใส่ใน Main Container
+        const mainContainer = document.querySelector('main > div');
+        const contentStocks = document.getElementById('content-stocks');
+        if (mainContainer && contentStocks && contentStocks.parentNode.id === 'stock-market-extension-ui') {
+            mainContainer.appendChild(contentStocks);
+        }
+        
+        // 3. ย้าย Modal
+        const modal = document.getElementById('update-price-modal');
+        if (modal) document.body.appendChild(modal);
+    }
+
+    // ==========================================
+    // 📡 DATA LOGIC
+    // ==========================================
+
+    function subscribeToStocks() {
+        // เนื่องจากเราเข้าถึง db โดยตรงยากจาก module scope ภายนอก 
+        // เราจะอาศัย window.db ที่เราหวังว่าโค้ดหลักจะ expose... 
+        // อ้าว! โค้ดหลักไม่ได้ expose db ออกมาเป็น window.db
+        // **ทางแก้:** เราต้อง re-init firebase ใน script นี้อีกรอบ (ไม่เสียหาย เพราะมันใช้ cache เดิม)
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyCt1hOqcgf8fGmPVtvrPztwzMQZvlrETfY",
+            authDomain: "pointmgmt-b8b87.firebaseapp.com",
+            projectId: "pointmgmt-b8b87",
+            storageBucket: "pointmgmt-b8b87.firebasestorage.app",
+            messagingSenderId: "966337707500",
+            appId: "1:966337707500:web:e4762479cb69abe7abd4c9"
+        };
+        // Re-init (safe)
+        const app = firebase.apps.length ? firebase.apps[0] : firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const appId = 'activeredpoint'; // Hardcoded based on main file
+
+        // Listener Stocks
+        db.collection(`artifacts/${appId}/public/data/stocks`).onSnapshot(snapshot => {
+            if (snapshot.empty) {
+                // ถ้ายังไม่มีหุ้น ให้สร้าง Default
+                initDefaultStocks(db, appId);
+            } else {
+                stocksData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                // เช็คสถานะตลาดจาก Doc config พิเศษ หรือเช็คจากหุ้นตัวแรก
+                const marketConfig = stocksData.find(s => s.id === 'MARKET_STATUS');
+                if (marketConfig) {
+                    isMarketOpen = marketConfig.isOpen;
+                    // กรองตัว Config ออกจากรายการหุ้นที่จะโชว์
+                    stocksData = stocksData.filter(s => s.id !== 'MARKET_STATUS');
+                }
+                
+                renderStockMarketMain();
+            }
+        });
+        
+        // Expose db to window for inner functions
+        window._stockDB = db;
+        window._stockAppId = appId;
+    }
+
+    async function initDefaultStocks(db, appId) {
+        const batch = db.batch();
+        const defaults = [
+            { id: 'HW', name: 'หุ้นการบ้าน (Homework)', price: 10, prev_price: 10, color: 'blue', icon: '📚' },
+            { id: 'DIS', name: 'หุ้นวินัย (Discipline)', price: 10, prev_price: 10, color: 'yellow', icon: '👮' },
+            { id: 'ATT', name: 'หุ้นมาเรียน (Attendance)', price: 10, prev_price: 10, color: 'green', icon: '🏫' },
+            { id: 'MARKET_STATUS', isOpen: true } // Config Doc
+        ];
+        
+        defaults.forEach(s => {
+            const ref = db.doc(`artifacts/${appId}/public/data/stocks/${s.id}`);
+            batch.set(ref, s);
+        });
+        
+        await batch.commit();
+        console.log("Initialized Default Stocks");
+    }
+
+    // ==========================================
+    // 🖥️ RENDER FUNCTIONS
+    // ==========================================
+
+    function renderStockMarketMain() {
+        // 1. Update Market Status Badge
+        const statusBadge = document.getElementById('market-status-badge');
+        if (isMarketOpen) {
+            statusBadge.textContent = "🟢 ตลาดเปิด (Market Open)";
+            statusBadge.className = "px-4 py-2 rounded-lg font-bold text-sm bg-green-100 text-green-700 animate-pulse";
+        } else {
+            statusBadge.textContent = "🔴 ตลาดปิด (Market Closed)";
+            statusBadge.className = "px-4 py-2 rounded-lg font-bold text-sm bg-red-100 text-red-700";
+        }
+
+        // 2. Render Ticker
+        const ticker = document.getElementById('stock-ticker');
+        ticker.innerHTML = stocksData.map(s => {
+            const change = s.price - s.prev_price;
+            const sign = change >= 0 ? '▲' : '▼';
+            const color = change >= 0 ? 'text-green-400' : 'text-red-400';
+            return `<span class="mr-6 font-bold"><span class="text-white">${s.id}</span> <span class="${color}">${s.price} ${sign} ${Math.abs(change)}</span></span>`;
+        }).join('');
+
+        // 3. Render Cards
+        const cardContainer = document.getElementById('stock-cards-container');
+        cardContainer.innerHTML = stocksData.map(s => {
+            const change = s.price - s.prev_price;
+            const percent = s.prev_price > 0 ? ((change / s.prev_price) * 100).toFixed(1) : 0;
+            const colorClass = change >= 0 ? 'text-green-600' : 'text-red-600';
+            const bgClass = change >= 0 ? 'bg-green-50' : 'bg-red-50';
+            const icon = change >= 0 ? '📈' : '📉';
+
+            return `
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all cursor-pointer" onclick="selectStockForChart('${s.id}')">
+                <div class="flex justify-between items-start mb-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl bg-gray-100 rounded-lg p-1">${s.icon || '📦'}</span>
+                        <div>
+                            <h4 class="font-bold text-gray-800 leading-tight">${s.name}</h4>
+                            <span class="text-xs text-gray-400 font-mono">${s.id}</span>
+                        </div>
+                    </div>
+                    <span class="text-xs font-bold px-2 py-1 rounded ${bgClass} ${colorClass}">${icon} ${percent}%</span>
+                </div>
+                <div class="text-center mt-2">
+                    <span class="text-3xl font-black text-gray-800 tracking-tighter">${s.price}</span>
+                    <span class="text-xs text-gray-500">แต้ม</span>
+                </div>
+            </div>
+            `;
+        }).join('');
+
+        // 4. Update Dropdowns
+        const tradeSelect = document.getElementById('trade-stock-select');
+        const chartSelect = document.getElementById('chart-stock-select');
+        
+        // Save current selection
+        const currentTradeSel = tradeSelect.value;
+        const currentChartSel = chartSelect.value;
+
+        const options = stocksData.map(s => `<option value="${s.id}">${s.name} (${s.price})</option>`).join('');
+        tradeSelect.innerHTML = options;
+        chartSelect.innerHTML = options;
+
+        if (currentTradeSel) tradeSelect.value = currentTradeSel;
+        if (currentChartSel) chartSelect.value = currentChartSel;
+
+        // 5. Update Teacher UI
+        // ตรวจสอบ role จากตัวแปร global ที่ script หลักประกาศไว้
+        // (เราเข้าถึง userRole ได้เพราะมันอยู่ใน window scope หรือ module scope เดียวกันถ้าวางในไฟล์เดียวกัน)
+        // แต่เพื่อความชัวร์ ให้เช็ค element ที่มีอยู่
+        if (document.getElementById('teacher-reward-controls') && !document.getElementById('teacher-reward-controls').classList.contains('hidden')) {
+            document.getElementById('stock-teacher-controls').classList.remove('hidden');
+            
+            const btnToggle = document.getElementById('btn-toggle-market');
+            if (isMarketOpen) {
+                btnToggle.textContent = "🔴 ปิดตลาด (Close Market)";
+                btnToggle.className = "w-full py-2 rounded-lg font-bold text-white bg-red-500 hover:bg-red-600";
+            } else {
+                btnToggle.textContent = "🟢 เปิดตลาด (Open Market)";
+                btnToggle.className = "w-full py-2 rounded-lg font-bold text-white bg-green-500 hover:bg-green-600";
+            }
+        }
+
+        // 6. Update Student Portfolio & Trade UI
+        updatePortfolioUI();
+        updateTradeUI();
+        
+        // 7. Render Chart (First time or refresh)
+        renderStockChart();
+    }
+
+    function updatePortfolioUI() {
+        // ใช้ currentStudentData จาก Global
+        // ถ้าไม่มี (เช่น เป็นครู) ก็ข้าม
+        // แต่ถ้าเป็นครู เราอาจจะอยากดูพอร์ตตัวเองเล่นๆ? ไม่หรอก ครูเป็นเจ้ามือ
+        
+        // เราต้องดึงข้อมูลพอร์ตจาก currentStudentData.portfolio (ที่เราจะสร้างใหม่)
+        // ถ้ายังไม่มี data ให้ถือว่าว่าง
+        
+        if (typeof currentStudentData === 'undefined' || !currentStudentData) return;
+
+        const portfolio = currentStudentData.portfolio || {};
+        const tbody = document.getElementById('portfolio-list');
+        let totalValue = 0;
+        let html = '';
+
+        Object.keys(portfolio).forEach(stockId => {
+            const holding = portfolio[stockId];
+            if (holding.qty > 0) {
+                const stock = stocksData.find(s => s.id === stockId);
+                const currentPrice = stock ? stock.price : 0;
+                const marketValue = holding.qty * currentPrice;
+                const costValue = holding.qty * holding.avg_cost;
+                const profit = marketValue - costValue;
+                const profitPercent = costValue > 0 ? (profit / costValue) * 100 : 0;
+                
+                totalValue += marketValue;
+
+                const colorClass = profit >= 0 ? 'text-green-600' : 'text-red-600';
+                const sign = profit >= 0 ? '+' : '';
+
+                html += `
+                <tr class="border-b last:border-0">
+                    <td class="py-2">
+                        <div class="font-bold text-gray-700">${stockId}</div>
+                        <div class="text-[10px] text-gray-400">ทุนเฉลี่ย: ${holding.avg_cost.toFixed(1)}</div>
+                    </td>
+                    <td class="text-center py-2 font-mono">${holding.qty}</td>
+                    <td class="text-right py-2">
+                        <div class="font-bold ${colorClass}">${sign}${Math.floor(profit)}</div>
+                        <div class="text-[10px] ${colorClass}">(${sign}${profitPercent.toFixed(1)}%)</div>
+                    </td>
+                </tr>
+                `;
+            }
+        });
+
+        if (html === '') html = '<tr><td colspan="3" class="text-center py-4 text-gray-400 text-sm">ยังไม่มีหุ้นในพอร์ต</td></tr>';
+        
+        tbody.innerHTML = html;
+        document.getElementById('port-total-value').textContent = totalValue.toLocaleString();
+    }
+
+    // ==========================================
+    // 🕹️ ACTIONS & TRADING
+    // ==========================================
+
+    // Expose functions to window
+    window.updateTradeUI = () => {
+        const stockId = document.getElementById('trade-stock-select').value;
+        const qty = parseInt(document.getElementById('trade-qty').value) || 1;
+        const stock = stocksData.find(s => s.id === stockId);
+        
+        if (!stock) return;
+
+        document.getElementById('trade-price-display').textContent = stock.price;
+        const total = stock.price * qty;
+        document.getElementById('trade-total-cost').textContent = `${total.toLocaleString()} แต้ม`;
+
+        // Check Buttons
+        const btnBuy = document.getElementById('btn-buy-stock');
+        const btnSell = document.getElementById('btn-sell-stock');
+
+        // Logic Buy: Market Open + Have Points
+        if (!isMarketOpen) {
+            btnBuy.disabled = true;
+            btnBuy.textContent = "ตลาดปิด";
+            btnBuy.className = "w-full py-3 rounded-xl font-bold bg-gray-300 text-gray-500 cursor-not-allowed";
+        } else {
+            if (currentStudentData && currentStudentData.points >= total) {
+                btnBuy.disabled = false;
+                btnBuy.className = "bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold shadow-md transition-transform active:scale-95";
+                btnBuy.textContent = "ซื้อ (Buy)";
+            } else {
+                btnBuy.disabled = true;
+                btnBuy.className = "bg-green-200 text-white py-3 rounded-xl font-bold cursor-not-allowed";
+                btnBuy.textContent = "แต้มไม่พอ";
+            }
+        }
+
+        // Logic Sell: Have Stock
+        const portfolio = (currentStudentData && currentStudentData.portfolio) ? currentStudentData.portfolio : {};
+        const holding = portfolio[stockId];
+        
+        if (!isMarketOpen) {
+             btnSell.disabled = true;
+             btnSell.textContent = "ตลาดปิด";
+             btnSell.className = "w-full py-3 rounded-xl font-bold bg-gray-300 text-gray-500 cursor-not-allowed";
+        } else {
+            if (holding && holding.qty >= qty) {
+                btnSell.disabled = false;
+                btnSell.className = "bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-bold shadow-md transition-transform active:scale-95";
+                btnSell.textContent = "ขาย (Sell)";
+            } else {
+                btnSell.disabled = true;
+                btnSell.className = "bg-red-200 text-white py-3 rounded-xl font-bold cursor-not-allowed";
+                btnSell.textContent = "ไม่มีของ";
+            }
+        }
+    };
+
+    window.adjustTradeQty = (delta) => {
+        const input = document.getElementById('trade-qty');
+        let val = parseInt(input.value) + delta;
+        if (val < 1) val = 1;
+        input.value = val;
+        updateTradeUI();
+    };
+
+    window.executeStockTrade = async (type) => {
+        if (!currentStudentData) return alert('กรุณา Login ใหม่');
+        if (!isMarketOpen) return alert('ตลาดปิดอยู่ครับ');
+
+        const stockId = document.getElementById('trade-stock-select').value;
+        const qty = parseInt(document.getElementById('trade-qty').value);
+        const stock = stocksData.find(s => s.id === stockId);
+        
+        if (!stock || qty < 1) return;
+
+        const totalValue = stock.price * qty;
+        const sRef = window._stockDB.doc(`artifacts/${window._stockAppId}/public/data/students/${currentStudentData.id}`);
+        const batch = window._stockDB.batch();
+
+        try {
+            // Get fresh student data first (Concurrency check)
+            const sSnap = await sRef.get();
+            const sData = sSnap.data();
+            const portfolio = sData.portfolio || {};
+            const holding = portfolio[stockId] || { qty: 0, avg_cost: 0 };
+
+            if (type === 'buy') {
+                if (sData.points < totalValue) return alert('แต้มไม่พอครับ');
+                
+                // Calculate New Avg Cost
+                const oldTotalCost = holding.qty * holding.avg_cost;
+                const newTotalCost = oldTotalCost + totalValue;
+                const newQty = holding.qty + qty;
+                const newAvg = newTotalCost / newQty;
+
+                batch.update(sRef, {
+                    points: firebase.firestore.FieldValue.increment(-totalValue),
+                    [`portfolio.${stockId}`]: { qty: newQty, avg_cost: newAvg }
+                });
+
+                // Log History
+                const hRef = window._stockDB.collection(`artifacts/${window._stockAppId}/public/data/history`).doc();
+                batch.set(hRef, {
+                    student_id: sData.student_id,
+                    student_name: sData.full_name,
+                    action: `ซื้อหุ้น ${stock.name} (${qty} หุ้น)`,
+                    amount: -totalValue,
+                    type: 'buy_stock',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+            } else if (type === 'sell') {
+                if (holding.qty < qty) return alert('หุ้นไม่พอขายครับ');
+
+                const newQty = holding.qty - qty;
+                
+                // Update Portfolio
+                if (newQty > 0) {
+                    batch.update(sRef, {
+                        points: firebase.firestore.FieldValue.increment(totalValue),
+                        [`portfolio.${stockId}.qty`]: newQty
+                    });
+                } else {
+                    // Remove if 0 (Use deleteField)
+                    batch.update(sRef, {
+                        points: firebase.firestore.FieldValue.increment(totalValue),
+                        [`portfolio.${stockId}`]: firebase.firestore.FieldValue.delete()
+                    });
+                }
+
+                // Profit Calculation for Log
+                const cost = qty * holding.avg_cost;
+                const profit = totalValue - cost;
+
+                // Log History
+                const hRef = window._stockDB.collection(`artifacts/${window._stockAppId}/public/data/history`).doc();
+                batch.set(hRef, {
+                    student_id: sData.student_id,
+                    student_name: sData.full_name,
+                    action: `ขายหุ้น ${stock.name} (กำไร ${Math.floor(profit)})`,
+                    amount: totalValue,
+                    type: 'sell_stock',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+
+            await batch.commit();
+            showToast(type === 'buy' ? 'ซื้อหุ้นสำเร็จ 📥' : 'ขายหุ้นสำเร็จ 📤');
+            updateTradeUI();
+
+        } catch (e) {
+            console.error(e);
+            alert('เกิดข้อผิดพลาด: ' + e.message);
+        }
+    };
+
+    // ==========================================
+    // 👨‍🏫 TEACHER CONTROLS
+    // ==========================================
+
+    window.toggleMarketStatus = async () => {
+        const newState = !isMarketOpen;
+        const ref = window._stockDB.doc(`artifacts/${window._stockAppId}/public/data/stocks/MARKET_STATUS`);
+        await ref.set({ isOpen: newState }, { merge: true });
+        showToast(newState ? 'เปิดตลาดแล้ว 🟢' : 'ปิดตลาดแล้ว 🔴');
+    };
+
+    window.openUpdatePriceModal = () => {
+        const container = document.getElementById('update-price-list');
+        container.innerHTML = stocksData.map(s => `
+            <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                <div class="flex justify-between mb-1">
+                    <label class="font-bold text-gray-700">${s.name}</label>
+                    <span class="text-xs text-gray-400">ราคาเดิม: ${s.price}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="number" id="price-input-${s.id}" value="${s.price}" class="flex-1 border rounded p-2 text-center font-bold text-indigo-700">
+                    <span class="text-sm">แต้ม</span>
+                </div>
+            </div>
+        `).join('');
+        document.getElementById('update-price-modal').classList.remove('hidden');
+        document.getElementById('update-price-modal').classList.add('flex');
+    };
+
+    window.confirmPriceUpdate = async () => {
+        const batch = window._stockDB.batch();
+        const timestamp = firebase.firestore.FieldValue.serverTimestamp();
+
+        stocksData.forEach(s => {
+            const input = document.getElementById(`price-input-${s.id}`);
+            if (input) {
+                const newPrice = parseFloat(input.value);
+                if (newPrice !== s.price) {
+                    const ref = window._stockDB.doc(`artifacts/${window._stockAppId}/public/data/stocks/${s.id}`);
+                    
+                    // 1. Update Price
+                    batch.update(ref, {
+                        price: newPrice,
+                        prev_price: s.price, // Shift current to prev
+                        last_update: timestamp
+                    });
+
+                    // 2. Add to History (Subcollection) - Optional but good for chart
+                    // แต่เพื่อความง่าย เราเก็บ array history ใน doc หลักเลย (Limit 30 วัน)
+                    // Note: Firestore arrayUnion is tricky with objects, let's just update fields normally
+                    // For chart, we need history. Let's create a subcollection 'history' for scalable data
+                    // Or keep it simple: Add to 'price_history' array in stock doc
+                    
+                    // Simple Array approach (Keep last 30 points)
+                    let newHistory = s.price_history || [];
+                    newHistory.push({ t: Date.now(), p: newPrice });
+                    if (newHistory.length > 30) newHistory.shift();
+
+                    batch.update(ref, { price_history: newHistory });
+                }
+            }
+        });
+
+        await batch.commit();
+        document.getElementById('update-price-modal').classList.add('hidden');
+        showToast('อัปเดตราคาตลาดเรียบร้อย 📊');
+    };
+
+    // ==========================================
+    // 📉 CHART LOGIC
+    // ==========================================
+    
+    window.selectStockForChart = (id) => {
+        document.getElementById('chart-stock-select').value = id;
+        renderStockChart();
+    };
+
+    window.renderStockChart = () => {
+        const stockId = document.getElementById('chart-stock-select').value;
+        const stock = stocksData.find(s => s.id === stockId);
+        if (!stock) return;
+
+        const ctx = document.getElementById('stock-main-chart').getContext('2d');
+        
+        // Mock History if empty (for demo)
+        let historyData = stock.price_history || [];
+        if (historyData.length === 0) {
+            // Generate dummy data if no history
+            historyData = [
+                { t: Date.now() - 86400000*3, p: stock.price * 0.9 },
+                { t: Date.now() - 86400000*2, p: stock.price * 1.1 },
+                { t: Date.now() - 86400000*1, p: stock.price * 0.95 },
+                { t: Date.now(), p: stock.price }
+            ];
+        }
+
+        const labels = historyData.map(h => new Date(h.t).toLocaleDateString('th-TH'));
+        const dataPoints = historyData.map(h => h.p);
+
+        if (stockChartInstance) stockChartInstance.destroy();
+
+        stockChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: `ราคา ${stock.name}`,
+                    data: dataPoints,
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        grid: { color: '#f3f4f6' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    };
+
+    // Run Initialization
+    initStockMarketExtension();
+
+</script>
 </html>
