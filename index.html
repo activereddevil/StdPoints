@@ -9223,6 +9223,7 @@ window.getGuildActiveBuffs = (guildId) => {
     };
 
     // 2. ปรับปรุงการเพิ่มรางวัล (Overwrite)
+    // ✅ แก้ไข: เพิ่ม Logic บันทึก Gacha Pool ลงไป
     window.handleAddReward = async (e) => {
         if(e) e.preventDefault();
         const name = document.getElementById('add-reward-name').value;
@@ -9232,8 +9233,9 @@ window.getGuildActiveBuffs = (guildId) => {
         const type = document.getElementById('add-reward-type').value;
         const image = document.getElementById('add-reward-img').value;
         const category = document.getElementById('add-reward-category').value;
-        const quotaVal = document.getElementById('add-reward-quota').value;
-        const quota = quotaVal ? parseInt(quotaVal) : 0;
+        
+        const isQuotaUnlimited = document.getElementById('add-reward-quota-unlimited').checked;
+        const quota = isQuotaUnlimited ? 0 : (parseInt(document.getElementById('add-reward-quota').value) || 0);
 
         if (!name || isNaN(points)) return alert('กรุณากรอกข้อมูลให้ครบ');
 
@@ -9245,10 +9247,45 @@ window.getGuildActiveBuffs = (guildId) => {
             created_at: serverTimestamp()
         };
 
-        if (type === 'exam_rescue') {
+        // 🔥 ส่วนที่ต้องมี: ดึงข้อมูลจาก Slot มาบันทึก
+        if (type === 'gacha_custom') {
+            let gachaPool = [];
+            // ค้นหา Slot ทั้งหมดที่มี class 'add-gacha-slot-item'
+            document.querySelectorAll('.add-gacha-slot-item').forEach(slot => {
+                const slotType = slot.querySelector('.slot-type').value;
+                const chance = parseFloat(slot.querySelector('.slot-chance').value) || 0;
+                let data = { type: slotType, chance: chance };
+
+                // ดึงค่าตามประเภท
+                if (slotType === 'points') {
+                    data.min = parseInt(slot.querySelector('.slot-min').value) || 0;
+                    data.max = parseInt(slot.querySelector('.slot-max').value) || 0;
+                } else if (slotType === 'points_fix') {
+                    data.amount = parseInt(slot.querySelector('.slot-fix-amount').value) || 0;
+                    data.image = slot.querySelector('.slot-fix-image').value;
+                } else if (slotType === 'reward_ref') {
+                    data.reward_id = slot.querySelector('.slot-reward-id').value;
+                } else if (slotType === 'text') {
+                    data.text = slot.querySelector('.slot-text').value;
+                } else if (slotType === 'interest') {
+                    data.rate = parseFloat(slot.querySelector('.slot-rate').value) || 0;
+                    data.hours = parseFloat(slot.querySelector('.slot-hours').value) || 0;
+                } else if (slotType.startsWith('buff_')) {
+                    const group = slot.querySelector(`.input-${slotType}`);
+                    if(group) {
+                        data.value = parseFloat(group.querySelector('.slot-value').value) || 0;
+                        data.duration = parseFloat(group.querySelector('.slot-duration').value) || 0;
+                    }
+                }
+                gachaPool.push(data);
+            });
+            rewardData.gacha_pool = gachaPool;
+        }
+
+        if (type === 'exam_rescue' && typeof selectedEligibleStudents !== 'undefined') {
             rewardData.step_price = parseInt(document.getElementById('add-reward-step-price').value) || 0;
             rewardData.eligible_student_ids = Array.from(selectedEligibleStudents);
-            rewardData.usage_counts = {}; // เริ่มต้นทุกคนใชไป 0 ครั้ง
+            rewardData.usage_counts = {};
         }
 
         try {
@@ -9279,6 +9316,20 @@ window.getGuildActiveBuffs = (guildId) => {
             document.getElementById('edit-reward-unlimited').checked = false;
             document.getElementById('edit-reward-stock').disabled = false;
             document.getElementById('edit-reward-stock').value = r.stock;
+        }
+
+        // 3. จัดการประเภทและ Gacha Builder
+        const typeSelect = document.getElementById('edit-reward-type');
+        typeSelect.value = r.type || 'general';
+        
+        // ล้าง Slot เก่าก่อน
+        document.getElementById('edit-gacha-slots-list').innerHTML = '';
+
+        // ถ้าเป็น Gacha ให้โหลด Slot เดิมมาโชว์
+        if (r.type === 'gacha_custom' && r.gacha_pool) {
+            r.gacha_pool.forEach(slotData => {
+                addEditGachaSlot(slotData);
+            });
         }
         
         // 🔥 Load Rescue Data
@@ -9547,6 +9598,8 @@ window.getGuildActiveBuffs = (guildId) => {
             alert('Error: ' + e.message);
         }
     };
+
+    
    
   </script>
  </body>
