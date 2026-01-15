@@ -261,6 +261,7 @@
                     </div>
                 </div>
             </div>
+            
             <div id="std-warning-section" class="mt-6 hidden animate-bounce-in">
                 <div class="bg-yellow-50 rounded-2xl border-2 border-yellow-200 p-5 relative overflow-hidden shadow-sm">
                     <div class="absolute -right-6 -top-6 text-yellow-100 text-9xl select-none pointer-events-none">⚠️</div>
@@ -301,6 +302,8 @@
                     <!-- History items -->
                 </div>
             </div>
+        </div>
+        <div id="content-student-guild" class="tab-content hidden h-full flex flex-col space-y-6">
         </div>
 
         <!-- ============ HOME TAB (Teacher List) ============ -->
@@ -603,7 +606,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 shrink-0">
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-                    <h3 class="font-bold text-gray-700 mb-4 text-center">คะแนนรวมแต่ละห้อง</h3>
+                    <h3 class="font-bold text-gray-700 mb-4 text-center">แต้มรวมแต่ละห้อง</h3>
                     <canvas id="chart-points"></canvas>
                 </div>
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
@@ -619,7 +622,7 @@
                             <tr>
                                 <th class="px-6 py-4 text-left">ชั้นเรียน</th>
                                 <th class="px-6 py-4 text-center">จำนวนนักเรียน</th>
-                                <th class="px-6 py-4 text-center">คะแนนรวม</th>
+                                <th class="px-6 py-4 text-center">แต้มรวม</th>
                                 <th class="px-6 py-4 text-center">คะแนนเฉลี่ย</th>
                                 <th class="px-6 py-4 text-center text-yellow-600">ใบเตือนรวม</th>
                             </tr>
@@ -2256,7 +2259,7 @@ const appId = 'activeredpoint';
             if (userRole === 'teacher') renderBankList(false); // Updated to pass false to prevent page reset on interval
             if (userRole === 'student') renderStudentDashboard();
         }, 30000); 
-        subscribeToGameState(null);
+        
     }
 
     function setupNavigation() {
@@ -2291,6 +2294,7 @@ const appId = 'activeredpoint';
             tabsHtml = `
                 <button onclick="switchTab('student-dashboard')" id="tab-student-dashboard" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-red-500 text-red-600">หน้าหลัก</button>
                 <button onclick="switchTab('rewards')" id="tab-rewards" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">ของรางวัล</button>
+                <button onclick="switchTab('student-guild')" id="tab-student-guild" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">🏰 กิลด์</button>
             `;
             document.getElementById('teacher-reward-controls').classList.add('hidden');
             document.getElementById('teacher-history-controls').classList.add('hidden');
@@ -2581,6 +2585,7 @@ const appId = 'activeredpoint';
         const target = document.getElementById('content-' + tabName);
         if(target) target.classList.remove('hidden');
         
+        
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.classList.remove('border-red-500', 'text-red-600');
             btn.classList.add('border-transparent', 'text-gray-500');
@@ -2593,6 +2598,7 @@ const appId = 'activeredpoint';
         if (tabName === 'groups' && typeof renderCustomGroups === 'function') {
             renderCustomGroups();
         }
+        if (tabName === 'student-guild') renderStudentGuild();
         renderBuffRulesSettings();
     };
     
@@ -4838,7 +4844,7 @@ const appId = 'activeredpoint';
             data: {
                 labels: labels,
                 datasets: [{
-                    label: 'คะแนนรวม',
+                    label: 'แต้มรวม',
                     data: pointsData,
                     backgroundColor: 'rgba(59, 130, 246, 0.6)',
                     borderColor: 'rgba(59, 130, 246, 1)',
@@ -4882,7 +4888,7 @@ const appId = 'activeredpoint';
         const reportData = Object.values(classStats).sort((a, b) => a.name.localeCompare(b.name, 'th'));
 
         // CSV Header (เปลี่ยน "จำนวนใบแดง" -> "จำนวนใบเตือน")
-        let csvContent = "\uFEFFชั้นเรียน,จำนวนนักเรียน,คะแนนรวม,คะแนนเฉลี่ย,จำนวนใบเตือน\n";
+        let csvContent = "\uFEFFชั้นเรียน,จำนวนนักเรียน,แต้มรวม,คะแนนเฉลี่ย,จำนวนใบเตือน\n";
         
         reportData.forEach(row => {
             const avg = (row.points / row.count).toFixed(2);
@@ -7440,118 +7446,7 @@ window.getGuildActiveBuffs = (guildId) => {
         handleBankTransaction();
     };
 
-    // --- 🚨 QUICK ANSWER SYSTEM (BUZZER) ---
-
-    // ตัวแปร Global สำหรับเก็บ State เกม
-    let quickAnswerUnsub = null; // เก็บ Listener เพื่อปิดเมื่อเลิกใช้
-    let currentQAClass = '';
-
-    // 1. [TEACHER] เริ่มต้นโหลด UI เลือกห้อง
-    window.initQuickAnswerUI = () => {
-        const select = document.getElementById('qa-class-select');
-        if(!select) return;
-
-        // ดึงรายชื่อห้องมาใส่ Select (Unique)
-        const classes = [...new Set(students.map(s => s.class_name))].sort();
-        select.innerHTML = '<option value="">-- เลือกห้องเรียน --</option>' + 
-            classes.map(c => `<option value="${c}">${c}</option>`).join('');
-    };
-
     
-   
-
-    // Helper: วาด UI การ์ด (แยกออกมาเพื่อให้เรียกใช้ซ้ำได้ง่ายตอนมีคนกด)
-    function updateQAGridUI(roomStudents, winnerId) {
-        const grid = document.getElementById('qa-student-grid');
-        
-        grid.innerHTML = roomStudents.map(s => {
-            const isWinner = s.id === winnerId;
-            
-            // สไตล์การ์ด: ถ้าเป็นผู้ชนะ ให้เป็นสีเทาเข้ม (ตามโจทย์) + ขอบแดง
-            const cardClass = isWinner 
-                ? 'bg-gray-600 text-white border-4 border-red-500 shadow-2xl transform scale-105 z-10' 
-                : 'bg-white text-gray-800 border-gray-200 opacity-60'; // คนอื่นจางลง
-
-            // ปุ่ม Correct/Wrong จะโผล่เฉพาะการ์ดผู้ชนะ
-            const actionButtons = isWinner ? `
-                <div class="mt-3 flex gap-2 w-full animate-slide-in-top">
-                    <button onclick="judgeAnswer('${s.id}', true)" class="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg font-bold shadow-md">
-                        ✅ ถูก
-                    </button>
-                    <button onclick="judgeAnswer('${s.id}', false)" class="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg font-bold shadow-md">
-                        ❌ ผิด
-                    </button>
-                </div>
-            ` : '';
-
-            return `
-            <div class="p-4 rounded-xl border transition-all flex flex-col items-center justify-center text-center h-40 relative ${cardClass}">
-                ${isWinner ? '<div class="absolute -top-3 -right-3 text-4xl animate-bounce">✋</div>' : ''}
-                <div class="text-sm font-bold opacity-70 mb-1">${s.student_id}</div>
-                <div class="font-bold text-lg leading-tight line-clamp-2">${s.full_name}</div>
-                ${actionButtons}
-            </div>
-            `;
-        }).join('');
-    }
-
-    // 3. [FIRESTORE] จัดการ Game State (ใช้ document เดียวชื่อ 'quick_answer_state')
-    // เราจะเก็บ: { active: boolean, target_class: string, winner_id: string }
-    
-    function getGameStateRef() {
-        return doc(db, 'artifacts', appId, 'public', 'data', 'gamestate', 'quick_answer');
-    }
-
-    // ครูสั่งเริ่มเกม (Start)
-   
-    // ครูสั่งรีเซ็ต (Reset)
-   
-
-    // 4. [LISTENER] ฟังการเปลี่ยนแปลง (ทั้งครูและนักเรียนใช้ร่วมกันได้ แต่แยก Logic)
-    function subscribeToGameState(filterClass) {
-        if (quickAnswerUnsub) quickAnswerUnsub(); // Clear old listener
-
-        quickAnswerUnsub = onSnapshot(getGameStateRef(), (docSnap) => {
-            const state = docSnap.data();
-            if (!state) return;
-
-            // --- ฝั่งครู (Teacher Logic) ---
-            if (userRole === 'teacher' && state.target_class === filterClass) {
-                // ถ้ามีคนกดปุ่ม (มี winner_id)
-                if (state.winner_id) {
-                    const roomStudents = students.filter(s => s.class_name === filterClass).sort((a,b) => a.student_id.localeCompare(b.student_id, undefined, {numeric: true}));
-                    updateQAGridUI(roomStudents, state.winner_id);
-                    
-                    document.getElementById('qa-status-bar').classList.add('hidden');
-                    document.getElementById('btn-qa-start').textContent = '🔒 ปิดรับ (มีคนกดแล้ว)';
-                    
-                    // เล่นเสียงติ๊งหน่อง!
-                    if(window.soundCoin) window.soundCoin.play();
-                } else if (!state.active) {
-                    // ถ้าถูก Reset
-                    const roomStudents = students.filter(s => s.class_name === filterClass).sort((a,b) => a.student_id.localeCompare(b.student_id, undefined, {numeric: true}));
-                    updateQAGridUI(roomStudents, null);
-                    document.getElementById('qa-status-bar').classList.add('hidden');
-                    document.getElementById('btn-qa-start').disabled = false;
-                    document.getElementById('btn-qa-start').textContent = '▶️ เริ่ม (Start)';
-                }
-            }
-
-            // --- ฝั่งนักเรียน (Student Logic) ---
-            if (userRole === 'student') {
-                const myClass = currentStudentData.class_name;
-                const modal = document.getElementById('student-buzzer-modal');
-                
-                // เช็คว่าใช่ห้องเราไหม และเกมเปิดอยู่ไหม และยังไม่มีใครชนะ
-                if (state.target_class === myClass && state.active && !state.winner_id) {
-                    modal.classList.remove('hidden'); // โชว์ปุ่มแดงใหญ่ๆ
-                } else {
-                    modal.classList.add('hidden'); // ซ่อนปุ่ม
-                }
-            }
-        });
-    }
-
    
 
    
@@ -9241,7 +9136,214 @@ window.getGuildActiveBuffs = (guildId) => {
             alert('Error: ' + e.message);
         }
     };
-   
+
+    // ==========================================================
+    // 🛡️ STUDENT GUILD SYSTEM (ระบบกิลด์ฝั่งนักเรียน)
+    // ==========================================================
+
+   // ✅ อัปเดต: เพิ่มตารางจัดอันดับกิลด์ (Leaderboard)
+   window.renderStudentGuild = () => {
+        const container = document.getElementById('content-student-guild');
+        if (!container) return;
+
+        const s = currentStudentData;
+        
+        // กรณีไม่มีกิลด์
+        if (!s || !s.guild_id) {
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center h-64 text-center p-6 bg-white rounded-2xl shadow-sm border border-gray-200 mt-4">
+                    <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center text-5xl mb-4 grayscale opacity-50">🛡️</div>
+                    <h2 class="text-xl font-bold text-gray-700">คุณยังไม่มีสังกัดกิลด์</h2>
+                    <p class="text-gray-500 text-sm mt-2">โปรดรอเชิญเข้ากิลด์ หรือสร้างกิลด์ใหม่</p>
+                </div>`;
+            return;
+        }
+
+        // 1. ดึงข้อมูลกิลด์ของฉัน
+        const myGuild = guilds.find(x => x.id === s.guild_id);
+        if (!myGuild) return;
+
+        // 2. 🏆 คำนวณอันดับกิลด์ทั้งหมด (Guild Leaderboard)
+        const guildRankings = guilds.map(g => {
+            const gMembers = students.filter(st => st.guild_id === g.id);
+            const gPoints = gMembers.reduce((sum, m) => sum + (m.points || 0), 0);
+            return { 
+                ...g, 
+                totalPoints: gPoints, 
+                memberCount: gMembers.length 
+            };
+        }).sort((a, b) => b.totalPoints - a.totalPoints);
+
+        // หาอันดับของกิลด์เรา
+        const myGuildRank = guildRankings.findIndex(x => x.id === s.guild_id) + 1;
+        const myGuildStats = guildRankings.find(x => x.id === s.guild_id); // ใช้ค่าที่คำนวณแล้ว
+
+        // สมาชิกในกิลด์เรา (เรียงตามแต้ม)
+        const myMembers = students
+            .filter(st => st.guild_id === s.guild_id)
+            .sort((a, b) => b.points - a.points);
+
+        // เช็คบัฟ
+        const activeBuffs = getGuildActiveBuffs(s.guild_id);
+
+        // HTML Template
+        container.innerHTML = `
+            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-lg p-6 text-white relative overflow-hidden mb-6">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl"></div>
+                
+                <div class="flex flex-col md:flex-row items-center md:items-start gap-6 relative z-10">
+                    <div class="w-24 h-24 bg-white/20 rounded-2xl flex items-center justify-center text-6xl backdrop-blur-sm shadow-inner border border-white/30 shrink-0">
+                        ${myGuild.icon || '🛡️'}
+                    </div>
+                    <div class="text-center md:text-left flex-1">
+                        <div class="flex items-center justify-center md:justify-start gap-2 mb-1">
+                            <span class="bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-0.5 rounded shadow-sm">
+                                อันดับ #${myGuildRank}
+                            </span>
+                            <h2 class="text-3xl font-bold">${myGuild.name}</h2>
+                        </div>
+                        <p class="text-indigo-100 text-sm mb-4 opacity-90">"${myGuild.desc || 'ไม่มีคำอธิบาย'}"</p>
+                        
+                        <div class="flex flex-wrap justify-center md:justify-start gap-3 text-sm font-medium">
+                            <div class="bg-white/20 px-3 py-1.5 rounded-lg flex items-center gap-2 backdrop-blur-sm">
+                                👥 สมาชิก ${myGuildStats.memberCount} คน
+                            </div>
+                            <div class="bg-white/20 px-3 py-1.5 rounded-lg flex items-center gap-2 backdrop-blur-sm">
+                                🏆 แต้มรวม ${myGuildStats.totalPoints.toLocaleString()}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-green-100 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-xl">📈</div>
+                    <div>
+                        <p class="text-xs text-gray-500 font-bold uppercase">ดอกเบี้ยธนาคาร</p>
+                        <p class="text-lg font-bold text-green-600">+${(parseFloat(activeBuffs.interest) || 0).toFixed(2)}%</p>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-red-100 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-xl">🏷️</div>
+                    <div>
+                        <p class="text-xs text-gray-500 font-bold uppercase">ส่วนลดร้านค้า</p>
+                        <p class="text-lg font-bold text-red-600">-${activeBuffs.discount || 0}%</p>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-blue-100 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-xl">🚀</div>
+                    <div>
+                        <p class="text-xs text-gray-500 font-bold uppercase">บูสต์แต้มภารกิจ</p>
+                        <p class="text-lg font-bold text-blue-600">+${activeBuffs.point_boost || 0}%</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-[500px]">
+                    <div class="p-4 bg-indigo-50 border-b border-indigo-100 flex justify-between items-center shrink-0">
+                        <h3 class="font-bold text-indigo-800 flex items-center gap-2">
+                            🏰 สมาชิกกิลด์เรา
+                        </h3>
+                        <span class="text-xs text-indigo-500 bg-white px-2 py-1 rounded-full border border-indigo-100">
+                            รวม ${myMembers.length} คน
+                        </span>
+                    </div>
+                    <div class="overflow-y-auto custom-scrollbar flex-1 p-0">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50 text-gray-500 border-b sticky top-0">
+                                <tr>
+                                    <th class="px-4 py-2 text-center w-10">#</th>
+                                    <th class="px-4 py-2 text-left">ชื่อ</th>
+                                    <th class="px-4 py-2 text-right">แต้ม</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                ${myMembers.map((m, index) => `
+                                    <tr class="${m.id === s.id ? 'bg-indigo-50' : 'hover:bg-gray-50'} transition-colors">
+                                        <td class="px-4 py-3 text-center font-mono text-gray-400 text-xs">${index + 1}</td>
+                                        <td class="px-4 py-3">
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-medium ${m.id === s.id ? 'text-indigo-700 font-bold' : 'text-gray-700'}">
+                                                    ${m.full_name}
+                                                </span>
+                                                ${m.id === s.id ? '<span class="text-[10px] bg-indigo-100 text-indigo-600 px-1.5 rounded-full">ฉัน</span>' : ''}
+                                                ${index === 0 ? '👑' : ''}
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3 text-right font-bold text-gray-600">
+                                            ${Math.floor(m.points).toLocaleString()}
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-[500px]">
+                    <div class="p-4 bg-yellow-50 border-b border-yellow-100 flex justify-between items-center shrink-0">
+                        <h3 class="font-bold text-yellow-800 flex items-center gap-2">
+                            🏆 อันดับกิลด์ทั้งหมด
+                        </h3>
+                    </div>
+                    <div class="overflow-y-auto custom-scrollbar flex-1 p-0">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50 text-gray-500 border-b sticky top-0">
+                                <tr>
+                                    <th class="px-4 py-2 text-center w-12">#</th>
+                                    <th class="px-4 py-2 text-left">กิลด์</th>
+                                    <th class="px-4 py-2 text-right">แต้มรวม</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                ${guildRankings.map((g, index) => {
+                                    const isMyGuild = g.id === s.guild_id;
+                                    let rankColor = 'bg-gray-100 text-gray-500'; // Default
+                                    if(index === 0) rankColor = 'bg-yellow-100 text-yellow-700'; // ที่ 1
+                                    else if(index === 1) rankColor = 'bg-gray-200 text-gray-600'; // ที่ 2
+                                    else if(index === 2) rankColor = 'bg-orange-100 text-orange-700'; // ที่ 3
+
+                                    return `
+                                    <tr class="${isMyGuild ? 'bg-yellow-50/50 border-l-4 border-l-yellow-400' : 'hover:bg-gray-50'} transition-colors">
+                                        <td class="px-4 py-3 text-center">
+                                            <span class="inline-block w-6 h-6 rounded-full text-xs flex items-center justify-center font-bold ${rankColor}">
+                                                ${index + 1}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-lg shadow-sm border border-gray-200">
+                                                    ${g.icon || '🛡️'}
+                                                </div>
+                                                <div>
+                                                    <div class="font-bold ${isMyGuild ? 'text-yellow-900' : 'text-gray-700'}">
+                                                        ${g.name}
+                                                    </div>
+                                                    <div class="text-xs text-gray-400">สมาชิก ${g.memberCount} คน</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3 text-right">
+                                            <span class="font-bold text-indigo-600 text-lg">
+                                                ${Math.floor(g.totalPoints).toLocaleString()}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        `;
+    };
+
+    
   </script>
  </body>
 </html>
