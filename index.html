@@ -109,8 +109,7 @@
 
   <!-- ==================== LOGIN SCREEN ==================== -->
   <div id="login-screen" class="fixed inset-0 z-[100] bg-gray-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col md:flex-row h-[500px]">
-      
+<div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col md:flex-row h-auto min-h-[650px] md:min-h-0 md:h-[500px]">      
       <!-- Left Side: Hero -->
       <div class="md:w-1/2 login-gradient p-10 flex flex-col justify-center items-center text-white text-center relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
@@ -244,9 +243,15 @@
                                    <span class="text-xs text-green-500 font-medium">(ดอกเบี้ยสะสม <span id="std-dash-interest">0</span>)</span>
                                 </div>
                             </div>
-                            
-                            
-                        
+                            <div class="flex gap-2 mt-4 relative z-10 pt-2 border-t border-white/10">
+                                <button onclick="openStudentBankModal('deposit')" class="flex-1 bg-white/20 hover:bg-white/30 text-green-500 py-1.5 rounded-lg font-bold text-sm transition-all border border-white/10 flex items-center justify-center gap-1 active:scale-95">
+                                    📥 ฝากแต้ม
+                                </button>
+                                <button onclick="openStudentBankModal('withdraw')" class="flex-1 bg-white/20 hover:bg-white/30 text-green-500 py-1.5 rounded-lg font-bold text-sm transition-all border border-white/10 flex items-center justify-center gap-1 active:scale-95">
+                                    📤 ถอนแต้ม
+                                </button>
+                            </div>
+
                             <div class="absolute -right-4 -bottom-4 text-green-200/50 text-6xl select-none pointer-events-none">฿</div>
                         </div>
                         
@@ -1924,6 +1929,42 @@
         <div id="rescue-list" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50 custom-scrollbar"></div>
         <div class="p-4 border-t bg-white text-center text-xs text-gray-400 shrink-0">
             * การซื้อสิทธิ์จะถูกบันทึกลงประวัติ โปรดติดต่อครูเพื่อทำการสอบแก้ตัว
+        </div>
+    </div>
+</div>
+
+<div id="student-bank-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-[90] p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
+        
+        <h3 id="std-bank-title" class="text-2xl font-bold mb-1 text-gray-800">ทำรายการ</h3>
+        <p class="text-xs text-gray-400 mb-4">บริหารจัดการแต้มของคุณ</p>
+        
+        <div class="bg-indigo-50 p-4 rounded-xl mb-5 border border-indigo-100">
+            <div class="flex justify-between text-sm text-gray-600 mb-2">
+                <span>💰 กระเป๋าตังค์:</span>
+                <span id="std-bank-wallet" class="font-bold text-gray-800">0</span>
+            </div>
+            <div class="flex justify-between text-sm text-gray-600">
+                <span>🏦 ธนาคาร:</span>
+                <span id="std-bank-balance" class="font-bold text-blue-600">0</span>
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-gray-700 font-bold mb-2 text-sm">จำนวนแต้มที่ต้องการ</label>
+            <input type="number" id="std-bank-amount" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-center text-3xl font-bold text-indigo-600 focus:border-indigo-500 focus:outline-none bg-white placeholder-gray-200 transition-all" placeholder="0">
+            
+            <div class="flex gap-2 mt-3">
+                <button onclick="setStudentBankAmount(100)" class="flex-1 py-1.5 bg-gray-100 rounded-lg text-xs font-bold text-gray-500 hover:bg-gray-200 hover:text-gray-700 transition-colors">100</button>
+                <button onclick="setStudentBankAmount(500)" class="flex-1 py-1.5 bg-gray-100 rounded-lg text-xs font-bold text-gray-500 hover:bg-gray-200 hover:text-gray-700 transition-colors">500</button>
+                <button onclick="setStudentBankAmount('all')" class="flex-1 py-1.5 bg-indigo-100 rounded-lg text-xs font-bold text-indigo-600 hover:bg-indigo-200 transition-colors">หมดหน้าตัก</button>
+            </div>
+        </div>
+
+        <div class="flex gap-3">
+            <button onclick="document.getElementById('student-bank-modal').classList.add('hidden')" class="flex-1 py-3 text-gray-500 font-bold hover:bg-gray-100 rounded-xl transition-all">ยกเลิก</button>
+            <button id="btn-confirm-std-bank" onclick="confirmStudentBankTransaction()" class="flex-1 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all">ยืนยัน</button>
         </div>
     </div>
 </div>
@@ -9395,6 +9436,122 @@ window.getGuildActiveBuffs = (guildId) => {
             if(window.soundCoin) window.soundCoin.play();
             Swal.fire('สำเร็จ', 'บันทึกการซื้อสิทธิ์แล้ว กรุณาติดต่อครู', 'success');
         });
+    };
+
+    // ==========================================================
+    // 🏦 STUDENT BANK SYSTEM (ฝาก-ถอน ฝั่งนักเรียน)
+    // ==========================================================
+    
+    let currentStudentBankAction = 'deposit'; // 'deposit' or 'withdraw'
+
+    // 1. เปิดหน้าต่างฝากถอน
+    window.openStudentBankModal = (action) => {
+        currentStudentBankAction = action;
+        const modal = document.getElementById('student-bank-modal');
+        const title = document.getElementById('std-bank-title');
+        const btn = document.getElementById('btn-confirm-std-bank');
+        const input = document.getElementById('std-bank-amount');
+
+        // รีเฟรชยอดเงินล่าสุด
+        document.getElementById('std-bank-wallet').textContent = currentStudentData.points.toLocaleString();
+        document.getElementById('std-bank-balance').textContent = (currentStudentData.bank_points || 0).toLocaleString();
+        input.value = '';
+
+        if (action === 'deposit') {
+            title.textContent = '📥 ฝากแต้มเข้าธนาคาร';
+            title.className = 'text-2xl font-bold mb-1 text-green-600';
+            btn.className = 'flex-1 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all';
+            btn.textContent = 'ยืนยันการฝาก';
+        } else {
+            title.textContent = '📤 ถอนแต้มออกมาใช้';
+            title.className = 'text-2xl font-bold mb-1 text-blue-600';
+            btn.className = 'flex-1 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all';
+            btn.textContent = 'ยืนยันการถอน';
+        }
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        setTimeout(() => input.focus(), 100);
+    };
+
+    // 2. ปุ่มลัดใส่ตัวเลข
+    window.setStudentBankAmount = (val) => {
+        const input = document.getElementById('std-bank-amount');
+        if (val === 'all') {
+            // ถ้าฝาก -> หมดตัว, ถ้าถอน -> หมดธนาคาร
+            if (currentStudentBankAction === 'deposit') {
+                input.value = currentStudentData.points;
+            } else {
+                input.value = currentStudentData.bank_points || 0;
+            }
+        } else {
+            input.value = val;
+        }
+    };
+
+    // 3. ยืนยันทำรายการ
+    window.confirmStudentBankTransaction = async () => {
+        const amount = parseInt(document.getElementById('std-bank-amount').value);
+        if (isNaN(amount) || amount <= 0) return alert('กรุณาระบุจำนวนแต้มให้ถูกต้อง');
+
+        const sRef = doc(db, 'artifacts', appId, 'public', 'data', 'students', currentStudentData.id);
+        const hRef = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
+        const batch = writeBatch(db);
+        const timestamp = serverTimestamp();
+
+        if (currentStudentBankAction === 'deposit') {
+            // --- ฝากเงิน ---
+            if (currentStudentData.points < amount) return alert('แต้มในกระเป๋าไม่พอครับ');
+
+            batch.update(sRef, {
+                points: increment(-amount),
+                bank_points: increment(amount),
+                bank_deposit_time: timestamp // อัปเดตเวลาฝากล่าสุด
+            });
+
+            batch.set(hRef, {
+                student_id: currentStudentData.id,
+                student_name: currentStudentData.full_name,
+                action: 'ฝากเงิน (Student)',
+                amount: -amount, // แสดงเป็นลบเพราะออกจากกระเป๋า
+                type: 'bank_deposit',
+                timestamp: timestamp
+            });
+
+        } else {
+            // --- ถอนเงิน ---
+            if ((currentStudentData.bank_points || 0) < amount) return alert('แต้มในธนาคารไม่พอครับ');
+
+            batch.update(sRef, {
+                points: increment(amount),
+                bank_points: increment(-amount)
+            });
+
+            batch.set(hRef, {
+                student_id: currentStudentData.id,
+                student_name: currentStudentData.full_name,
+                action: 'ถอนเงิน (Student)',
+                amount: amount, // แสดงเป็นบวกเพราะเข้ากระเป๋า
+                type: 'bank_withdraw',
+                timestamp: timestamp
+            });
+        }
+
+        try {
+            await batch.commit();
+            document.getElementById('student-bank-modal').classList.add('hidden');
+            if(window.soundCoin) window.soundCoin.play();
+            
+            Swal.fire({
+                icon: 'success',
+                title: 'ทำรายการสำเร็จ',
+                text: currentStudentBankAction === 'deposit' ? `ฝาก ${amount} แต้มเรียบร้อย` : `ถอน ${amount} แต้มเรียบร้อย`,
+                timer: 1500,
+                showConfirmButton: false
+            });
+        } catch (e) {
+            alert('Error: ' + e.message);
+        }
     };
    
   </script>
