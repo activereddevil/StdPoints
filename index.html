@@ -244,10 +244,10 @@
                                    <span class="text-xs text-green-500 font-medium">(ดอกเบี้ยสะสม <span id="std-dash-interest">0</span>)</span>
                                 </div>
                                 <div class="flex gap-2 mt-4 relative z-10 pt-2 border-t border-white/10">
-                                    <button onclick="openStudentBankModal('deposit')" class="flex-1 bg-white/20 hover:bg-white/30 text-white py-1.5 rounded-lg font-bold text-sm transition-all border border-white/10 flex items-center justify-center gap-1 active:scale-95">
+                                    <button onclick="openStudentBankModal('deposit')" class="flex-1 bg-white/20 hover:bg-white/30 text-green-500 py-1.5 rounded-lg font-bold text-sm transition-all border border-white/10 flex items-center justify-center gap-1 active:scale-95">
                                         📥 ฝากแต้ม
                                     </button>
-                                    <button onclick="openStudentBankModal('withdraw')" class="flex-1 bg-white/20 hover:bg-white/30 text-white py-1.5 rounded-lg font-bold text-sm transition-all border border-white/10 flex items-center justify-center gap-1 active:scale-95">
+                                    <button onclick="openStudentBankModal('withdraw')" class="flex-1 bg-white/20 hover:bg-white/30 text-green-500 py-1.5 rounded-lg font-bold text-sm transition-all border border-white/10 flex items-center justify-center gap-1 active:scale-95">
                                         📤 ถอนแต้ม
                                     </button>
                                 </div>
@@ -9124,6 +9124,7 @@ window.getGuildActiveBuffs = (guildId) => {
     // ==========================================================
     
     let currentStudentBankAction = 'deposit'; // 'deposit' or 'withdraw'
+    
 
     // 1. เปิดหน้าต่างฝากถอน
     window.openStudentBankModal = (action) => {
@@ -9133,9 +9134,13 @@ window.getGuildActiveBuffs = (guildId) => {
         const btn = document.getElementById('btn-confirm-std-bank');
         const input = document.getElementById('std-bank-amount');
 
+        const principal = currentStudentData.bank_points || 0;
+        const interest = calculatePendingInterest(currentStudentData); // คำนวณดอกเบี้ย
+        const totalBankBalance = Math.floor(principal + interest); // รวมยอด
+
         // รีเฟรชยอดเงินล่าสุด
-        document.getElementById('std-bank-wallet').textContent = currentStudentData.points.toLocaleString();
-        document.getElementById('std-bank-balance').textContent = (currentStudentData.bank_points || 0).toLocaleString();
+        document.getElementById('std-bank-wallet').textContent = Math.floor(currentStudentData.points).toLocaleString();
+        document.getElementById('std-bank-balance').textContent = totalBankBalance.toLocaleString();
         input.value = '';
 
         if (action === 'deposit') {
@@ -9161,9 +9166,11 @@ window.getGuildActiveBuffs = (guildId) => {
         if (val === 'all') {
             // ถ้าฝาก -> หมดตัว, ถ้าถอน -> หมดธนาคาร
             if (currentStudentBankAction === 'deposit') {
-                input.value = currentStudentData.points;
+                input.value = Math.floor(currentStudentData.points);
             } else {
-                input.value = currentStudentData.bank_points || 0;
+                const principal = currentStudentData.bank_points || 0;
+                const interest = calculatePendingInterest(currentStudentData);
+                input.value = Math.floor(principal + interest);
             }
         } else {
             input.value = val;
