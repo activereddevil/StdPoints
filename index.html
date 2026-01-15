@@ -4383,55 +4383,39 @@ const appId = 'activeredpoint';
     // ==========================================
     // 🏦 OPEN BANK MODAL (ฉบับสมบูรณ์)
     // ==========================================
-    window.openBankModal = (studentId) => {
-        // 1. หา ID เป้าหมาย (ถ้าระบุมาใช้ตัวนั้น ถ้าไม่ระบุใช้ของตัวเอง)
-        const checkId = studentId || (currentStudentData ? currentStudentData.id : null);
-            if (checkId) {
-        const s = students.find(x => x.id === checkId);
-            if (s && (s.warning_cards || 0) > 0) {
-                document.getElementById('locked-student-name').textContent = s.full_name;
-            document.getElementById('locked-warning-count').textContent = s.warning_cards;
-            
-            const modal = document.getElementById('bank-locked-modal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            
-            return; // จบการทำงาน ไม่เปิดธนาคาร
-
-        }
-    }
-
+   // ✅ แก้ไข: อัปเดตตัวแปร currentBankTarget ให้ถูกต้องเมื่อเปิดหน้าต่าง
+   window.openBankModal = (studentId) => {
+        // 1. หา ID เป้าหมาย
         let targetId = studentId;
         if (!targetId) {
             if (currentStudentData && currentStudentData.id) {
                 targetId = currentStudentData.id;
             } else {
-                console.error("ไม่พบข้อมูลนักเรียน (No ID provided and no current session)");
                 return;
             }
         }
 
         // 2. ค้นหาข้อมูลจาก ID
         const s = students.find(x => x.id === targetId);
-        if (!s) {
-            console.error("ไม่พบนักเรียน ID:", targetId);
-            return;
-        }
+        if (!s) return;
 
-        // ✨ 3. เติมข้อมูลลง HTML (ตอนนี้มี Element ครบแล้ว ไม่ Error แน่นอน)
+        // 🔥 จุดสำคัญ: ต้องอัปเดตตัวแปรนี้ ระบบถึงจะรู้ว่ากำลังทำรายการให้ใคร
+        currentBankTarget = s; 
+
+        // 3. เติมข้อมูลลง HTML
         const idInput = document.getElementById('bank-student-id');
         if(idInput) idInput.value = s.id;
-
+        
         const nameDisplay = document.getElementById('bank-student-name');
         if(nameDisplay) nameDisplay.textContent = s.full_name;
-
+        
         const walletDisplay = document.getElementById('bank-wallet-display');
         if(walletDisplay) walletDisplay.textContent = Math.floor(s.points).toLocaleString();
-        
-        // คำนวณยอดเงิน
+
+        // คำนวณยอดเงินรวมดอกเบี้ย
         const currentBank = s.bank_points || 0;
         const pendingInterest = Math.floor(calculatePendingInterest(s));
-        const totalShow = currentBank + pendingInterest; // ยอดรวมดอกเบี้ย
+        const totalShow = currentBank + pendingInterest;
         
         const balanceDisplay = document.getElementById('bank-balance-display');
         if(balanceDisplay) balanceDisplay.textContent = totalShow.toLocaleString();
@@ -4445,14 +4429,24 @@ const appId = 'activeredpoint';
         document.getElementById('bank-action-modal').classList.remove('hidden');
     };
 
-    // ฟังก์ชันปิด Modal (เปลี่ยนชื่อให้สั้นลงเพื่อให้ตรงกับ HTML)
     window.hideBankModal = () => {
         document.getElementById('bank-action-modal').classList.add('hidden');
     };
-    
-    window.closeBankModal = () => {
-        document.getElementById('bank-action-modal').classList.add('hidden');
-        document.getElementById('bank-action-modal').classList.remove('flex');
+
+    // ✅ เพิ่มฟังก์ชันเชื่อมโยงปุ่มกด (เผื่อกรณีที่ยังไม่มี)
+    window.handleBankTransaction = () => {
+        const type = document.getElementById('bank-transaction-type').value;
+        confirmBankAction(type);
+    };
+
+    // ✅ ฟังก์ชันสำหรับปุ่ม "ฝากทั้งหมด/ถอนทั้งหมด"
+    window.handleBankAll = (type) => {
+        if(!currentBankTarget) return;
+        if(type === 'deposit') {
+             confirmBankAction('deposit_all');
+        } else {
+             confirmBankAction('withdraw_all');
+        }
     };
 
     window.confirmBankAction = async (action) => {
@@ -9512,7 +9506,7 @@ window.getGuildActiveBuffs = (guildId) => {
             batch.set(hRef, {
                 student_id: currentStudentData.id,
                 student_name: currentStudentData.full_name,
-                action: 'ฝากเงิน (Student)',
+                action: 'ฝากแต้ม (นักเรียน)',
                 amount: -amount, // แสดงเป็นลบเพราะออกจากกระเป๋า
                 type: 'bank_deposit',
                 timestamp: timestamp
