@@ -109,7 +109,8 @@
 
   <!-- ==================== LOGIN SCREEN ==================== -->
   <div id="login-screen" class="fixed inset-0 z-[100] bg-gray-50 flex items-center justify-center p-4">
-<div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col md:flex-row h-auto min-h-[650px] md:min-h-0 md:h-[500px]">      
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col md:flex-row h-auto min-h-[650px] md:min-h-0 md:h-[500px]">
+      
       <!-- Left Side: Hero -->
       <div class="md:w-1/2 login-gradient p-10 flex flex-col justify-center items-center text-white text-center relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
@@ -131,7 +132,7 @@
         </div>
 
         <!-- Student Login Form -->
-        <div id="form-login-student" class="flex-1 flex flex-col justify-center space-y-4">
+        <div id="form-login-student" class="flex-1 flex flex-col justify-center space-y-6">
             <div class="text-center mb-2">
               <h2 class="text-2xl font-bold text-gray-800">เข้าสู่ระบบนักเรียน</h2>
               <p class="text-gray-500 text-sm">กรุณาระบุตัวตนเพื่อความปลอดภัย 🔐</p>
@@ -242,16 +243,18 @@
                                    <span id="std-dash-bank" class="text-3xl font-bold text-green-700">0</span>
                                    <span class="text-xs text-green-500 font-medium">(ดอกเบี้ยสะสม <span id="std-dash-interest">0</span>)</span>
                                 </div>
+                                <div class="flex gap-2 mt-4 relative z-10 pt-2 border-t border-white/10">
+                                    <button onclick="openStudentBankModal('deposit')" class="flex-1 bg-white/20 hover:bg-white/30 text-white py-1.5 rounded-lg font-bold text-sm transition-all border border-white/10 flex items-center justify-center gap-1 active:scale-95">
+                                        📥 ฝากแต้ม
+                                    </button>
+                                    <button onclick="openStudentBankModal('withdraw')" class="flex-1 bg-white/20 hover:bg-white/30 text-white py-1.5 rounded-lg font-bold text-sm transition-all border border-white/10 flex items-center justify-center gap-1 active:scale-95">
+                                        📤 ถอนแต้ม
+                                    </button>
+                                </div>
                             </div>
-                            <div class="flex gap-2 mt-4 relative z-10 pt-2 border-t border-white/10">
-                                <button onclick="openStudentBankModal('deposit')" class="flex-1 bg-white/20 hover:bg-white/30 text-green-500 py-1.5 rounded-lg font-bold text-sm transition-all border border-white/10 flex items-center justify-center gap-1 active:scale-95">
-                                    📥 ฝากแต้ม
-                                </button>
-                                <button onclick="openStudentBankModal('withdraw')" class="flex-1 bg-white/20 hover:bg-white/30 text-green-500 py-1.5 rounded-lg font-bold text-sm transition-all border border-white/10 flex items-center justify-center gap-1 active:scale-95">
-                                    📤 ถอนแต้ม
-                                </button>
-                            </div>
-
+                            
+                            
+                        
                             <div class="absolute -right-4 -bottom-4 text-green-200/50 text-6xl select-none pointer-events-none">฿</div>
                         </div>
                         
@@ -285,24 +288,6 @@
                             <div id="std-dash-missions" class="space-y-2">
                                 </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <div onclick="openRescueCenter()" class="cursor-pointer bg-gradient-to-r from-red-500 to-pink-600 rounded-xl p-4 text-white shadow-lg relative overflow-hidden group hover:shadow-xl transition-all mt-4">
-                <div class="absolute right-0 top-0 h-full w-1/2 bg-white/10 skew-x-12 transform origin-bottom-right group-hover:skew-x-6 transition-all"></div>
-                <div class="flex items-center justify-between relative z-10">
-                    <div class="flex items-center gap-4">
-                        <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-4xl backdrop-blur-sm">
-                            🚑
-                        </div>
-                        <div>
-                            <h3 class="text-xl font-bold">ศูนย์บริการแก้ตัว (Exam Clinic)</h3>
-                            <p class="text-red-100 text-sm">สอบตกไม่ต้องเศร้า! ใช้แต้มแลกสิทธิ์สอบแก้ตัวที่นี่</p>
-                        </div>
-                    </div>
-                    <div class="bg-white text-red-600 font-bold px-4 py-2 rounded-lg shadow-sm group-hover:scale-105 transition-transform">
-                        เข้าใช้งาน >
                     </div>
                 </div>
             </div>
@@ -1180,18 +1165,7 @@
                     <select id="add-reward-type" class="w-full px-4 py-2 border rounded-lg bg-white" onchange="toggleRewardTypeInputs()">
                         <option value="general">🎁 ของรางวัลทั่วไป (แลกแล้วจบ)</option>
                         <option value="gacha_custom">🎲 กล่องสุ่ม (Custom Gacha) ✨</option>
-                        <option value="exam_rescue">🚑 สิทธิ์สอบแก้ตัว (Exam Rescue) 🆕</option>
                     </select>
-                </div>
-
-                <div class="reward-rescue-only hidden mt-3 mb-4 bg-red-50 p-3 rounded-lg border border-red-100">
-                    <label class="block text-red-800 text-sm font-bold mb-2">💸 ราคาเพิ่มขึ้นครั้งละ (Step Price)</label>
-                    <input type="number" id="add-reward-step-price" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-3" placeholder="เช่น 50 (ซื้อครั้งที่ 2 จะแพงขึ้น 50 แต้ม)">
-                    
-                    <label class="block text-red-800 text-sm font-bold mb-2">🎯 นักเรียนที่มีสิทธิ์ (เฉพาะคนที่สอบตก)</label>
-                    <input type="text" id="add-reward-search-eligible" onkeyup="renderRewardEligibleSelector('add')" placeholder="🔍 ค้นหาชื่อ..." class="mb-2 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none focus:shadow-outline">
-                    <div id="add-reward-eligible-list" class="h-48 overflow-y-auto border rounded p-2 bg-white grid grid-cols-1 gap-1 custom-scrollbar"></div>
-                    <div class="text-[10px] text-red-500 mt-2 text-right">* เอาติ๊กถูกออก = สอบผ่านแล้ว (รีเซ็ตราคา)</div>
                 </div>
 
                 <div id="gacha-builder-container" class="hidden bg-amber-50 p-4 rounded-lg border border-amber-200">
@@ -1282,18 +1256,7 @@
                     <select id="edit-reward-type" class="w-full px-4 py-2 border rounded-lg bg-white" onchange="toggleEditRewardTypeInputs()">
                         <option value="general">🎁 ของรางวัลทั่วไป (แลกแล้วจบ)</option>
                         <option value="gacha_custom">🎲 กล่องสุ่ม (Custom Gacha) ✨</option>
-                        <option value="exam_rescue">🚑 สิทธิ์สอบแก้ตัว (Exam Rescue) 🆕</option>
                     </select>
-                </div>
-
-                <div class="reward-rescue-only hidden mt-3 mb-4 bg-red-50 p-3 rounded-lg border border-red-100">
-                    <label class="block text-red-800 text-sm font-bold mb-2">💸 ราคาเพิ่มขึ้นครั้งละ (Step Price)</label>
-                    <input type="number" id="edit-reward-step-price" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-3" placeholder="เช่น 50">
-                    
-                    <label class="block text-red-800 text-sm font-bold mb-2">🎯 นักเรียนที่มีสิทธิ์ (เฉพาะคนที่สอบตก)</label>
-                    <input type="text" id="edit-reward-search-eligible" onkeyup="renderRewardEligibleSelector('edit')" placeholder="🔍 ค้นหาชื่อ..." class="mb-2 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none focus:shadow-outline">
-                    <div id="edit-reward-eligible-list" class="h-48 overflow-y-auto border rounded p-2 bg-white grid grid-cols-1 gap-1 custom-scrollbar"></div>
-                    <div class="text-[10px] text-red-500 mt-2 text-right">* เอาติ๊กถูกออก = สอบผ่านแล้ว (รีเซ็ตราคา)</div>
                 </div>
 
                 <div id="edit-gacha-builder-container" class="hidden bg-amber-50 p-4 rounded-lg border border-amber-200">
@@ -1910,25 +1873,6 @@
                 <span>🎁</span> แจกแต้มให้ทุกคน
             </button>
             <p class="text-[10px] text-center text-gray-400 mt-2">*คำนวณบัฟส่วนตัวให้แต่ละคนอัตโนมัติ</p>
-        </div>
-    </div>
-</div>
-
-<div id="rescue-center-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-[90] p-4">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full flex flex-col max-h-[85vh] overflow-hidden relative">
-        <div class="bg-red-600 p-6 text-white shrink-0 relative overflow-hidden">
-            <div class="absolute -right-4 -top-4 text-white/10 text-9xl font-bold pointer-events-none">✚</div>
-            <div class="flex justify-between items-start relative z-10">
-                <div>
-                    <h2 class="text-2xl font-bold flex items-center gap-2">🏥 ศูนย์บริการแก้ตัว</h2>
-                    <p class="text-red-100 text-sm opacity-90">"โอกาสครั้งที่สอง... มีราคาเสมอ"</p>
-                </div>
-                <button onclick="document.getElementById('rescue-center-modal').classList.add('hidden')" class="bg-white/20 hover:bg-white/30 text-white w-8 h-8 rounded-full flex items-center justify-center transition-colors">✕</button>
-            </div>
-        </div>
-        <div id="rescue-list" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50 custom-scrollbar"></div>
-        <div class="p-4 border-t bg-white text-center text-xs text-gray-400 shrink-0">
-            * การซื้อสิทธิ์จะถูกบันทึกลงประวัติ โปรดติดต่อครูเพื่อทำการสอบแก้ตัว
         </div>
     </div>
 </div>
@@ -3071,7 +3015,7 @@ const appId = 'activeredpoint';
         // Student view (Grid)
         const grid = document.getElementById('rewards-grid');
         if (userRole === 'student' && grid) {
-            grid.innerHTML = rewards.filter(r => r.type !== 'exam_rescue').map(r => {
+            grid.innerHTML = rewards.map(r => {
                 // --- 🟢 ส่วนที่แก้: Logic แสดงผลฝั่งนักเรียน ---
                 const isGain = r.points < 0; // ถ้าแต้มติดลบ แปลว่า "แจกแต้ม"
                 
@@ -4383,39 +4327,55 @@ const appId = 'activeredpoint';
     // ==========================================
     // 🏦 OPEN BANK MODAL (ฉบับสมบูรณ์)
     // ==========================================
-   // ✅ แก้ไข: อัปเดตตัวแปร currentBankTarget ให้ถูกต้องเมื่อเปิดหน้าต่าง
-   window.openBankModal = (studentId) => {
-        // 1. หา ID เป้าหมาย
+    window.openBankModal = (studentId) => {
+        // 1. หา ID เป้าหมาย (ถ้าระบุมาใช้ตัวนั้น ถ้าไม่ระบุใช้ของตัวเอง)
+        const checkId = studentId || (currentStudentData ? currentStudentData.id : null);
+            if (checkId) {
+        const s = students.find(x => x.id === checkId);
+            if (s && (s.warning_cards || 0) > 0) {
+                document.getElementById('locked-student-name').textContent = s.full_name;
+            document.getElementById('locked-warning-count').textContent = s.warning_cards;
+            
+            const modal = document.getElementById('bank-locked-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            return; // จบการทำงาน ไม่เปิดธนาคาร
+
+        }
+    }
+
         let targetId = studentId;
         if (!targetId) {
             if (currentStudentData && currentStudentData.id) {
                 targetId = currentStudentData.id;
             } else {
+                console.error("ไม่พบข้อมูลนักเรียน (No ID provided and no current session)");
                 return;
             }
         }
 
         // 2. ค้นหาข้อมูลจาก ID
         const s = students.find(x => x.id === targetId);
-        if (!s) return;
+        if (!s) {
+            console.error("ไม่พบนักเรียน ID:", targetId);
+            return;
+        }
 
-        // 🔥 จุดสำคัญ: ต้องอัปเดตตัวแปรนี้ ระบบถึงจะรู้ว่ากำลังทำรายการให้ใคร
-        currentBankTarget = s; 
-
-        // 3. เติมข้อมูลลง HTML
+        // ✨ 3. เติมข้อมูลลง HTML (ตอนนี้มี Element ครบแล้ว ไม่ Error แน่นอน)
         const idInput = document.getElementById('bank-student-id');
         if(idInput) idInput.value = s.id;
-        
+
         const nameDisplay = document.getElementById('bank-student-name');
         if(nameDisplay) nameDisplay.textContent = s.full_name;
-        
+
         const walletDisplay = document.getElementById('bank-wallet-display');
         if(walletDisplay) walletDisplay.textContent = Math.floor(s.points).toLocaleString();
-
-        // คำนวณยอดเงินรวมดอกเบี้ย
+        
+        // คำนวณยอดเงิน
         const currentBank = s.bank_points || 0;
         const pendingInterest = Math.floor(calculatePendingInterest(s));
-        const totalShow = currentBank + pendingInterest;
+        const totalShow = currentBank + pendingInterest; // ยอดรวมดอกเบี้ย
         
         const balanceDisplay = document.getElementById('bank-balance-display');
         if(balanceDisplay) balanceDisplay.textContent = totalShow.toLocaleString();
@@ -4429,24 +4389,14 @@ const appId = 'activeredpoint';
         document.getElementById('bank-action-modal').classList.remove('hidden');
     };
 
+    // ฟังก์ชันปิด Modal (เปลี่ยนชื่อให้สั้นลงเพื่อให้ตรงกับ HTML)
     window.hideBankModal = () => {
         document.getElementById('bank-action-modal').classList.add('hidden');
     };
-
-    // ✅ เพิ่มฟังก์ชันเชื่อมโยงปุ่มกด (เผื่อกรณีที่ยังไม่มี)
-    window.handleBankTransaction = () => {
-        const type = document.getElementById('bank-transaction-type').value;
-        confirmBankAction(type);
-    };
-
-    // ✅ ฟังก์ชันสำหรับปุ่ม "ฝากทั้งหมด/ถอนทั้งหมด"
-    window.handleBankAll = (type) => {
-        if(!currentBankTarget) return;
-        if(type === 'deposit') {
-             confirmBankAction('deposit_all');
-        } else {
-             confirmBankAction('withdraw_all');
-        }
+    
+    window.closeBankModal = () => {
+        document.getElementById('bank-action-modal').classList.add('hidden');
+        document.getElementById('bank-action-modal').classList.remove('flex');
     };
 
     window.confirmBankAction = async (action) => {
@@ -9170,320 +9120,6 @@ window.getGuildActiveBuffs = (guildId) => {
     };
 
     // ==========================================================
-    // 🚑 EXAM RESCUE SYSTEM (วางต่อท้ายสุดของ Script ได้เลย)
-    // ==========================================================
-
-    let selectedEligibleStudents = new Set(); 
-
-   // 1. ฟังก์ชันเลือกนักเรียน (Targeting) - อัปเกรด: รองรับค้นหาชั้นเรียน & แสดงป้ายห้อง
-   window.renderRewardEligibleSelector = (mode) => {
-        const list = document.getElementById(`${mode}-reward-eligible-list`);
-        const searchInput = document.getElementById(`${mode}-reward-search-eligible`);
-        const search = searchInput ? searchInput.value.toLowerCase().trim() : '';
-
-        // เรียงลำดับ: คนที่ถูกติ๊กเลือกไว้ -> จะดันขึ้นไปอยู่บนสุดเสมอ
-        let sortedStudents = [...students].sort((a, b) => {
-            const aSel = selectedEligibleStudents.has(a.id);
-            const bSel = selectedEligibleStudents.has(b.id);
-            if (aSel && !bSel) return -1;
-            if (!aSel && bSel) return 1;
-            return a.student_id.localeCompare(b.student_id);
-        });
-
-        // 🔥 กรองข้อมูล: ชื่อ OR รหัส OR ชั้นเรียน
-        const filtered = sortedStudents.filter(s => 
-            s.full_name.toLowerCase().includes(search) || 
-            s.student_id.includes(search) ||
-            (s.class_name && s.class_name.toLowerCase().includes(search)) // เพิ่มเงื่อนไขชั้นเรียน
-        );
-
-        list.innerHTML = filtered.map(s => {
-            const isChecked = selectedEligibleStudents.has(s.id);
-            // แสดงป้ายชั้นเรียนเล็กๆ หลังชื่อ
-            const classTag = s.class_name ? `<span class="ml-1 text-[10px] bg-gray-100 text-gray-500 px-1.5 rounded border border-gray-200">${s.class_name}</span>` : '';
-
-            return `
-            <label class="flex items-center space-x-2 p-2 rounded cursor-pointer transition-colors ${isChecked ? 'bg-red-50 border border-red-200' : 'hover:bg-gray-50 border border-transparent'}">
-                <input type="checkbox" onchange="toggleEligibleStudent('${s.id}', '${mode}')" ${isChecked ? 'checked' : ''} class="form-checkbox text-red-600 rounded w-4 h-4 shrink-0">
-                <div class="flex-1 min-w-0">
-                    <div class="flex items-center">
-                        <span class="text-sm font-bold ${isChecked ? 'text-red-700' : 'text-gray-700'} truncate">${s.full_name}</span>
-                        ${classTag}
-                    </div>
-                    <div class="text-xs text-gray-400">รหัส: ${s.student_id}</div>
-                </div>
-            </label>`;
-        }).join('');
-    };
-
-    window.toggleEligibleStudent = (id, mode) => {
-        if (selectedEligibleStudents.has(id)) selectedEligibleStudents.delete(id);
-        else selectedEligibleStudents.add(id);
-        renderRewardEligibleSelector(mode);
-    };
-
-    // 2. ปรับปรุงการเพิ่มรางวัล (Overwrite)
-    // ✅ แก้ไข: เพิ่ม Logic บันทึก Gacha Pool ลงไป
-    window.handleAddReward = async (e) => {
-        if(e) e.preventDefault();
-        const name = document.getElementById('add-reward-name').value;
-        const points = parseInt(document.getElementById('add-reward-points').value);
-        const stockVal = document.getElementById('add-reward-stock').value;
-        const stock = stockVal ? parseInt(stockVal) : -1;
-        const type = document.getElementById('add-reward-type').value;
-        const image = document.getElementById('add-reward-img').value;
-        const category = document.getElementById('add-reward-category').value;
-        
-        const isQuotaUnlimited = document.getElementById('add-reward-quota-unlimited').checked;
-        const quota = isQuotaUnlimited ? 0 : (parseInt(document.getElementById('add-reward-quota').value) || 0);
-
-        if (!name || isNaN(points)) return alert('กรุณากรอกข้อมูลให้ครบ');
-
-        let rewardData = {
-            name, points, stock, type, image, category, quota,
-            is_active: document.getElementById('add-reward-active').checked,
-            no_guild_discount: document.getElementById('add-reward-no-guild').checked,
-            no_personal_discount: document.getElementById('add-reward-no-personal').checked,
-            created_at: serverTimestamp()
-        };
-
-        // 🔥 ส่วนที่ต้องมี: ดึงข้อมูลจาก Slot มาบันทึก
-        if (type === 'gacha_custom') {
-            let gachaPool = [];
-            // ค้นหา Slot ทั้งหมดที่มี class 'add-gacha-slot-item'
-            document.querySelectorAll('.add-gacha-slot-item').forEach(slot => {
-                const slotType = slot.querySelector('.slot-type').value;
-                const chance = parseFloat(slot.querySelector('.slot-chance').value) || 0;
-                let data = { type: slotType, chance: chance };
-
-                // ดึงค่าตามประเภท
-                if (slotType === 'points') {
-                    data.min = parseInt(slot.querySelector('.slot-min').value) || 0;
-                    data.max = parseInt(slot.querySelector('.slot-max').value) || 0;
-                } else if (slotType === 'points_fix') {
-                    data.amount = parseInt(slot.querySelector('.slot-fix-amount').value) || 0;
-                    data.image = slot.querySelector('.slot-fix-image').value;
-                } else if (slotType === 'reward_ref') {
-                    data.reward_id = slot.querySelector('.slot-reward-id').value;
-                } else if (slotType === 'text') {
-                    data.text = slot.querySelector('.slot-text').value;
-                } else if (slotType === 'interest') {
-                    data.rate = parseFloat(slot.querySelector('.slot-rate').value) || 0;
-                    data.hours = parseFloat(slot.querySelector('.slot-hours').value) || 0;
-                } else if (slotType.startsWith('buff_')) {
-                    const group = slot.querySelector(`.input-${slotType}`);
-                    if(group) {
-                        data.value = parseFloat(group.querySelector('.slot-value').value) || 0;
-                        data.duration = parseFloat(group.querySelector('.slot-duration').value) || 0;
-                    }
-                }
-                gachaPool.push(data);
-            });
-            rewardData.gacha_pool = gachaPool;
-        }
-
-        if (type === 'exam_rescue' && typeof selectedEligibleStudents !== 'undefined') {
-            rewardData.step_price = parseInt(document.getElementById('add-reward-step-price').value) || 0;
-            rewardData.eligible_student_ids = Array.from(selectedEligibleStudents);
-            rewardData.usage_counts = {};
-        }
-
-        try {
-            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rewards', crypto.randomUUID()), rewardData);
-            document.getElementById('add-reward-modal').classList.add('hidden');
-            showToast('เพิ่มรางวัลเรียบร้อย ✅');
-        } catch (e) { alert('Error: ' + e.message); }
-    };
-
-    // 3. ปรับปรุงการเปิดหน้าแก้ไข (Load Data)
-    window.openEditRewardModal = (id) => {
-        const r = rewards.find(x => x.id === id);
-        if (!r) return;
-
-        document.getElementById('edit-reward-id').value = id;
-        document.getElementById('edit-reward-name').value = r.name;
-        document.getElementById('edit-reward-points').value = r.points;
-        document.getElementById('edit-reward-img').value = r.image || '';
-        document.getElementById('edit-reward-type').value = r.type || 'general';
-        document.getElementById('edit-reward-category').value = r.category || 'ทั่วไป';
-        
-        // Stock & Quota Logic (เหมือนเดิม)
-        if (r.stock === -1) {
-            document.getElementById('edit-reward-unlimited').checked = true;
-            document.getElementById('edit-reward-stock').disabled = true;
-            document.getElementById('edit-reward-stock').value = '';
-        } else {
-            document.getElementById('edit-reward-unlimited').checked = false;
-            document.getElementById('edit-reward-stock').disabled = false;
-            document.getElementById('edit-reward-stock').value = r.stock;
-        }
-
-        // 3. จัดการประเภทและ Gacha Builder
-        const typeSelect = document.getElementById('edit-reward-type');
-        typeSelect.value = r.type || 'general';
-        
-        // ล้าง Slot เก่าก่อน
-        document.getElementById('edit-gacha-slots-list').innerHTML = '';
-
-        // ถ้าเป็น Gacha ให้โหลด Slot เดิมมาโชว์
-        if (r.type === 'gacha_custom' && r.gacha_pool) {
-            r.gacha_pool.forEach(slotData => {
-                addEditGachaSlot(slotData);
-            });
-        }
-        
-        // 🔥 Load Rescue Data
-        if (r.type === 'exam_rescue') {
-            document.getElementById('edit-reward-step-price').value = r.step_price || 0;
-            selectedEligibleStudents = new Set(r.eligible_student_ids || []);
-        } else {
-            selectedEligibleStudents.clear();
-        }
-
-        toggleRewardTypeInputs('edit');
-        document.getElementById('edit-reward-modal').classList.remove('hidden');
-    };
-
-    // 4. ปรับปรุงการบันทึกแก้ไข (Reset Logic)
-    window.handleEditRewardSubmit = async (e) => {
-        if(e) e.preventDefault();
-        const id = document.getElementById('edit-reward-id').value;
-        const type = document.getElementById('edit-reward-type').value;
-        
-        const isUnlimited = document.getElementById('edit-reward-unlimited').checked;
-        const stock = isUnlimited ? -1 : parseInt(document.getElementById('edit-reward-stock').value);
-
-        let updateData = {
-            name: document.getElementById('edit-reward-name').value,
-            points: parseInt(document.getElementById('edit-reward-points').value),
-            stock: stock,
-            type: type,
-            image: document.getElementById('edit-reward-img').value || '',
-            category: document.getElementById('edit-reward-category').value,
-            is_active: document.getElementById('edit-reward-active').checked
-        };
-
-        if (type === 'exam_rescue') {
-            const stepPrice = parseInt(document.getElementById('edit-reward-step-price').value) || 0;
-            const eligibleIds = Array.from(selectedEligibleStudents);
-            
-            // Logic รีเซ็ตราคา: เลือกเก็บ Count เฉพาะคนที่ยังอยู่ใน List
-            const oldReward = rewards.find(x => x.id === id);
-            const oldCounts = oldReward ? (oldReward.usage_counts || {}) : {};
-            let newUsageCounts = {};
-            
-            eligibleIds.forEach(uid => {
-                if(oldCounts[uid]) newUsageCounts[uid] = oldCounts[uid];
-            });
-
-            updateData = { ...updateData, step_price: stepPrice, eligible_student_ids: eligibleIds, usage_counts: newUsageCounts };
-        }
-
-        try {
-            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rewards', id), updateData);
-            document.getElementById('edit-reward-modal').classList.add('hidden');
-            showToast('แก้ไขเรียบร้อย ✅');
-        } catch (e) { alert('Error: ' + e.message); }
-    };
-
-    // 5. ปรับปรุง UI Toggle (แสดง/ซ่อน Input)
-    window.toggleRewardTypeInputs = (mode = 'add') => {
-        // Handle both ID patterns (add-reward-type / edit-reward-type)
-        const typeEl = document.getElementById(`${mode}-reward-type`) || document.getElementById('add-reward-type'); 
-        const type = typeEl ? typeEl.value : 'general';
-
-        // จัดการ Gacha (เดิม)
-        const gachaContainer = document.getElementById(mode === 'edit' ? 'edit-gacha-builder-container' : 'gacha-builder-container');
-        if(gachaContainer) gachaContainer.classList.toggle('hidden', type !== 'gacha_custom');
-
-        // 🔥 จัดการ Rescue (ใหม่)
-        const rescueFields = document.querySelectorAll(`#${mode}-reward-modal .reward-rescue-only`);
-        rescueFields.forEach(el => {
-            if (type === 'exam_rescue') {
-                el.classList.remove('hidden');
-                renderRewardEligibleSelector(mode);
-            } else {
-                el.classList.add('hidden');
-            }
-        });
-    };
-    
-    // ⚠️ Wrapper ให้ Edit เรียกใช้ได้
-    window.toggleEditRewardTypeInputs = () => window.toggleRewardTypeInputs('edit');
-
-    // 6. ฟังก์ชันเปิดศูนย์แก้ตัว (Student View)
-    window.openRescueCenter = () => {
-        const modal = document.getElementById('rescue-center-modal');
-        const list = document.getElementById('rescue-list');
-        const myId = currentStudentData.id;
-        
-        const items = rewards.filter(r => 
-            r.type === 'exam_rescue' && 
-            r.is_active !== false &&
-            (r.eligible_student_ids && r.eligible_student_ids.includes(myId))
-        );
-        
-        if (items.length === 0) {
-            list.innerHTML = `<div class="text-center py-10 text-gray-400"><div class="text-5xl mb-2">🎉</div><p>ไม่มีรายการแก้ตัว (คุณผ่านหมดแล้ว!)</p></div>`;
-        } else {
-            list.innerHTML = items.map(r => {
-                const myUsageCount = (r.usage_counts && r.usage_counts[myId]) || 0;
-                const stepPrice = r.step_price || 0;
-                const currentPrice = r.points + (myUsageCount * stepPrice);
-                const canAfford = currentStudentData.points >= currentPrice;
-
-                return `
-                <div class="bg-white p-4 rounded-xl border-l-4 ${canAfford ? 'border-l-red-500' : 'border-l-gray-300'} shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center text-2xl relative">
-                            🚑
-                            ${myUsageCount > 0 ? `<span class="absolute -top-1 -right-1 bg-yellow-400 text-[10px] px-1.5 rounded-full border shadow-sm">x${myUsageCount}</span>` : ''}
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-gray-800">${r.name}</h4>
-                            <p class="text-red-600 font-bold">${currentPrice.toLocaleString()} แต้ม ${stepPrice > 0 ? `<span class="text-xs text-gray-400">(+${stepPrice} ครั้งถัดไป)</span>` : ''}</p>
-                        </div>
-                    </div>
-                    <button onclick="confirmRescueBuy('${r.id}', ${currentPrice})" ${!canAfford ? 'disabled' : ''} class="px-4 py-2 rounded-lg font-bold text-white shadow-sm transition-all ${canAfford ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-300'}">
-                        ${canAfford ? 'ซื้อสิทธิ์' : 'แต้มไม่พอ'}
-                    </button>
-                </div>`;
-            }).join('');
-        }
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-    };
-
-    window.confirmRescueBuy = (id, price) => {
-        const item = rewards.find(r => r.id === id);
-        showConfirmModal('ยืนยันซื้อสิทธิ์', `ราคา ${price} แต้ม (ครั้งหน้าจะแพงขึ้น)`, async () => {
-            const batch = writeBatch(db);
-            const sRef = doc(db, 'artifacts', appId, 'public', 'data', 'students', currentStudentData.id);
-            const rRef = doc(db, 'artifacts', appId, 'public', 'data', 'rewards', item.id);
-            const hRef = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
-
-            batch.update(sRef, { points: increment(-price) });
-            batch.update(rRef, { [`usage_counts.${currentStudentData.id}`]: increment(1) });
-            
-            if (item.stock !== -1) batch.update(rRef, { stock: increment(-1) });
-
-            batch.set(hRef, {
-                student_id: currentStudentData.id,
-                student_name: currentStudentData.full_name,
-                action: `ซื้อสิทธิ์แก้ตัว: ${item.name}`,
-                amount: -price,
-                type: 'exam_rescue_buy',
-                timestamp: serverTimestamp()
-            });
-
-            await batch.commit();
-            document.getElementById('rescue-center-modal').classList.add('hidden');
-            if(window.soundCoin) window.soundCoin.play();
-            Swal.fire('สำเร็จ', 'บันทึกการซื้อสิทธิ์แล้ว กรุณาติดต่อครู', 'success');
-        });
-    };
-
-    // ==========================================================
     // 🏦 STUDENT BANK SYSTEM (ฝาก-ถอน ฝั่งนักเรียน)
     // ==========================================================
     
@@ -9557,7 +9193,7 @@ window.getGuildActiveBuffs = (guildId) => {
             batch.set(hRef, {
                 student_id: currentStudentData.id,
                 student_name: currentStudentData.full_name,
-                action: 'ฝากแต้ม (นักเรียน)',
+                action: 'ฝากเงิน (Student)',
                 amount: -amount, // แสดงเป็นลบเพราะออกจากกระเป๋า
                 type: 'bank_deposit',
                 timestamp: timestamp
@@ -9598,8 +9234,6 @@ window.getGuildActiveBuffs = (guildId) => {
             alert('Error: ' + e.message);
         }
     };
-
-    
    
   </script>
  </body>
