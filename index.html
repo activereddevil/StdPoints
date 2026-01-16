@@ -917,7 +917,7 @@
             <span class="text-xs text-gray-400">คลิกที่กิลด์เพื่อจัดการสมาชิก</span>
         </div>
         <div class="overflow-x-auto flex-1">
-            <table class="w-full text-sm">
+            <table class="w-full text-sm min-w-[600px]">
                 <thead class="bg-white text-gray-600 border-b">
                     <tr>
                         <th class="px-6 py-4 text-center w-16">อันดับ</th>
@@ -947,6 +947,10 @@
                 <label class="text-xs text-gray-500">สัญลักษณ์ (Emoji)</label>
                 <input type="text" id="new-guild-icon" placeholder="🦁" class="w-full px-4 py-2 border rounded-lg text-center text-2xl">
             </div>
+            <div>
+                <label class="text-xs text-gray-500">กฎระเบียบกิลด์</label>
+                <textarea id="new-guild-rules" rows="3" placeholder="เช่น ต้องช่วยกันทำภารกิจ..." class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"></textarea>
+            </div>
             <div class="grid grid-cols-2 gap-3 bg-gray-50 p-3 rounded-lg border border-gray-200">
                 <div class="col-span-2 text-xs font-bold text-gray-500 mb-1">📝 สัญญากิลด์ (Contract)</div>
                 
@@ -968,83 +972,103 @@
     </div>
 </div>
 
-    <div id="manage-guild-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-2xl shadow-xl max-w-6xl w-full mx-auto flex flex-col max-h-[95vh] overflow-hidden relative">
+<div id="manage-guild-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50 p-0 sm:p-4">
+    <div class="bg-white sm:rounded-2xl shadow-xl max-w-6xl w-full mx-auto flex flex-col h-full md:h-[95vh] overflow-hidden relative">
         
-       <div class="p-5 border-b border-gray-100 shrink-0 bg-white z-10">
-            <div class="flex justify-between items-start mb-4">
-                <div class="flex-1 mr-4">
-                    <label class="text-xs text-gray-500 font-bold mb-1 block">ชื่อกิลด์ & สัญลักษณ์</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="edit-guild-icon" class="w-14 text-center text-2xl py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="🛡️">
-                        <input type="text" id="edit-guild-name" class="flex-1 px-3 py-1 text-lg font-bold text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="ระบุชื่อกิลด์...">
-                    </div>
+        <div class="shrink-0 bg-white border-b border-gray-200 z-24 shadow-sm relative">
+            
+            <div class="px-5 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <div class="flex items-center gap-3 flex-1">
+                    <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Guild Editor</span>
+                    <input type="hidden" id="manage-guild-id">
                 </div>
-                <button onclick="document.getElementById('manage-guild-modal').classList.add('hidden')" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 hover:text-red-500 transition-colors text-xl font-bold mt-1">&times;</button>
+                <button onclick="document.getElementById('manage-guild-modal').classList.add('hidden')" class="w-8 h-8 rounded-full bg-white hover:bg-red-50 border border-gray-200 hover:border-red-200 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors text-xl font-bold">
+                    &times;
+                </button>
             </div>
 
-            <input type="hidden" id="manage-guild-id">
-            <div class="relative">
-                <input type="text" id="search-student-guild" placeholder="🔍 ค้นหาชื่อนักเรียน..." class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50" oninput="renderGuildMembersSelect()">
-                 <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <div class="p-4 grid grid-cols-1 lg:grid-cols-12 gap-4 max-h-[40vh] overflow-y-auto lg:overflow-visible">
+                
+                <div class="lg:col-span-6 space-y-3">
+                    <div class="flex gap-2">
+                        <div class="relative group">
+                            <input type="text" id="edit-guild-icon" class="w-16 h-full text-center text-3xl border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 bg-gray-50 group-hover:bg-white transition-colors" placeholder="🛡️">
+                            <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 text-[9px] bg-gray-800 text-white px-1.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">ไอคอน</span>
+                        </div>
+                        <div class="flex-1">
+                            <input type="text" id="edit-guild-name" class="w-full h-full px-4 text-lg font-bold text-gray-800 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 bg-gray-50 focus:bg-white transition-colors" placeholder="ระบุชื่อกิลด์...">
+                        </div>
+                    </div>
+                    
+                    <div class="relative">
+                        <textarea id="edit-guild-rules" rows="2" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 bg-white resize-none" placeholder="📜 ระบุกฎระเบียบกิลด์ที่นี่..."></textarea>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-6 grid grid-cols-2 gap-3">
+                    
+                    <div class="col-span-1 bg-red-50/50 p-3 rounded-xl border border-red-100">
+                        <h4 class="text-xs font-bold text-red-800 mb-2 flex items-center gap-1">
+                            📝 สัญญากิลด์ (Contract)
+                        </h4>
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-end gap-2">
+                                <span class="text-[10px] text-red-400 w-16">สัญญา</span>
+                                <input type="number" id="edit-guild-cooldown" class="w-20 h-8 px-1 border border-red-200 rounded text-center text-sm font-bold text-red-600 focus:border-red-500" placeholder="0">
+                                <span class="text-[10px] text-red-400 w-6">ชม.</span>
+                            </div>
+                            <div class="flex items-center justify-end gap-2">
+                                <span class="text-[10px] text-red-400 w-16">ค่าปรับออก</span>
+                                <input type="number" id="edit-guild-fee" class="w-20 h-8 px-1 border border-red-200 rounded text-center text-sm font-bold text-red-600 focus:border-red-500" placeholder="0">
+                                <span class="text-[10px] text-red-400 w-6">แต้ม</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-span-1 bg-amber-50/50 p-3 rounded-xl border border-amber-100">
+                        <h4 class="text-xs font-bold text-amber-800 mb-2 flex items-center gap-1">
+                            ✨ พลังแฝง (Guild Buffs)
+                        </h4>
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-end gap-2">
+                                <span class="text-[10px] text-amber-500 w-16">ดอกเบี้ย</span>
+                                <input type="number" id="guild-buff-interest" step="0.01" class="w-20 h-8 px-2 border border-amber-200 rounded text-center text-sm font-bold text-green-600 focus:border-amber-500" placeholder="0.0">
+                                <span class="text-[10px] text-amber-500 w-6">%</span>
+                            </div>
+                            <div class="flex items-center justify-end gap-2">
+                                <span class="text-[10px] text-amber-500 w-16">ส่วนลดของ</span>
+                                <input type="number" id="guild-buff-discount" class="w-20 h-8 px-2 border border-amber-200 rounded text-center text-sm font-bold text-red-500 focus:border-amber-500" placeholder="0">
+                                <span class="text-[10px] text-amber-500 w-6">%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="px-5 pb-3">
+                <div class="relative">
+                    <input type="text" id="search-student-guild" placeholder="🔍 ค้นหาชื่อนักเรียนเพื่อเพิ่มเข้ากิลด์..." class="w-full pl-10 pr-4 py-2.5 bg-gray-100 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm font-bold" oninput="renderGuildMembersSelect()">
+                    <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+                <div class="flex justify-between items-end mt-1 px-1">
+                     <p class="text-[10px] text-gray-400">* เลือกรายชื่อด้านล่างเพื่อเพิ่ม/ลบสมาชิก</p>
+                     <p class="text-[10px] text-indigo-500 font-bold cursor-pointer hover:underline" onclick="toggleGuildSelection('all')">เลือกทั้งหมด</p>
+                </div>
             </div>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-5 bg-gray-50/50 min-h-0 custom-scrollbar">
-            
+        <div class="flex-1 overflow-y-auto p-5 bg-gray-50/30 custom-scrollbar">
             <div id="guild-member-selection" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 pb-4">
                 </div>
-
-            <div class="mt-2 pt-4 border-t border-gray-200/60 bg-white p-4 rounded-xl shadow-sm border border-amber-100">
-                <h3 class="font-bold text-amber-800 mb-3 text-sm flex items-center gap-2">
-                    ✨ พลังแฝงกิลด์ (Guild Buffs)
-                </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-xs text-amber-700 font-bold mb-1 block">📈 ดอกเบี้ยพิเศษ (+%)</label>
-                        <div class="relative">
-                            <input type="number" id="guild-buff-interest" step="0.01" min="0" class="w-full pl-3 pr-8 py-2 border border-amber-200 rounded-lg font-bold text-green-600 focus:ring-2 focus:ring-amber-500" placeholder="0.00">
-                            <span class="absolute right-3 top-2 text-xs text-gray-400 font-bold">%</span>
-                        </div>
-                        <p class="text-[10px] text-gray-400 mt-1">เพิ่มจากเรทปกติ (เช่น 0.5)</p>
-                    </div>
-                    <div>
-                        <label class="text-xs text-amber-700 font-bold mb-1 block">🏷️ ส่วนลดร้านค้า (%)</label>
-                        <div class="relative">
-                             <input type="number" id="guild-buff-discount" step="1" min="0" max="100" class="w-full pl-3 pr-8 py-2 border border-amber-200 rounded-lg font-bold text-red-500 focus:ring-2 focus:ring-amber-500" placeholder="0">
-                             <span class="absolute right-3 top-2 text-xs text-gray-400 font-bold">%</span>
-                        </div>
-                        <p class="text-[10px] text-gray-400 mt-1">ลดราคาของรางวัล (เช่น 10)</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-3 bg-red-50 p-3 rounded-lg border border-red-100">
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="text-lg">📝</span>
-                    <span class="text-xs font-bold text-red-800">เงื่อนไขสัญญา (Guild Contract)</span>
-                </div>
-                <div class="flex gap-4">
-                    <div class="flex-1">
-                        <label class="text-[10px] text-gray-500 block mb-1">ล็อคห้ามย้าย (ชั่วโมง)</label>
-                        <input type="number" id="edit-guild-cooldown" class="w-full border border-red-200 rounded px-2 py-1 text-center font-bold text-red-600" placeholder="0">
-                    </div>
-                    <div class="flex-1">
-                        <label class="text-[10px] text-gray-500 block mb-1">ค่าปรับฉีกสัญญา (แต้ม)</label>
-                        <input type="number" id="edit-guild-fee" class="w-full border border-red-200 rounded px-2 py-1 text-center font-bold text-red-600" placeholder="0">
-                    </div>
-                </div>
-            </div>
         </div>
-
         
-
-        <div class="p-4 border-t border-gray-200 bg-white shrink-0 flex justify-between items-center shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10">
-             <button onclick="deleteGuild()" class="text-red-500 hover:bg-red-50 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
-                🗑️ <span class="hidden sm:inline">ลบกิลด์</span>
+        <div class="p-4 bg-white border-t border-gray-100 flex justify-between items-center z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+             <button onclick="if(confirm('ยืนยันลบกิลด์นี้?')) deleteGuild()" class="text-red-400 hover:text-red-600 hover:bg-red-50 px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2">
+                🗑️ ลบกิลด์
              </button>
-             <button onclick="saveGuildData()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-2.5 rounded-xl font-bold shadow-lg shadow-indigo-200 transition-transform active:scale-95 flex items-center gap-2">
-                💾 บันทึกสมาชิก
+             <button onclick="saveGuildData()" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-10 py-2.5 rounded-xl font-bold shadow-lg shadow-indigo-200 transition-all active:scale-95 flex items-center gap-2">
+                <span>💾</span> บันทึกข้อมูล
              </button>
         </div>
         
@@ -1946,7 +1970,18 @@
             <div id="gp-modal-icon" class="text-5xl mb-2">👥</div>
             <h3 id="gp-modal-name" class="text-xl font-bold text-gray-800">แจกแต้มกลุ่ม</h3>
             <p id="gp-modal-count" class="text-sm text-gray-500">สมาชิก 0 คน</p>
+
+            <div class="mt-2">
+                <button onclick="document.getElementById('gp-member-list').classList.toggle('hidden')" class="text-xs text-indigo-500 hover:text-indigo-700 font-bold underline cursor-pointer">
+                    (ดูรายชื่อสมาชิก)
+                </button>
+           </div>
         </div>
+
+        <div id="gp-member-list" class="hidden mb-4 bg-gray-50 p-3 rounded-lg border border-gray-100 max-h-32 overflow-y-auto custom-scrollbar">
+            <div class="text-center text-gray-400 text-xs">กำลังโหลด...</div>
+        </div>
+
 
         <div class="flex border-b mb-4">
             <button onclick="switchGroupPointTab('custom')" id="gp-tab-custom" class="flex-1 pb-2 border-b-2 border-indigo-600 text-indigo-600 font-bold text-sm">กำหนดเอง</button>
@@ -6621,7 +6656,7 @@ window.calculateQuestPointsWithBuffs = (student, basePoints) => {
         document.getElementById('manage-guild-id').value = gid;
         
         // โหลดค่าบัฟ
-        document.getElementById('guild-buff-interest').value = g.buff_interest || 0;
+        document.getElementById('guild-buff-interest').value = g.buff_interest.toFixed(2) || 0;
         document.getElementById('guild-buff-discount').value = g.buff_discount || 0;
 
         if(document.getElementById('edit-guild-cooldown')) {
@@ -9237,6 +9272,24 @@ window.getGuildActiveBuffs = (guildId) => {
         document.getElementById('gp-modal-icon').textContent = g.icon;
         document.getElementById('gp-modal-name').textContent = `แจกแต้มกลุ่ม: ${g.name}`;
         document.getElementById('gp-modal-count').textContent = `สมาชิก ${g.student_ids.length} คน`;
+
+        const listContainer = document.getElementById('gp-member-list');
+        if (listContainer) {
+            // ซ่อนไว้ก่อนเสมอเมื่อเปิดใหม่ (หรือจะให้โชว์เลยก็ได้ ให้ลบ class hidden ออกจาก HTML แทน)
+            listContainer.classList.add('hidden'); 
+            
+            if (g.student_ids.length > 0) {
+                // แปลง ID เป็น ชื่อนักเรียน
+                const memberNames = g.student_ids.map(sid => {
+                    const s = students.find(std => std.id === sid);
+                    return s ? `<span class="bg-white px-2 py-1 rounded border text-xs text-gray-600">${s.full_name}</span>` : null;
+                }).filter(n => n).join(''); // กรอง null ออกแล้วต่อ String
+                
+                listContainer.innerHTML = `<div class="flex flex-wrap gap-2 justify-center">${memberNames}</div>`;
+            } else {
+                listContainer.innerHTML = '<div class="text-center text-gray-400 text-xs">- ไม่มีสมาชิก -</div>';
+            }
+        }
         document.getElementById('gp-amount').value = 10;
         document.getElementById('gp-reason').value = '';
         
