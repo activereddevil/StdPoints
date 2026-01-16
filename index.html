@@ -539,7 +539,85 @@
                 </div>
         </div>
 
+        <!-- BOSS TAB-->
+        <div id="content-boss" class="tab-content hidden h-full flex flex-col space-y-6">
+    
+            <div class="flex justify-between items-center shrink-0">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                        ⚔️ Boss Fight Arena
+                    </h2>
+                    <p class="text-sm text-gray-500">รวมพลังปราบบอส! ทุกแต้มที่ได้คือดาเมจ!</p>
+                </div>
+                <div id="boss-teacher-controls">
+                    <button onclick="document.getElementById('boss-settings-panel').classList.toggle('hidden')" class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-lg font-bold shadow-md flex items-center gap-2 transition-all">
+                        <span>⚙️</span> จัดการบอส
+                    </button>
+                </div>
+            </div>
         
+            <div id="boss-fight-widget" class="relative overflow-hidden rounded-2xl border-4 border-gray-800 bg-gray-900 shadow-2xl flex-1 flex flex-col items-center justify-center p-8 min-h-[400px]">
+                <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-30"></div>
+                <div class="absolute inset-0 bg-gradient-to-b from-gray-900 via-transparent to-red-900/50"></div>
+        
+                <div class="relative z-10 text-center w-full max-w-3xl">
+                    <div id="boss-status-badge" class="inline-block px-4 py-1 rounded-full bg-red-600/20 text-red-400 font-bold text-xs tracking-widest uppercase mb-4 border border-red-500/30 animate-pulse">
+                        🔴 WARNING: BOSS DETECTED
+                    </div>
+        
+                    <div id="boss-avatar" class="text-[120px] md:text-[180px] mb-6 transform transition-all duration-100 cursor-crosshair hover:scale-105 drop-shadow-[0_0_25px_rgba(255,0,0,0.6)] animate-bounce-slow">
+                        👹
+                    </div>
+        
+                    <h3 id="boss-name" class="text-4xl md:text-5xl font-black text-white mb-2 drop-shadow-lg tracking-tight">
+                        The Final Exam
+                    </h3>
+        
+                    <div class="relative w-full h-12 bg-gray-800 rounded-full border-4 border-gray-700 shadow-inner overflow-hidden mt-4">
+                        <div id="boss-hp-bar" class="h-full bg-gradient-to-r from-red-600 via-orange-500 to-yellow-500 transition-all duration-500 ease-out flex items-center justify-end px-4 shadow-[0_0_20px_rgba(239,68,68,0.6)]" style="width: 100%;">
+                        </div>
+                        <div class="absolute inset-0 flex items-center justify-center z-10">
+                            <span id="boss-hp-text" class="text-xl font-black text-white drop-shadow-md tracking-wider">Loading...</span>
+                        </div>
+                    </div>
+        
+                    <div class="mt-6 flex justify-center gap-8 text-gray-400 font-mono text-sm">
+                        <p>🔥 โจมตีล่าสุด: <span id="boss-last-hit" class="text-yellow-400 font-bold">-</span></p>
+                        <p>🎁 รางวัล: <span id="boss-reward-show" class="text-green-400 font-bold">0</span> แต้ม</p>
+                    </div>
+                </div>
+            </div>
+        
+            <div id="boss-settings-panel" class="hidden bg-white p-6 rounded-xl border border-gray-200 shadow-lg">
+                <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">🛠️ ตั้งค่าบอสตัวใหม่</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="text-xs font-bold text-gray-500">ชื่อบอส</label>
+                        <input type="text" id="conf-boss-name" class="w-full border rounded-lg px-3 py-2" placeholder="เช่น ปีศาจการบ้าน">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500">อีโมจิ</label>
+                        <input type="text" id="conf-boss-emoji" class="w-full border rounded-lg px-3 py-2 text-center" value="👹">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500">HP (เลือดบอส)</label>
+                        <input type="number" id="conf-boss-hp" class="w-full border rounded-lg px-3 py-2 font-bold text-red-600" value="5000">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500">อัตราดาเมจ (1แต้ม = ? Dmg)</label>
+                        <input type="number" id="conf-boss-ratio" class="w-full border rounded-lg px-3 py-2" value="1.0" step="0.1">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="text-xs font-bold text-gray-500">รางวัลเมื่อชนะ (ให้ทุกคนที่ช่วยตี)</label>
+                        <input type="number" id="conf-boss-reward" class="w-full border rounded-lg px-3 py-2 font-bold text-green-600" placeholder="ระบุจำนวนแต้มพิเศษ">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button onclick="stopBossFight()" class="px-4 py-2 text-red-500 hover:bg-red-50 rounded-lg text-sm font-bold">❌ ลบบอส</button>
+                    <button onclick="startBossFight()" class="px-6 py-2 bg-gray-800 hover:bg-black text-white rounded-lg text-sm font-bold">✅ สร้างบอส</button>
+                </div>
+            </div>
+        </div>
         
 
         <!-- ============ BANK TAB ============ -->
@@ -587,6 +665,8 @@
                 <div id="pagination-bank" class="p-4 border-t bg-gray-50 flex justify-between items-center"></div>
             </div>
         </div>
+
+        
 
         <!-- ============ REWARDS TAB (UPDATED) ============ -->
         <div id="content-rewards" class="tab-content hidden h-full flex flex-col">
@@ -2339,6 +2419,7 @@ const appId = 'activeredpoint';
         loadQuestCategories();
         loadRewardCategories();
         loadStreakConfig(); // โหลดค่าตั้งค่าเช็คชื่อ
+        loadBossSystem(); // เริ่มระบบบอส
         // Clear previous intervals if any
         if (window.interestInterval) clearInterval(window.interestInterval);
         
@@ -2578,7 +2659,8 @@ const appId = 'activeredpoint';
                 <button onclick="switchTab('home')" id="tab-home" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-red-500 text-red-600">รายชื่อนักเรียน</button>
                 <button onclick="switchTab('punishment')" id="tab-punishment" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">⚠️ คุมประพฤติ</button>
                 <button onclick="switchTab('guilds')" id="tab-guilds" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">🏰 กิลด์</button>
-                <button onclick="switchTab('groups')" id="tab-btn-groups" class="tab-btn px-4 py-2 rounded-lg font-bold text-gray-500 hover:bg-indigo-50 hover:text-indigo-600 transition-all flex items-center gap-2"><span>👥</span> จัดกลุ่ม</button>
+                <button onclick="switchTab('boss')" id="tab-boss" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">👹 บอส</button>
+                <button onclick="switchTab('groups')" id="tab-btn-groups" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700"><span>👥</span> จัดกลุ่ม</button>
                 <button onclick="switchTab('quests')" id="tab-quests" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">ภารกิจ</button>
                 
                 <button onclick="switchTab('history')" id="tab-history" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">ประวัติ</button>
@@ -3788,6 +3870,7 @@ const appId = 'activeredpoint';
                     } else {
                         batch.update(sRef, { points: increment(finalAmount) });
                     }
+                    attackBoss(s.id, s.full_name, finalAmount);
                 } else {
                     // ถ้าลดแต้ม -> ลดจาก points ปกติ (หรือจะลด pending ก็ได้แล้วแต่ครู แต่ปกติลดแต้มหลัก)
                     batch.update(sRef, { points: increment(-finalAmount) });
@@ -9691,6 +9774,172 @@ window.getGuildActiveBuffs = (guildId) => {
             </div>
         `;
     };
+
+    // ==========================================================
+    // 👹 BOSS FIGHT SYSTEM (Logic)
+    // ==========================================================
+    
+    let bossData = null;
+
+    // 1. โหลดข้อมูลบอส (ใส่ใน initSystem หรือ initAppUI)
+    function loadBossSystem() {
+        const ref = doc(db, 'artifacts', appId, 'public', 'boss_fight');
+        onSnapshot(ref, (snap) => {
+            if (snap.exists()) {
+                bossData = snap.data();
+                renderBossWidget();
+                
+                // อัปเดตหน้าตั้งค่าครู
+                if(document.getElementById('conf-boss-name')) {
+                    document.getElementById('conf-boss-name').value = bossData.name;
+                    document.getElementById('conf-boss-emoji').value = bossData.emoji;
+                }
+            } else {
+                bossData = null;
+                renderBossWidget();
+            }
+        });
+    }
+
+    // 2. แสดงผลหน้าจอ
+    function renderBossWidget() {
+        const container = document.getElementById('boss-fight-widget');
+        const teacherControls = document.getElementById('boss-teacher-controls');
+        
+        // ถ้าเป็นครู ให้โชว์ปุ่มตั้งค่าเสมอ
+        if (window.userRole === 'teacher') {
+            teacherControls.classList.remove('hidden');
+        }
+
+        if (!bossData || !bossData.isActive) {
+            // ถ้าไม่มีบอส ให้ขึ้นหน้าจอปิด
+            container.innerHTML = `
+                <div class="text-center text-gray-500">
+                    <div class="text-6xl mb-4 opacity-30">💤</div>
+                    <h3 class="text-xl font-bold">ยังไม่มีบอสในขณะนี้</h3>
+                    <p class="text-sm">รอครูประกาศเรียกรวมพล!</p>
+                </div>
+            `;
+            return;
+        }
+
+        // ถ้ามีบอส วาดหน้าจอ (ใช้ innerHTML เดิมได้เลย แค่อัปเดตค่า)
+        document.getElementById('boss-name').textContent = bossData.name;
+        document.getElementById('boss-avatar').textContent = bossData.emoji;
+        document.getElementById('boss-reward-show').textContent = (bossData.rewardPoints || 0).toLocaleString();
+        
+        // คำนวณ HP
+        const percent = Math.max(0, (bossData.currentHp / bossData.maxHp) * 100);
+        document.getElementById('boss-hp-bar').style.width = `${percent}%`;
+        document.getElementById('boss-hp-text').textContent = `${Math.ceil(bossData.currentHp).toLocaleString()} / ${bossData.maxHp.toLocaleString()}`;
+        
+        // Last Hit
+        if (bossData.lastHitBy) {
+             document.getElementById('boss-last-hit').textContent = `${bossData.lastHitBy} (-${bossData.lastDamage})`;
+        }
+        
+        // Effect บอสตาย
+        if (bossData.currentHp <= 0) {
+            document.getElementById('boss-avatar').textContent = '☠️';
+            document.getElementById('boss-hp-text').textContent = "BOSS DEFEATED!";
+            document.getElementById('boss-hp-bar').classList.add('bg-gray-600');
+            document.getElementById('boss-status-badge').textContent = "🟢 MISSION COMPLETE";
+            document.getElementById('boss-status-badge').className = "inline-block px-4 py-1 rounded-full bg-green-600/20 text-green-400 font-bold text-xs tracking-widest uppercase mb-4 border border-green-500/30";
+        }
+    }
+
+    // 3. เริ่มบอส (ครู)
+    window.startBossFight = async () => {
+        const name = document.getElementById('conf-boss-name').value || 'Unknown Boss';
+        const hp = parseInt(document.getElementById('conf-boss-hp').value) || 5000;
+        const reward = parseInt(document.getElementById('conf-boss-reward').value) || 0;
+        
+        const newBoss = {
+            isActive: true,
+            name: name,
+            emoji: document.getElementById('conf-boss-emoji').value || '👹',
+            maxHp: hp,
+            currentHp: hp,
+            damageRatio: parseFloat(document.getElementById('conf-boss-ratio').value) || 1.0,
+            rewardPoints: reward,
+            participants: [],
+            startTime: serverTimestamp()
+        };
+
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'boss_fight'), newBoss);
+        alert('🔥 บอสเกิดแล้ว!');
+        document.getElementById('boss-settings-panel').classList.add('hidden');
+    };
+    
+    window.stopBossFight = async () => {
+        if(confirm('แน่ใจนะว่าจะลบบอสตัวนี้?')) {
+            await deleteDoc(doc(db, 'artifacts', appId, 'public', 'boss_fight'));
+        }
+    };
+
+    // 4. 🔥 ฟังก์ชันโจมตี (สำคัญ! ต้องเอาไปแทรกตอนให้แต้ม)
+    window.attackBoss = async (studentId, studentName, pointsEarned) => {
+        // เช็คเบื้องต้น (Client Side) ก่อนยิง Database
+        if (!bossData || !bossData.isActive || bossData.currentHp <= 0) return;
+
+        const damage = pointsEarned * (bossData.damageRatio || 1);
+        if (damage <= 0) return;
+
+        const bossRef = doc(db, 'artifacts', appId, 'public', 'boss_fight');
+        
+        try {
+            await runTransaction(db, async (transaction) => {
+                const sfDoc = await transaction.get(bossRef);
+                if (!sfDoc.exists()) return;
+                
+                const b = sfDoc.data();
+                if (b.currentHp <= 0) return;
+
+                const newHp = Math.max(0, b.currentHp - damage);
+                const participants = b.participants || [];
+                
+                if (!participants.includes(studentId)) {
+                    participants.push(studentId);
+                }
+
+                transaction.update(bossRef, {
+                    currentHp: newHp,
+                    lastHitBy: studentName,
+                    lastDamage: damage,
+                    participants: participants
+                });
+
+                // แจกรางวัลถ้าตาย (Last Shot)
+                if (newHp <= 0 && b.currentHp > 0) {
+                    distributeBossRewards(participants, b.rewardPoints);
+                }
+            });
+            console.log(`⚔️ Boss Hit: -${damage}`);
+        } catch (e) { console.error("Boss Error:", e); }
+    };
+
+    // 5. แจกรางวัล (Internal)
+    async function distributeBossRewards(winnerIds, points) {
+        if (!points || points <= 0) return;
+        const batch = writeBatch(db);
+        const timestamp = serverTimestamp();
+
+        winnerIds.forEach(id => {
+            const sRef = doc(db, 'artifacts', appId, 'public', 'data', 'students', id);
+            batch.update(sRef, { points: increment(points) });
+            
+            const hRef = doc(db, 'artifacts', appId, 'public', 'data', 'history', crypto.randomUUID());
+            batch.set(hRef, {
+                student_id: id,
+                student_name: 'System',
+                action: '🏆 พิชิตบอสสำเร็จ!',
+                amount: points,
+                type: 'boss_reward',
+                timestamp: timestamp
+            });
+        });
+        await batch.commit();
+    }
 
     
   </script>
