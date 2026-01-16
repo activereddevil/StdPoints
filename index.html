@@ -212,24 +212,7 @@
         
         <!-- ============ STUDENT DASHBOARD (View Only) ============ -->
         <div id="content-student-dashboard" class="tab-content hidden space-y-6">
-            <div id="student-news-banner" class="hidden mb-6 relative overflow-hidden group">
-                <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 opacity-90 rounded-xl"></div>
-                <div class="relative z-10 p-4 flex items-start gap-4 text-white">
-                    <div class="bg-white/20 p-2 rounded-lg shrink-0 backdrop-blur-sm">
-                        <span class="text-2xl">📢</span>
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-blue-50 mb-1 text-sm uppercase tracking-wider">ประกาศจากครู</h4>
-                        <p id="student-news-text" class="font-medium text-lg leading-relaxed text-white drop-shadow-sm">
-                            </p>
-                        <div class="text-xs text-blue-200 mt-2 flex items-center gap-1">
-                            <span>🕒 อัปเดตล่าสุด:</span>
-                            <span id="student-news-timestamp">...</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
-            </div>  
+            
 
             <div id="student-streak-widget" class="bg-white rounded-xl shadow-sm border border-orange-100 p-4 mb-6 relative overflow-hidden"> 
                 <div class="absolute top-0 right-0 w-24 h-24 bg-orange-50 rounded-full -mr-10 -mt-10 blur-xl"></div>
@@ -270,6 +253,7 @@
                 </div>
                 <div class="absolute -right-4 -bottom-4 text-white/10 text-9xl font-bold">%</div>
             </div>
+
             
             <div class="bg-white rounded-2xl shadow-sm p-6 flex flex-col md:flex-row items-center gap-6 border border-gray-100">
                 <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center text-4xl shadow-inner">
@@ -906,31 +890,7 @@
     </div>
 </div>
 
-<div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 mt-6">
-    <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-        📢 ตั้งค่าป้ายประกาศข่าวสาร (News Banner)
-    </h3>
-    
-    <div class="grid grid-cols-1 gap-4">
-        <div>
-            <label class="block text-sm font-bold text-gray-700 mb-2">ข้อความประกาศ</label>
-            <textarea id="conf-announce-msg" rows="3" class="w-full border rounded-xl px-4 py-3 text-gray-700 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="เช่น พรุ่งนี้สอบเก็บคะแนน อย่าลืมอ่านหนังสือนะ!"></textarea>
-        </div>
-        
-        <div class="flex items-center gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
-            <div class="flex items-center gap-2">
-                <input type="checkbox" id="conf-announce-active" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500">
-                <label for="conf-announce-active" class="font-bold text-gray-700 cursor-pointer">แสดงประกาศนี้ให้นักเรียนเห็น</label>
-            </div>
-        </div>
-    </div>
-    
-    <div class="mt-4 flex justify-end">
-        <button onclick="saveAnnouncement()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl font-bold shadow-md transition-all flex items-center gap-2">
-            <span>💾 บันทึกประกาศ</span>
-        </button>
-    </div>
-</div>
+
                 </div> 
             </div>
         </div>
@@ -2379,7 +2339,6 @@ const appId = 'activeredpoint';
         loadQuestCategories();
         loadRewardCategories();
         loadStreakConfig(); // โหลดค่าตั้งค่าเช็คชื่อ
-        loadAnnouncement(); // เริ่มโหลดระบบประกาศข่าว
         // Clear previous intervals if any
         if (window.interestInterval) clearInterval(window.interestInterval);
         
@@ -2606,92 +2565,7 @@ const appId = 'activeredpoint';
         } catch(e) { console.error(e); alert('Error: ' + e.message); }
     };
 
-    // ==========================================================
-    // 📢 ANNOUNCEMENT SYSTEM LOGIC (ระบบประกาศข่าว)
-    // ==========================================================
-
-    let announceConfig = { message: "", isActive: false, timestamp: null };
-
-    // 1. โหลดประกาศแบบ Real-time
-    function loadAnnouncement() {
-        // ใช้ onSnapshot เพื่อให้ครูแก้ปุ๊บ เด็กเห็นปั๊บ
-        const ref = doc(db, 'artifacts', appId, 'public', 'config_announce');
-        
-        onSnapshot(ref, (snap) => {
-            if (snap.exists()) {
-                announceConfig = snap.data();
-                
-                // อัปเดตหน้าตั้งค่าครู (ถ้าเปิดอยู่)
-                if (document.getElementById('conf-announce-msg')) {
-                    document.getElementById('conf-announce-msg').value = announceConfig.message || "";
-                    document.getElementById('conf-announce-active').checked = announceConfig.isActive || false;
-                }
-
-                // สั่งวาดป้ายประกาศใหม่ทันที
-                if (typeof window.renderAnnouncementWidget === 'function') {
-                     window.renderAnnouncementWidget();
-                }
-            }
-        });
-    }
-
-    // 2. บันทึกประกาศ (ฝั่งครู)
-    window.saveAnnouncement = async () => {
-        const msg = document.getElementById('conf-announce-msg').value.trim();
-        const active = document.getElementById('conf-announce-active').checked;
-        
-        if (!msg && active) return alert('กรุณาใส่ข้อความประกาศก่อนเปิดใช้งานครับ');
-
-        const newData = {
-            message: msg,
-            isActive: active,
-            timestamp: serverTimestamp() // เก็บเวลาที่โพสต์
-        };
-
-        try {
-            await setDoc(doc(db, 'artifacts', appId, 'public', 'config_announce'), newData);
-            alert('บันทึกประกาศเรียบร้อย ✅');
-        } catch(e) {
-            console.error(e);
-            alert('Error: ' + e.message);
-        }
-    };
-
-    // 3. แสดงผลป้ายประกาศ (ฝั่งนักเรียน)
-    window.renderAnnouncementWidget = function() {
-        const banner = document.getElementById('student-news-banner');
-        const textElem = document.getElementById('student-news-text');
-        const timeElem = document.getElementById('student-news-timestamp');
-        
-        if (!banner || !textElem) return;
-
-        // ถ้าปิดใช้งาน หรือไม่มีข้อความ -> ซ่อน
-        if (!announceConfig.isActive || !announceConfig.message) {
-            banner.classList.add('hidden');
-            return;
-        }
-
-        // เฉพาะนักเรียนเท่านั้นที่เห็น (หรือครูก็เห็นได้ถ้าอยากพรีวิว ให้ลบบรรทัดนี้ออก)
-        if (window.userRole !== 'student') {
-             banner.classList.add('hidden');
-             return;
-        }
-
-        // แสดงผล
-        banner.classList.remove('hidden');
-        textElem.textContent = announceConfig.message;
-        
-        // แปลงเวลา (Timestamp -> Date String)
-        if (announceConfig.timestamp) {
-            const date = announceConfig.timestamp.toDate ? announceConfig.timestamp.toDate() : new Date(announceConfig.timestamp);
-            timeElem.textContent = date.toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' });
-        } else {
-            timeElem.textContent = 'เมื่อสักครู่';
-        }
-    }
-
-
-
+    
     function setupNavigation() {
         const nav = document.getElementById('nav-tabs');
         const roleDisplay = document.getElementById('user-role-display');
