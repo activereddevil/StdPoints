@@ -823,16 +823,7 @@
             <input type="number" id="config-max-guild-members" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="เช่น 10 (ใส่ 0 คือไม่จำกัด)">
             <p class="text-xs text-gray-500 mt-1">ใส่ 0 หากไม่ต้องการจำกัดจำนวน</p>
         </div>
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">⏳ สัญญากิลด์ขั้นต่ำ (ชั่วโมง)</label>
-            <input type="number" id="config-guild-cooldown" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500" placeholder="0">
-            <p class="text-xs text-gray-500 mt-1">ต้องอยู่ครบเวลานี้ ถึงจะออกได้ฟรี</p>
-        </div>
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">💸 ค่าปรับผิดสัญญา (แต้ม)</label>
-            <input type="number" id="config-guild-fee" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500" placeholder="0">
-            <p class="text-xs text-gray-500 mt-1">หักแต้มทันทีถ้าหนีออกก่อนกำหนด</p>
-        </div>
+        
     </div>
     <div class="mt-4 flex justify-end">
         <button onclick="saveGuildConfig()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold">บันทึกตั้งค่ากิลด์</button>
@@ -956,10 +947,23 @@
                 <label class="text-xs text-gray-500">สัญลักษณ์ (Emoji)</label>
                 <input type="text" id="new-guild-icon" placeholder="🦁" class="w-full px-4 py-2 border rounded-lg text-center text-2xl">
             </div>
+            <div class="grid grid-cols-2 gap-3 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                <div class="col-span-2 text-xs font-bold text-gray-500 mb-1">📝 สัญญากิลด์ (Contract)</div>
+                
+                <div>
+                    <label class="text-[10px] text-gray-400">ห้ามออกภายใน (ชม.)</label>
+                    <input type="number" id="new-guild-cooldown" class="w-full px-2 py-1 border rounded text-sm text-center" placeholder="0 = ไม่ล็อค">
+                </div>
+                <div>
+                    <label class="text-[10px] text-gray-400">ค่าปรับถ้าออก/ย้ายก่อน(แต้ม)</label>
+                    <input type="number" id="new-guild-fee" class="w-full px-2 py-1 border rounded text-sm text-center" placeholder="0 = ฟรี">
+                </div>
+            </div>
             <div class="flex gap-3 pt-2">
                 <button type="button" onclick="document.getElementById('create-guild-modal').classList.add('hidden')" class="flex-1 bg-gray-100 text-gray-600 py-2 rounded-lg">ยกเลิก</button>
                 <button type="submit" class="flex-1 bg-indigo-600 text-white py-2 rounded-lg font-bold">สร้างเลย</button>
             </div>
+            
         </form>
     </div>
 </div>
@@ -1011,6 +1015,23 @@
                              <span class="absolute right-3 top-2 text-xs text-gray-400 font-bold">%</span>
                         </div>
                         <p class="text-[10px] text-gray-400 mt-1">ลดราคาของรางวัล (เช่น 10)</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-3 bg-red-50 p-3 rounded-lg border border-red-100">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-lg">📝</span>
+                    <span class="text-xs font-bold text-red-800">เงื่อนไขสัญญา (Guild Contract)</span>
+                </div>
+                <div class="flex gap-4">
+                    <div class="flex-1">
+                        <label class="text-[10px] text-gray-500 block mb-1">ล็อคห้ามย้าย (ชั่วโมง)</label>
+                        <input type="number" id="edit-guild-cooldown" class="w-full border border-red-200 rounded px-2 py-1 text-center font-bold text-red-600" placeholder="0">
+                    </div>
+                    <div class="flex-1">
+                        <label class="text-[10px] text-gray-500 block mb-1">ค่าปรับฉีกสัญญา (แต้ม)</label>
+                        <input type="number" id="edit-guild-fee" class="w-full border border-red-200 rounded px-2 py-1 text-center font-bold text-red-600" placeholder="0">
                     </div>
                 </div>
             </div>
@@ -6452,11 +6473,15 @@ window.calculateQuestPointsWithBuffs = (student, basePoints) => {
         e.preventDefault();
         const name = document.getElementById('new-guild-name').value;
         const icon = document.getElementById('new-guild-icon').value || '🛡️';
+        const cooldown = parseInt(document.getElementById('new-guild-cooldown').value) || 0;
+        const fee = parseInt(document.getElementById('new-guild-fee').value) || 0;
         
         try {
             await addDoc(collections.guilds(), {
                 name: name,
                 icon: icon,
+                rule_cooldown: cooldown,
+                rule_fee: fee,
                 created_at: serverTimestamp()
             });
             document.getElementById('create-guild-modal').classList.add('hidden');
@@ -6599,6 +6624,11 @@ window.calculateQuestPointsWithBuffs = (student, basePoints) => {
         document.getElementById('guild-buff-interest').value = g.buff_interest || 0;
         document.getElementById('guild-buff-discount').value = g.buff_discount || 0;
 
+        if(document.getElementById('edit-guild-cooldown')) {
+        document.getElementById('edit-guild-cooldown').value = g.rule_cooldown || 0;
+        document.getElementById('edit-guild-fee').value = g.rule_fee || 0;
+    }
+
         
 
         // 🧠 1. รีเซ็ตและจำค่าสมาชิกเดิมก่อนเริ่มแก้ไข
@@ -6642,7 +6672,11 @@ window.calculateQuestPointsWithBuffs = (student, basePoints) => {
         let html = '';
         
         // 🕒 เตรียมตัวแปรคำนวณ Cooldown [NEW]
-        const ruleCooldown = (config && config.guild_rule_cooldown) ? parseInt(config.guild_rule_cooldown) : 0;
+        // 1. หาข้อมูลกิลด์ที่กำลังจัดการอยู่
+        const editingGuild = guilds.find(g => g.id === currentManageGuildId);
+
+// 2. ดึงค่า Cooldown จากกิลด์นั้น (ถ้าไม่มีให้เป็น 0)
+        const ruleCooldown = editingGuild ? (parseInt(editingGuild.rule_cooldown) || 0) : 0;
         const now = Date.now();
         const cooldownMs = ruleCooldown * 60 * 60 * 1000;
         
@@ -6862,10 +6896,10 @@ window.calculateQuestPointsWithBuffs = (student, basePoints) => {
         const newIcon = document.getElementById('edit-guild-icon').value.trim();
         const buffInterest = parseFloat(document.getElementById('guild-buff-interest').value) || 0;
         const buffDiscount = parseInt(document.getElementById('guild-buff-discount').value) || 0;
+        const ruleCooldown = parseInt(document.getElementById('edit-guild-cooldown').value) || 0;
+        const ruleFee = parseInt(document.getElementById('edit-guild-fee').value) || 0;
         
-        // กฎ Global (Safe Check)
-        const ruleCooldown = (config && config.guild_rule_cooldown) ? parseInt(config.guild_rule_cooldown) : 0;
-        const ruleFee = (config && config.guild_rule_fee) ? parseInt(config.guild_rule_fee) : 0;
+       
 
         // เช็คโควตา
         const maxLimit = (config && config.max_guild_members) ? parseInt(config.max_guild_members) : 0;
@@ -6929,7 +6963,7 @@ window.calculateQuestPointsWithBuffs = (student, basePoints) => {
             const batch = writeBatch(db);
             const guildRef = doc(db, 'artifacts', appId, 'public', 'data', 'guilds', currentManageGuildId);
 
-            batch.set(guildRef, { name: newName, icon: newIcon, buff_interest: buffInterest, buff_discount: buffDiscount }, { merge: true });
+            batch.set(guildRef, { name: newName, icon: newIcon,rule_cooldown: ruleCooldown, rule_fee: ruleFee, buff_interest: buffInterest, buff_discount: buffDiscount }, { merge: true });
 
             // 1. จัดการคนเข้า (Joiners)
             joiners.forEach(s => {
@@ -9539,6 +9573,55 @@ window.getGuildActiveBuffs = (guildId) => {
         // เช็คบัฟ
         const activeBuffs = getGuildActiveBuffs(s.guild_id);
 
+        const ruleCooldown = parseInt(myGuild.rule_cooldown) || 0;
+        const ruleFee = parseInt(myGuild.rule_fee) || 0;
+        
+        let contractStatusHtml = ''; // ตัวแปรนี้จะเก็บ HTML กล่องสถานะ
+        
+        if (ruleCooldown > 0) {
+            // 1. คำนวณเวลาที่ผ่านไป
+            let joinedTime = 0;
+            if (s.guild_joined_at) {
+                // แปลง Timestamp ให้เป็น Milliseconds
+                if (typeof s.guild_joined_at.toMillis === 'function') joinedTime = s.guild_joined_at.toMillis();
+                else if (s.guild_joined_at instanceof Date) joinedTime = s.guild_joined_at.getTime();
+                else if (s.guild_joined_at.seconds) joinedTime = s.guild_joined_at.seconds * 1000;
+            }
+
+            const now = Date.now();
+            const timePassedMs = now - joinedTime;
+            const cooldownMs = ruleCooldown * 60 * 60 * 1000;
+            const remainingMs = cooldownMs - timePassedMs;
+            
+            if (remainingMs > 0) {
+                // 🔴 กรณี: ยังติดสัญญา
+                const remainingHours = Math.ceil(remainingMs / (1000 * 60 * 60));
+                contractStatusHtml = `
+                    <div class="bg-red-50 p-4 rounded-xl border border-red-100 text-center relative overflow-hidden h-full flex flex-col justify-center">
+                        <div class="absolute top-0 right-0 w-12 h-12 bg-red-100 rounded-full -mr-6 -mt-6 opacity-50"></div>
+                        <p class="text-xs text-red-500 font-bold uppercase tracking-wider mb-1">⏳ ติดสัญญา</p>
+                        <p class="text-xl font-black text-red-700">${remainingHours} ชม.</p>
+                        <p class="text-[10px] text-red-300 mt-1">จากเงื่อนไข ${ruleCooldown} ชม.</p>
+                    </div>`;
+            } else {
+                // 🟢 กรณี: หมดสัญญาแล้ว (แสดงข้อความพิเศษ)
+                contractStatusHtml = `
+                    <div class="bg-green-50 p-4 rounded-xl border border-green-100 text-center relative overflow-hidden h-full flex flex-col justify-center">
+                        <div class="absolute top-0 right-0 w-12 h-12 bg-green-100 rounded-full -mr-6 -mt-6 opacity-50"></div>
+                        <p class="text-xs text-green-500 font-bold uppercase tracking-wider mb-1">✅ สถานะ</p>
+                        <p class="text-xl font-black text-green-600">สิ้นสุดสัญญา</p>
+                        <p class="text-[10px] text-green-400 mt-1">ย้ายออกได้อิสระ</p>
+                    </div>`;
+            }
+        } else {
+            // ⚪ กรณี: ไม่มีสัญญา (กิลด์อิสระ)
+            contractStatusHtml = `
+                <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 text-center relative overflow-hidden h-full flex flex-col justify-center">
+                     <p class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">🕊️ สัญญาอิสระ</p>
+                     <p class="text-[10px] text-gray-300 mt-1">ไม่มีเงื่อนไขผูกมัด</p>
+                </div>`;
+        }
+
         // HTML Template
         container.innerHTML = `
             <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-lg p-6 text-white relative overflow-hidden mb-6">
@@ -9553,7 +9636,7 @@ window.getGuildActiveBuffs = (guildId) => {
                             <span class="bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-0.5 rounded shadow-sm">
                                 อันดับ #${myGuildRank}
                             </span>
-                            <h2 class="text-3xl font-bold">${myGuild.name}</h2>
+                            <h2 class="text-3xl font-bold">${myGuild.name}</h2>${contractStatusHtml}
                         </div>
                         <p class="text-indigo-100 text-sm mb-4 opacity-90">"${myGuild.desc || 'ไม่มีคำอธิบาย'}"</p>
                         
@@ -9564,6 +9647,10 @@ window.getGuildActiveBuffs = (guildId) => {
                             <div class="bg-white/20 px-3 py-1.5 rounded-lg flex items-center gap-2 backdrop-blur-sm">
                                 🏆 แต้มรวม ${myGuildStats.totalPoints.toLocaleString()}
                             </div>
+                            <div class="bg-white/20 px-3 py-1.5 rounded-lg flex items-center gap-2 backdrop-blur-sm">
+                                💸 ค่าปรับฉีกสัญญา ${(parseInt(myGuild.rule_fee) || 0).toLocaleString()} แต้ม
+                            </div>
+                            
                         </div>
                     </div>
                 </div>
