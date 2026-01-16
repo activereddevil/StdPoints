@@ -2628,7 +2628,9 @@ const appId = 'activeredpoint';
                 }
 
                 // สั่งวาดป้ายประกาศใหม่ทันที
-                renderAnnouncementWidget(); 
+                if (typeof window.renderAnnouncementWidget === 'function') {
+                     window.renderAnnouncementWidget();
+                }
             }
         });
     }
@@ -2656,7 +2658,7 @@ const appId = 'activeredpoint';
     };
 
     // 3. แสดงผลป้ายประกาศ (ฝั่งนักเรียน)
-    function renderAnnouncementWidget() {
+    window.renderAnnouncementWidget = function() {
         const banner = document.getElementById('student-news-banner');
         const textElem = document.getElementById('student-news-text');
         const timeElem = document.getElementById('student-news-timestamp');
