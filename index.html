@@ -223,6 +223,7 @@
                 </div>
                 <div class="absolute -right-4 -bottom-4 text-white/10 text-9xl font-bold">%</div>
             </div>
+            
             <div class="bg-white rounded-2xl shadow-sm p-6 flex flex-col md:flex-row items-center gap-6 border border-gray-100">
                 <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center text-4xl shadow-inner">
                     🎓
@@ -305,6 +306,34 @@
         </div>
         <div id="content-student-guild" class="tab-content hidden h-full flex flex-col space-y-6">
         </div>
+        <div id="student-streak-widget" class="bg-white rounded-xl shadow-sm border border-orange-100 p-4 mb-6 relative overflow-hidden hidden"> 
+            <div class="absolute top-0 right-0 w-24 h-24 bg-orange-50 rounded-full -mr-10 -mt-10 blur-xl"></div>
+
+<div class="flex justify-between items-center relative z-10">
+    <div>
+        <h3 class="font-bold text-gray-800 flex items-center gap-2">
+            📅 เช็คชื่อประจำวัน (Daily Login)
+        </h3>
+        <p class="text-sm text-gray-500 mt-1">
+            ต่อเนื่อง: <span id="streak-count-display" class="font-bold text-orange-600 text-lg">0</span> วัน 
+            <span class="text-xs text-gray-400">(สูงสุด: <span id="streak-max-display">0</span>)</span>
+        </p>
+    </div>
+    <div class="text-right">
+        <button id="btn-claim-streak" onclick="claimDailyStreak()" class="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-6 py-2 rounded-xl font-bold shadow-lg shadow-orange-200 transition-all transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
+            🎁 รับแต้ม
+        </button>
+        <div id="streak-timer" class="text-xs text-gray-400 mt-1 hidden">พรุ่งนี้มาใหม่นะ</div>
+    </div>
+</div>
+
+<div class="mt-4 pt-4 border-t border-orange-50">
+    <div class="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+        <div id="streak-progress-bar" class="h-full bg-orange-500 transition-all duration-500" style="width: 0%"></div>
+    </div>
+    <p id="next-reward-hint" class="text-xs text-orange-500 mt-2 text-center font-bold">...</p>
+</div>
+</div>
 
         <!-- ============ HOME TAB (Teacher List) ============ -->
       
@@ -803,6 +832,56 @@
     </div>
     <div class="mt-4 flex justify-end">
         <button onclick="saveGuildConfig()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold">บันทึกตั้งค่ากิลด์</button>
+    </div>
+</div>
+
+<div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 mt-6">
+    <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+        ⚙️ ตั้งค่าระบบเช็คชื่อ (Streak Config)
+    </h3>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+            <label class="block text-sm font-bold text-gray-700 mb-2">💰 แต้มเช็คชื่อพื้นฐาน (ต่อวัน)</label>
+            <input type="number" id="conf-streak-base" class="w-full border rounded-lg px-3 py-2 text-center font-bold text-green-600" value="10">
+        </div>
+
+        <div class="bg-orange-50 p-4 rounded-xl border border-orange-200 md:col-span-2">
+            <label class="block text-sm font-bold text-orange-800 mb-3">🏆 รางวัลความต่อเนื่อง (Streak Bonus)</label>
+            <div class="space-y-2">
+                <div class="grid grid-cols-12 gap-2 items-center text-sm">
+                        <div class="col-span-1 font-bold text-gray-500 text-center">#1</div>
+                        <div class="col-span-4 flex items-center gap-2">ครบ <input type="number" id="conf-streak-d1" class="w-16 border rounded px-1 text-center" value="7"> วัน</div>
+                        <div class="col-span-7 flex items-center gap-2">รับเพิ่ม <input type="number" id="conf-streak-p1" class="flex-1 border rounded px-1 text-center font-bold text-indigo-600" value="100"> แต้ม</div>
+                </div>
+                <div class="grid grid-cols-12 gap-2 items-center text-sm">
+                        <div class="col-span-1 font-bold text-gray-500 text-center">#2</div>
+                        <div class="col-span-4 flex items-center gap-2">ครบ <input type="number" id="conf-streak-d2" class="w-16 border rounded px-1 text-center" value="14"> วัน</div>
+                        <div class="col-span-7 flex items-center gap-2">รับเพิ่ม <input type="number" id="conf-streak-p2" class="flex-1 border rounded px-1 text-center font-bold text-indigo-600" value="300"> แต้ม</div>
+                </div>
+                <div class="grid grid-cols-12 gap-2 items-center text-sm">
+                        <div class="col-span-1 font-bold text-gray-500 text-center">#3</div>
+                        <div class="col-span-4 flex items-center gap-2">ครบ <input type="number" id="conf-streak-d3" class="w-16 border rounded px-1 text-center" value="21"> วัน</div>
+                        <div class="col-span-7 flex items-center gap-2">รับเพิ่ม <input type="number" id="conf-streak-p3" class="flex-1 border rounded px-1 text-center font-bold text-indigo-600" value="500"> แต้ม</div>
+                </div>
+                <div class="grid grid-cols-12 gap-2 items-center text-sm">
+                        <div class="col-span-1 font-bold text-gray-500 text-center">#4</div>
+                        <div class="col-span-4 flex items-center gap-2">ครบ <input type="number" id="conf-streak-d4" class="w-16 border rounded px-1 text-center" value="30"> วัน</div>
+                        <div class="col-span-7 flex items-center gap-2">รับเพิ่ม <input type="number" id="conf-streak-p4" class="flex-1 border rounded px-1 text-center font-bold text-indigo-600" value="1000"> แต้ม</div>
+                </div>
+                <div class="grid grid-cols-12 gap-2 items-center text-sm">
+                        <div class="col-span-1 font-bold text-gray-500 text-center">#5</div>
+                        <div class="col-span-4 flex items-center gap-2">ครบ <input type="number" id="conf-streak-d5" class="w-16 border rounded px-1 text-center" value="45"> วัน</div>
+                        <div class="col-span-7 flex items-center gap-2">รับเพิ่ม <input type="number" id="conf-streak-p5" class="flex-1 border rounded px-1 text-center font-bold text-indigo-600" value="3000"> แต้ม</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4 flex justify-end">
+        <button onclick="saveStreakConfig()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl font-bold shadow-md transition-all">
+            💾 บันทึกตั้งค่า
+        </button>
     </div>
 </div>
                 </div> 
@@ -2252,6 +2331,7 @@ const appId = 'activeredpoint';
         subscribeToData();
         loadQuestCategories();
         loadRewardCategories();
+        loadStreakConfig(); // โหลดค่าตั้งค่าเช็คชื่อ
         // Clear previous intervals if any
         if (window.interestInterval) clearInterval(window.interestInterval);
         
@@ -2262,6 +2342,189 @@ const appId = 'activeredpoint';
         }, 30000); 
         
     }
+
+    // ==========================================================
+    // 📅 STREAK SYSTEM LOGIC (ระบบเช็คชื่อ)
+    // ==========================================================
+
+    // ตัวแปร Config (เริ่มต้น)
+    let streakConfig = {
+        base_points: 10,
+        milestones: [
+            { days: 7, bonus: 100 }, { days: 14, bonus: 300 }, { days: 21, bonus: 500 },
+            { days: 30, bonus: 1000 }, { days: 45, bonus: 3000 }
+        ]
+    };
+
+    // 1. โหลด Config ตอนเริ่มระบบ
+    async function loadStreakConfig() {
+        try {
+            const ref = doc(db, 'artifacts', appId, 'public', 'config_streak');
+            const snap = await getDoc(ref);
+            if (snap.exists()) {
+                streakConfig = snap.data();
+                // อัปเดต UI ตั้งค่า (ถ้าครูเปิดอยู่)
+                if (document.getElementById('conf-streak-base')) {
+                    document.getElementById('conf-streak-base').value = streakConfig.base_points;
+                    streakConfig.milestones.forEach((m, i) => {
+                        const dInput = document.getElementById(`conf-streak-d${i+1}`);
+                        const pInput = document.getElementById(`conf-streak-p${i+1}`);
+                        if(dInput) dInput.value = m.days;
+                        if(pInput) pInput.value = m.bonus;
+                    });
+                }
+            }
+        } catch(e) { console.error("Load Streak Config Error:", e); }
+    }
+
+    // 2. บันทึก Config (กดปุ่ม Save)
+    window.saveStreakConfig = async () => {
+        const base = parseInt(document.getElementById('conf-streak-base').value) || 10;
+        let milestones = [];
+        for(let i=1; i<=5; i++) {
+            milestones.push({
+                days: parseInt(document.getElementById(`conf-streak-d${i}`).value) || 0,
+                bonus: parseInt(document.getElementById(`conf-streak-p${i}`).value) || 0
+            });
+        }
+        // เรียงลำดับวัน
+        milestones.sort((a, b) => a.days - b.days);
+
+        const newData = { base_points: base, milestones: milestones };
+        try {
+            await setDoc(doc(db, 'artifacts', appId, 'public', 'config_streak'), newData);
+            streakConfig = newData;
+            alert('บันทึกตั้งค่าเรียบร้อย ✅');
+        } catch(e) { alert('Error: ' + e.message); }
+    };
+
+    // 3. แสดงผลหน้า Dashboard (เรียก function นี้ใน renderStudentDashboard)
+    function renderStreakWidget(student) {
+        const widget = document.getElementById('student-streak-widget');
+        if (!widget) return;
+
+        // ถ้าไม่ใช่เด็ก ให้ซ่อน
+        if (window.userRole !== 'student') {
+            widget.classList.add('hidden');
+            return;
+        }
+
+        widget.classList.remove('hidden');
+        
+        const streakData = student.streak_data || { count: 0, last_claim: null, max: 0 };
+        
+        // Update Text
+        document.getElementById('streak-count-display').textContent = streakData.count;
+        document.getElementById('streak-max-display').textContent = streakData.max;
+
+        // Check Button
+        const btn = document.getElementById('btn-claim-streak');
+        const timer = document.getElementById('streak-timer');
+        const canClaim = checkCanClaim(streakData.last_claim);
+
+        if (canClaim) {
+            btn.disabled = false;
+            btn.innerHTML = `🎁 รับ ${streakConfig.base_points} แต้ม`; // innerHTML เผื่อใส่ icon
+            btn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+            btn.classList.add('from-orange-500', 'to-red-500');
+            timer.classList.add('hidden');
+        } else {
+            btn.disabled = true;
+            btn.innerHTML = "✅ รับแล้ว";
+            btn.classList.remove('from-orange-500', 'to-red-500');
+            btn.classList.add('bg-gray-400', 'cursor-not-allowed');
+            timer.classList.remove('hidden');
+        }
+
+        // Update Progress Bar
+        const nextMilestone = streakConfig.milestones.find(m => m.days > streakData.count);
+        const bar = document.getElementById('streak-progress-bar');
+        const hint = document.getElementById('next-reward-hint');
+        
+        if (nextMilestone) {
+            const percent = Math.min(100, (streakData.count / nextMilestone.days) * 100);
+            bar.style.width = `${percent}%`;
+            hint.innerHTML = `อีก <b>${nextMilestone.days - streakData.count}</b> วัน รับโบนัส <b>+${nextMilestone.bonus}</b> แต้ม! 🎯`;
+        } else {
+            bar.style.width = '100%';
+            hint.textContent = "สุดยอด! คุณรับรางวัลสูงสุดครบแล้ว 👑";
+        }
+    }
+
+    // Helper: เช็คว่ากดรับได้ไหม (ข้ามวันหรือยัง)
+    function checkCanClaim(lastClaimTimestamp) {
+        if (!lastClaimTimestamp) return true;
+        const last = lastClaimTimestamp.toDate ? lastClaimTimestamp.toDate() : new Date(lastClaimTimestamp);
+        const now = new Date();
+        return last.getDate() !== now.getDate() || 
+               last.getMonth() !== now.getMonth() || 
+               last.getFullYear() !== now.getFullYear();
+    }
+
+    // 4. กดรับแต้ม (Action)
+    window.claimDailyStreak = async () => {
+        if (!currentStudentData) return;
+        
+        const sRef = doc(db, 'artifacts', appId, 'public', 'data', 'students', currentStudentData.id);
+        
+        // เช็คซ้ำอีกรอบ
+        const sSnap = await getDoc(sRef);
+        const sData = sSnap.data();
+        const streakData = sData.streak_data || { count: 0, last_claim: null, max: 0 };
+        
+        if (!checkCanClaim(streakData.last_claim)) return showToast('วันนี้รับไปแล้วครับ พรุ่งนี้มาใหม่นะ', 'error');
+
+        // คำนวณ Streak
+        let newCount = streakData.count;
+        const last = streakData.last_claim ? (streakData.last_claim.toDate ? streakData.last_claim.toDate() : new Date(streakData.last_claim)) : null;
+        const now = new Date();
+
+        if (last) {
+            const diffHours = (now - last) / (1000 * 60 * 60);
+            if (diffHours > 48) { // เกิน 48 ชม. (ไม่ได้มากดเมื่อวาน)
+                newCount = 1;
+            } else {
+                newCount++;
+            }
+        } else {
+            newCount = 1;
+        }
+        
+        const newMax = Math.max(streakData.max, newCount);
+        let pointsToAdd = streakConfig.base_points;
+        let logMsg = `เช็คชื่อรายวัน (Day ${newCount})`;
+
+        // เช็คโบนัส
+        const milestone = streakConfig.milestones.find(m => m.days === newCount);
+        if (milestone) {
+            pointsToAdd += milestone.bonus;
+            logMsg += ` + โบนัส ${milestone.days} วัน!`;
+            // เอฟเฟกต์แสดงความยินดี (ถ้ามี)
+            alert(`🎉 ยินดีด้วย! คุณเช็คชื่อครบ ${newCount} วัน ได้รับโบนัส ${milestone.bonus} แต้ม!`);
+        }
+
+        try {
+            const batch = writeBatch(db);
+            batch.update(sRef, {
+                points: increment(pointsToAdd),
+                streak_data: { count: newCount, max: newMax, last_claim: serverTimestamp() }
+            });
+            
+            const hRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'history'));
+            batch.set(hRef, {
+                student_id: sData.student_id,
+                student_name: sData.full_name,
+                action: logMsg,
+                amount: pointsToAdd,
+                type: 'daily_streak',
+                timestamp: serverTimestamp()
+            });
+
+            await batch.commit();
+            showToast(`✅ เช็คชื่อสำเร็จ! +${pointsToAdd} แต้ม`);
+            // renderStudentDashboard จะทำงานอัตโนมัติผ่าน onSnapshot
+        } catch(e) { console.error(e); alert('Error: ' + e.message); }
+    };
 
     function setupNavigation() {
         const nav = document.getElementById('nav-tabs');
@@ -2926,6 +3189,7 @@ const appId = 'activeredpoint';
         `;
     }).join('') : '<p class="text-gray-400 text-center py-2">ยังไม่มีประวัติ</p>';
         renderStudentInventory(s); // เรียกฟังก์ชันแสดงกระเป๋า
+        renderStreakWidget(currentStudentData); // แสดง Widget เช็คชื่อ
     }
 
    
@@ -9348,5 +9612,6 @@ window.getGuildActiveBuffs = (guildId) => {
 
     
   </script>
+  
  </body>
 </html>
