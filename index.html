@@ -212,6 +212,34 @@
         
         <!-- ============ STUDENT DASHBOARD (View Only) ============ -->
         <div id="content-student-dashboard" class="tab-content hidden space-y-6">
+            <div id="student-streak-widget" class="bg-white rounded-xl shadow-sm border border-orange-100 p-4 mb-6 relative overflow-hidden hidden"> 
+                <div class="absolute top-0 right-0 w-24 h-24 bg-orange-50 rounded-full -mr-10 -mt-10 blur-xl"></div>
+    
+    <div class="flex justify-between items-center relative z-10">
+        <div>
+            <h3 class="font-bold text-gray-800 flex items-center gap-2">
+                📅 เช็คชื่อประจำวัน (Daily Login)
+            </h3>
+            <p class="text-sm text-gray-500 mt-1">
+                ต่อเนื่อง: <span id="streak-count-display" class="font-bold text-orange-600 text-lg">0</span> วัน 
+                <span class="text-xs text-gray-400">(สูงสุด: <span id="streak-max-display">0</span>)</span>
+            </p>
+        </div>
+        <div class="text-right">
+            <button id="btn-claim-streak" onclick="claimDailyStreak()" class="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-6 py-2 rounded-xl font-bold shadow-lg shadow-orange-200 transition-all transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
+                🎁 รับแต้ม
+            </button>
+            <div id="streak-timer" class="text-xs text-gray-400 mt-1 hidden">พรุ่งนี้มาใหม่นะ</div>
+        </div>
+    </div>
+    
+    <div class="mt-4 pt-4 border-t border-orange-50">
+        <div class="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+            <div id="streak-progress-bar" class="h-full bg-orange-500 transition-all duration-500" style="width: 0%"></div>
+        </div>
+        <p id="next-reward-hint" class="text-xs text-orange-500 mt-2 text-center font-bold">...</p>
+    </div>
+    </div>
             <!-- Profile Card -->
             <div id="interest-announce-banner" class="hidden bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white p-4 rounded-xl shadow-lg relative overflow-hidden animate-pulse">
                 <div class="flex items-center gap-3 relative z-10">
@@ -306,34 +334,7 @@
         </div>
         <div id="content-student-guild" class="tab-content hidden h-full flex flex-col space-y-6">
         </div>
-        <div id="student-streak-widget" class="bg-white rounded-xl shadow-sm border border-orange-100 p-4 mb-6 relative overflow-hidden hidden"> 
-            <div class="absolute top-0 right-0 w-24 h-24 bg-orange-50 rounded-full -mr-10 -mt-10 blur-xl"></div>
-
-<div class="flex justify-between items-center relative z-10">
-    <div>
-        <h3 class="font-bold text-gray-800 flex items-center gap-2">
-            📅 เช็คชื่อประจำวัน (Daily Login)
-        </h3>
-        <p class="text-sm text-gray-500 mt-1">
-            ต่อเนื่อง: <span id="streak-count-display" class="font-bold text-orange-600 text-lg">0</span> วัน 
-            <span class="text-xs text-gray-400">(สูงสุด: <span id="streak-max-display">0</span>)</span>
-        </p>
-    </div>
-    <div class="text-right">
-        <button id="btn-claim-streak" onclick="claimDailyStreak()" class="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-6 py-2 rounded-xl font-bold shadow-lg shadow-orange-200 transition-all transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
-            🎁 รับแต้ม
-        </button>
-        <div id="streak-timer" class="text-xs text-gray-400 mt-1 hidden">พรุ่งนี้มาใหม่นะ</div>
-    </div>
-</div>
-
-<div class="mt-4 pt-4 border-t border-orange-50">
-    <div class="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-        <div id="streak-progress-bar" class="h-full bg-orange-500 transition-all duration-500" style="width: 0%"></div>
-    </div>
-    <p id="next-reward-hint" class="text-xs text-orange-500 mt-2 text-center font-bold">...</p>
-</div>
-</div>
+        
 
         <!-- ============ HOME TAB (Teacher List) ============ -->
       
