@@ -4602,8 +4602,30 @@ const appId = 'activeredpoint';
 
         try {
             await batch.commit();
+            // ✅✅✅ [ส่วนที่เพิ่ม] อัปเดตข้อมูลในหน้าเว็บทันที (ไม่ต้องรอโหลดใหม่)
+            
+            // 1. ตัดแต้มในตัวแปร Local ทันที
+            student.points -= totalCost;
+            
+            // 2. เพิ่มประวัติการแลกในตัวแปร Local ทันที (แก้ปัญหาโควตาไม่ลด)
+            if (!student.redeemed_history) student.redeemed_history = {};
+            
+            // เอาจำนวนที่เคยแลก (ถ้ามี) + จำนวนที่เพิ่งแลกเข้าไป
+            const oldQty = student.redeemed_history[reward.id] || 0;
+            student.redeemed_history[reward.id] = oldQty + qty;
+
+            // 3. ตัดสต็อกในตัวแปร Local (ถ้ามีจำกัด)
+            if (!isUnlimited) {
+                reward.stock -= qty;
+            }
+
             hideRedeemQuantityModal();
             showToast(`แลกรางวัลสำเร็จ!`);
+            // รีเฟรชหน้าจอร้านค้า (เพื่อให้เห็นว่าแต้มลด หรือของหมดทันที)
+            if(document.getElementById('student-redeem-modal') && !document.getElementById('student-redeem-modal').classList.contains('hidden')) {
+                 // ถ้าหน้าต่างเลือกของยังเปิดอยู่ ให้รีเฟรชรายการ
+                 if(typeof renderShopGrid === 'function') renderShopGrid(); 
+            }
         } catch (e) {
             console.error(e);
             alert('เกิดข้อผิดพลาด: ' + e.message);
