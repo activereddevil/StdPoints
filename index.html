@@ -186,7 +186,7 @@
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
         </div>
         <div>
-            <h1 id="system-title" class="text-xl font-bold text-gray-800">StdPoints V6.13</h1>
+            <h1 id="system-title" class="text-xl font-bold text-gray-800">ระบบจัดเก็บแต้มนักเรียน</h1>
             <p id="user-role-display" class="text-xs text-gray-500">สถานะ: แขก</p>
         </div>
      </div>
@@ -275,11 +275,11 @@
                                    <span id="std-dash-bank" class="text-3xl font-bold text-green-700">0</span>
                                    <span class="text-xs text-green-500 font-medium">(ดอกเบี้ยสะสม <span id="std-dash-interest">0</span>)</span>
                                 </div>
-                                <div class="flex gap-8 mt-4 relative z-10 pt-2 border-t border-white/10">
+                                <div class="flex gap-2 mt-4 relative z-10 pt-2 border-t border-white/10">
                                     <button onclick="openStudentBankModal('deposit')" class="flex-1 bg-white/20 hover:bg-white/30 text-green-500 py-1.5 rounded-lg font-bold text-sm transition-all border border-white/10 flex items-center justify-center gap-1 active:scale-95">
                                         📥 ฝากแต้ม
                                     </button>
-                                    <button onclick="openStudentBankModal('withdraw')" class="flex-2 bg-white/20 hover:bg-white/30 text-green-500 py-1.5 rounded-lg font-bold text-sm transition-all border border-white/10 flex items-center justify-center gap-1 active:scale-95">
+                                    <button onclick="openStudentBankModal('withdraw')" class="flex-1 bg-white/20 hover:bg-white/30 text-green-500 py-1.5 rounded-lg font-bold text-sm transition-all border border-white/10 flex items-center justify-center gap-1 active:scale-95">
                                         📤 ถอนแต้ม
                                     </button>
                                 </div>
@@ -416,7 +416,7 @@
                 🎒 <span class="hidden lg:inline">ไอเทม</span>
             </button>
             <button onclick="handleStickySingleAction('edit')" class="btn-single bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-2 rounded-md font-bold shadow-sm flex items-center gap-2 transition-all">
-                ✏️ 
+                ✏️ <span class="hidden lg:inline">แก้ไข</span>
             </button>
             
         </div>
@@ -441,7 +441,7 @@
                                 </th>
                                 <th class="px-2 py-4 text-left font-bold cursor-pointer hover:text-red-600" onclick="sortStudents('student_id')">เลขที่ ↕</th>
                                 <th class="px-2 py-4 text-left font-bold cursor-pointer hover:text-red-600" onclick="sortStudents('full_name')">ชื่อ-สกุล (บัฟ) ↕</th>
-                                <th class="px-2 py-4 text-center font-bold cursor-pointer hover:text-red-600" onclick="sortStudents('points')">แต้มในมือ ↕</th>
+                                <th class="px-2 py-4 text-center font-bold cursor-pointer hover:text-red-600" onclick="sortStudents('points')">แต้มตัว ↕</th>
                                 
                                 <th class="px-2 py-4 text-center font-bold text-indigo-700 cursor-pointer" onclick="sortStudents('bank_points')">ฝาก ↕</th>
                                 <th class="px-2 py-4 text-center font-bold text-green-600">ดอกเบี้ย</th>
@@ -468,7 +468,7 @@
                     ⚠️ รายชื่อนักเรียนที่ถูกคุมประพฤติ
                     <span id="punishment-count" class="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded-full">0</span>
                 </h2>
-                <p class="text-sm text-gray-500">นักเรียนเหล่านี้จะทำธุรกรรมไม่ได้ ดอกเบี้ยจะหยุดคำนวณ และแต้มใหม่จะถูกอายัดไว้จนกว่าจะหมดโทษ</p>
+                <p class="text-sm text-gray-500">นักเรียนเหล่านี้จะถอนเงินไม่ได้ และแต้มใหม่จะถูกอายัดไว้จนกว่าจะหมดโทษ</p>
             </div>
             
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex-1">
@@ -711,9 +711,7 @@
             <div class="bg-white rounded-xl shadow-sm p-6 max-w-2xl mx-auto border border-gray-200">
                 <h2 class="text-xl font-bold text-gray-800 mb-6">ตั้งค่าระบบ</h2>
                 
-
                 <div class="space-y-6">
-                    
                     <div>
                         <label class="block text-gray-700 font-medium mb-2">อัตราดอกเบี้ยธนาคาร (% ต่อชั่วโมง)</label>
                         <div class="flex gap-4 items-center">
@@ -725,7 +723,6 @@
                     </div>
                     
                     
-
                     <div class="pt-6 border-t border-gray-100 mt-6">
 
                         <div id="buff-rules-settings" class="bg-white p-6 rounded-2xl shadow-sm border border-blue-100 mt-6 mb-6">
@@ -820,27 +817,27 @@
                 <div class="grid grid-cols-12 gap-2 items-center text-sm">
                         <div class="col-span-1 font-bold text-gray-500 text-center">#1</div>
                         <div class="col-span-4 flex items-center gap-2">ครบ <input type="number" id="conf-streak-d1" class="w-16 border rounded px-1 text-center" value="7"> วัน</div>
-                        <div class="col-span-7 flex items-center gap-2">รับเพิ่ม <input type="number" id="conf-streak-p1" class="w-16 border rounded px-1 text-center font-bold text-indigo-600" value="100"> แต้ม</div>
+                        <div class="col-span-7 flex items-center gap-2">รับเพิ่ม <input type="number" id="conf-streak-p1" class="flex-1 border rounded px-1 text-center font-bold text-indigo-600" value="100"> แต้ม</div>
                 </div>
                 <div class="grid grid-cols-12 gap-2 items-center text-sm">
                         <div class="col-span-1 font-bold text-gray-500 text-center">#2</div>
                         <div class="col-span-4 flex items-center gap-2">ครบ <input type="number" id="conf-streak-d2" class="w-16 border rounded px-1 text-center" value="14"> วัน</div>
-                        <div class="col-span-7 flex items-center gap-2">รับเพิ่ม <input type="number" id="conf-streak-p2" class="w-16 border rounded px-1 text-center font-bold text-indigo-600" value="300"> แต้ม</div>
+                        <div class="col-span-7 flex items-center gap-2">รับเพิ่ม <input type="number" id="conf-streak-p2" class="flex-1 border rounded px-1 text-center font-bold text-indigo-600" value="300"> แต้ม</div>
                 </div>
                 <div class="grid grid-cols-12 gap-2 items-center text-sm">
                         <div class="col-span-1 font-bold text-gray-500 text-center">#3</div>
                         <div class="col-span-4 flex items-center gap-2">ครบ <input type="number" id="conf-streak-d3" class="w-16 border rounded px-1 text-center" value="21"> วัน</div>
-                        <div class="col-span-7 flex items-center gap-2">รับเพิ่ม <input type="number" id="conf-streak-p3" class="w-16 border rounded px-1 text-center font-bold text-indigo-600" value="500"> แต้ม</div>
+                        <div class="col-span-7 flex items-center gap-2">รับเพิ่ม <input type="number" id="conf-streak-p3" class="flex-1 border rounded px-1 text-center font-bold text-indigo-600" value="500"> แต้ม</div>
                 </div>
                 <div class="grid grid-cols-12 gap-2 items-center text-sm">
                         <div class="col-span-1 font-bold text-gray-500 text-center">#4</div>
                         <div class="col-span-4 flex items-center gap-2">ครบ <input type="number" id="conf-streak-d4" class="w-16 border rounded px-1 text-center" value="30"> วัน</div>
-                        <div class="col-span-7 flex items-center gap-2">รับเพิ่ม <input type="number" id="conf-streak-p4" class="w-16 border rounded px-1 text-center font-bold text-indigo-600" value="1000"> แต้ม</div>
+                        <div class="col-span-7 flex items-center gap-2">รับเพิ่ม <input type="number" id="conf-streak-p4" class="flex-1 border rounded px-1 text-center font-bold text-indigo-600" value="1000"> แต้ม</div>
                 </div>
                 <div class="grid grid-cols-12 gap-2 items-center text-sm">
                         <div class="col-span-1 font-bold text-gray-500 text-center">#5</div>
                         <div class="col-span-4 flex items-center gap-2">ครบ <input type="number" id="conf-streak-d5" class="w-16 border rounded px-1 text-center" value="45"> วัน</div>
-                        <div class="col-span-7 flex items-center gap-2">รับเพิ่ม <input type="number" id="conf-streak-p5" class="w-16 border rounded px-1 text-center font-bold text-indigo-600" value="3000"> แต้ม</div>
+                        <div class="col-span-7 flex items-center gap-2">รับเพิ่ม <input type="number" id="conf-streak-p5" class="flex-1 border rounded px-1 text-center font-bold text-indigo-600" value="3000"> แต้ม</div>
                 </div>
             </div>
         </div>
@@ -969,7 +966,7 @@
                             <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 text-[9px] bg-gray-800 text-white px-1.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">ไอคอน</span>
                         </div>
                         <div class="flex-1">
-                            <input type="text" id="edit-guild-name" class="w-full h-12 px-4 text-lg font-bold text-gray-800 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 bg-gray-50 focus:bg-white transition-colors" placeholder="ระบุชื่อกิลด์...">
+                            <input type="text" id="edit-guild-name" class="w-full h-full px-4 text-lg font-bold text-gray-800 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 bg-gray-50 focus:bg-white transition-colors" placeholder="ระบุชื่อกิลด์...">
                         </div>
                     </div>
                     
@@ -985,14 +982,14 @@
                             📝 สัญญากิลด์ (Contract)
                         </h4>
                         <div class="space-y-2">
-                            <div class="flex items-center justify-start gap-3">
-                                <span class="text-[10px] text-red-400 w-20">ติดสัญญา</span>
-                                <input type="number" id="edit-guild-cooldown" class="w-20 h-6 px-1 border border-red-200 rounded text-center text-sm font-bold text-red-600 focus:border-red-500" placeholder="0">
+                            <div class="flex items-center justify-end gap-2">
+                                <span class="text-[10px] text-red-400 w-16">สัญญา</span>
+                                <input type="number" id="edit-guild-cooldown" class="w-20 h-8 px-1 border border-red-200 rounded text-center text-sm font-bold text-red-600 focus:border-red-500" placeholder="0">
                                 <span class="text-[10px] text-red-400 w-6">ชม.</span>
                             </div>
-                            <div class="flex items-center justify-start gap-3">
-                                <span class="text-[10px] text-red-400 w-20">ค่าปรับออก</span>
-                                <input type="number" id="edit-guild-fee" class="w-20 h-6 px-1 border border-red-200 rounded text-center text-sm font-bold text-red-600 focus:border-red-500" placeholder="0">
+                            <div class="flex items-center justify-end gap-2">
+                                <span class="text-[10px] text-red-400 w-16">ค่าปรับออก</span>
+                                <input type="number" id="edit-guild-fee" class="w-20 h-8 px-1 border border-red-200 rounded text-center text-sm font-bold text-red-600 focus:border-red-500" placeholder="0">
                                 <span class="text-[10px] text-red-400 w-6">แต้ม</span>
                             </div>
                         </div>
@@ -1003,14 +1000,14 @@
                             ✨ พลังแฝง (Guild Buffs)
                         </h4>
                         <div class="space-y-2">
-                            <div class="flex items-center justify-start gap-2">
-                                <span class="text-[10px] text-amber-500 w-20">ดอกเบี้ย</span>
-                                <input type="number" id="guild-buff-interest" step="0.01" class="w-20 h-6 px-2 border border-amber-200 rounded text-center text-sm font-bold text-green-600 focus:border-amber-500" placeholder="0.0">
+                            <div class="flex items-center justify-end gap-2">
+                                <span class="text-[10px] text-amber-500 w-16">ดอกเบี้ย</span>
+                                <input type="number" id="guild-buff-interest" step="0.01" class="w-20 h-8 px-2 border border-amber-200 rounded text-center text-sm font-bold text-green-600 focus:border-amber-500" placeholder="0.0">
                                 <span class="text-[10px] text-amber-500 w-6">%</span>
                             </div>
-                            <div class="flex items-center justify-start gap-2">
-                                <span class="text-[10px] text-amber-500 w-20">ส่วนลดของ</span>
-                                <input type="number" id="guild-buff-discount" class="w-20 h-6 px-2 border border-amber-200 rounded text-center text-sm font-bold text-red-500 focus:border-amber-500" placeholder="0">
+                            <div class="flex items-center justify-end gap-2">
+                                <span class="text-[10px] text-amber-500 w-16">ส่วนลดของ</span>
+                                <input type="number" id="guild-buff-discount" class="w-20 h-8 px-2 border border-amber-200 rounded text-center text-sm font-bold text-red-500 focus:border-amber-500" placeholder="0">
                                 <span class="text-[10px] text-amber-500 w-6">%</span>
                             </div>
                         </div>
@@ -1047,7 +1044,6 @@
         
     </div>
 </div>
-
 
 
     </div>
@@ -2037,7 +2033,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-    import { getFirestore, collection, addDoc, setDoc, updateDoc, deleteDoc, doc, getDoc, onSnapshot, query, where, getDocs, increment, serverTimestamp, writeBatch, arrayUnion, arrayRemove, deleteField, runTransaction, Timestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";    // --- Firebase Config (Auto-injected by Canvas) ---
+    import { getFirestore, collection, addDoc, setDoc, updateDoc, deleteDoc, doc, getDoc, onSnapshot, query, where, getDocs, increment, serverTimestamp, writeBatch, arrayUnion, arrayRemove, deleteField, runTransaction } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";    // --- Firebase Config (Auto-injected by Canvas) ---
    const firebaseConfig = {
   apiKey: "AIzaSyCt1hOqcgf8fGmPVtvrPztwzMQZvlrETfY",
   authDomain: "pointmgmt-b8b87.firebaseapp.com",
@@ -2368,7 +2364,6 @@ const appId = 'activeredpoint';
         loadQuestCategories();
         loadRewardCategories();
         loadStreakConfig(); // โหลดค่าตั้งค่าเช็คชื่อ
-       
         
         // Clear previous intervals if any
         if (window.interestInterval) clearInterval(window.interestInterval);
@@ -2609,9 +2604,9 @@ const appId = 'activeredpoint';
                 <button onclick="switchTab('home')" id="tab-home" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-red-500 text-red-600">รายชื่อนักเรียน</button>
                 <button onclick="switchTab('punishment')" id="tab-punishment" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">⚠️ คุมประพฤติ</button>
                 <button onclick="switchTab('guilds')" id="tab-guilds" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">🏰 กิลด์</button>
-                <button onclick="switchTab('groups')" id="tab-btn-groups" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">👥 จัดกลุ่ม</button>
+                <button onclick="switchTab('groups')" id="tab-btn-groups" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700"><span>👥</span> จัดกลุ่ม</button>
                 <button onclick="switchTab('quests')" id="tab-quests" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">ภารกิจ</button>
-
+                
                 <button onclick="switchTab('history')" id="tab-history" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">ประวัติ</button>
                 <button onclick="switchTab('rewards')" id="tab-rewards" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">รางวัล</button>
                 
@@ -2630,7 +2625,6 @@ const appId = 'activeredpoint';
                 <button onclick="switchTab('student-dashboard')" id="tab-student-dashboard" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-red-500 text-red-600">หน้าหลัก</button>
                 <button onclick="switchTab('rewards')" id="tab-rewards" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">ของรางวัล</button>
                 <button onclick="switchTab('student-guild')" id="tab-student-guild" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">🏰 กิลด์</button>
-                
             `;
             document.getElementById('teacher-reward-controls').classList.add('hidden');
             document.getElementById('teacher-history-controls').classList.add('hidden');
@@ -3403,173 +3397,78 @@ const appId = 'activeredpoint';
     }
     
     // Exposed to window for inline HTML calls
-   // ==========================================
-    // 📜 HISTORY SYSTEM (ระบบประวัติ + คืนของ)
-    // ==========================================
+    // ✅ ฟังก์ชันแสดงประวัติ (ฉบับอัปเกรด: แยกสีแดง/เขียว ตามประเภทธุรกรรม)
+    window.renderHistory = (resetPage = true) => {
+        if (resetPage) paginationState.history = 1;
+        const tbody = document.getElementById('history-list');
+        const filter = document.getElementById('history-search-input').value.toLowerCase();
 
-    window.renderHistory = async () => {
-        const container = document.getElementById('history-list');
-        const searchInput = document.getElementById('history-search-input');
-        const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+        // กรองข้อมูล
+        let filtered = history.filter(h => 
+            h.student_name.toLowerCase().includes(filter) || 
+            h.action.toLowerCase().includes(filter) ||
+            (h.reason && h.reason.toLowerCase().includes(filter))
+        );
 
-        // แสดงสถานะกำลังโหลด
-        container.innerHTML = `
-            <div class="text-center py-10">
-                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-                <p class="text-gray-400">กำลังโหลดประวัติ...</p>
-            </div>`;
+        // เรียงลำดับ (ใหม่สุดขึ้นก่อน)
+        filtered.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
 
-        try {
-            // ดึงข้อมูลประวัติทั้งหมด (เรียงจากใหม่ไปเก่า)
-            const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'history'), orderBy('timestamp', 'desc'), limit(50));
-            const snapshot = await getDocs(q);
+        // Pagination
+        const { data: paginatedData } = getPaginatedData(filtered, paginationState.history);
+        
+        tbody.innerHTML = paginatedData.map(h => {
+            let dateStr = formatFirestoreTimestamp(h.timestamp);
+
+            // 🔥 LOGIC การแสดงผล +/-
+            // รายการที่ถือว่าเป็นรายจ่าย (ต้องติดลบ)
+            const expenseTypes = [
+                'buy_item',         // ซื้อของ
+                'bank_deposit',     // ฝากเงิน (เงินออกจากกระเป๋า)
+                'deposit',
+                'punishment',       // บทลงโทษ
+                'deduct_points',    // หักแต้ม
+                'remove_points',
+                'create_guild',     // สร้างกิลด์
+                'gacha',            // สุ่มกาชา
+                'clear_red_card',   // ล้างใบแดง
+                'redeem'            // แลกของรางวัล
+            ];
+
+            // เช็คว่าเป็นรายจ่าย หรือ ค่าในฐานข้อมูลติดลบอยู่แล้ว
+            const isNegative = expenseTypes.includes(h.type) || h.amount < 0 || h.action.includes('ถอน'); // ดักคำว่าถอนเผื่อไว้
             
-            if (snapshot.empty) {
-                container.innerHTML = `<div class="text-center py-10 text-gray-400">ยังไม่มีประวัติรายการ</div>`;
-                return;
-            }
+            // ถ้าเป็น 'bank_withdraw' (ถอนเงิน) ต้องเป็นบวก (เงินเข้ากระเป๋า)
+            const isPositive = !isNegative || h.type === 'bank_withdraw' || h.type === 'withdraw';
 
-            // แปลงข้อมูล + กรอง (Search)
-            let histories = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            // จัดรูปแบบตัวเลข
+            const amountVal = Math.abs(h.amount).toLocaleString();
             
-            if (searchTerm) {
-                histories = histories.filter(h => 
-                    (h.student_name && h.student_name.toLowerCase().includes(searchTerm)) ||
-                    (h.action && h.action.toLowerCase().includes(searchTerm))
-                );
-            }
+            // กำหนดสีและเครื่องหมาย
+            const amountHtml = !isPositive 
+                ? `<span class="text-red-600 font-bold">-${amountVal}</span>` 
+                : `<span class="text-green-600 font-bold">+${amountVal}</span>`;
 
-            // สร้าง HTML
-            container.innerHTML = histories.map(h => {
-                // แปลงเวลา
-                let timeStr = '-';
-                if (h.timestamp) {
-                    const date = h.timestamp.toDate ? h.timestamp.toDate() : new Date(h.timestamp);
-                    timeStr = date.toLocaleString('th-TH', { 
-                        day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' 
-                    });
-                }
-
-                // กำหนดสีและไอคอนตามประเภท
-                let typeColor = 'bg-gray-100 text-gray-600';
-                let icon = '📝';
-                let isRedeem = false;
-
-                if (h.type === 'give') { typeColor = 'bg-green-100 text-green-700'; icon = '🎁'; }
-                else if (h.type === 'deduct') { typeColor = 'bg-red-100 text-red-700'; icon = '📉'; }
-                else if (h.type === 'redeem') { typeColor = 'bg-blue-100 text-blue-700'; icon = '🛒'; isRedeem = true; }
-                else if (h.type === 'bank_interest') { typeColor = 'bg-yellow-100 text-yellow-700'; icon = '📈'; }
-                else if (h.type === 'quiz_reward') { typeColor = 'bg-purple-100 text-purple-700'; icon = '🎓'; }
-
-                // ปุ่ม Action (ลบ หรือ คืนของ)
-                // ถ้าเป็น Redeem ให้แสดงปุ่มคืนของ (Refund)
-                // ถ้าเป็นอื่นๆ ให้แสดงปุ่มลบปกติ
-                let actionBtn = `
-                    <button onclick="deleteHistoryItem('${h.id}')" class="p-2 text-gray-300 hover:text-red-500 transition-colors" title="ลบประวัติ">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                    </button>
-                `;
-
-                if (isRedeem && h.meta && h.meta.reward_id) {
-                    // ปุ่ม Refund
-                    actionBtn = `
-                        <button onclick="refundItem('${h.id}', '${h.student_id}', '${h.meta.reward_id}', ${h.meta.qty || 1}, ${h.amount})" 
-                            class="flex items-center gap-1 px-3 py-1.5 bg-orange-50 text-orange-600 hover:bg-orange-100 hover:text-orange-700 rounded-lg text-xs font-bold transition-colors border border-orange-200 shadow-sm" title="คืนสินค้าและคืนแต้ม">
-                            <span>↩️ คืนของ</span>
-                        </button>
-                    `;
-                }
-
-                return `
-                <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex items-center gap-4">
-                    <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shrink-0 ${typeColor}">
-                        ${icon}
+            return `
+            <tr class="hover:bg-gray-50 border-b last:border-b-0 text-sm group">
+                <td class="px-4 py-3 text-gray-500 whitespace-nowrap">${dateStr}</td>
+                <td class="px-4 py-3 font-bold text-gray-700">${h.student_name}</td>
+                <td class="px-4 py-3">
+                    <div class="flex flex-col">
+                        <span class="font-bold text-gray-800">${h.action}</span>
+                        ${h.reason ? `<span class="text-xs text-gray-400">${h.reason}</span>` : ''}
                     </div>
-                    
-                    <div class="flex-1 min-w-0">
-                        <div class="flex justify-between items-start">
-                            <h4 class="font-bold text-gray-800 text-sm truncate">${h.student_name}</h4>
-                            <span class="text-[10px] text-gray-400 whitespace-nowrap ml-2">${timeStr}</span>
-                        </div>
-                        <p class="text-xs text-gray-600 mt-0.5 truncate">${h.action}</p>
-                        <div class="text-xs font-bold ${h.amount > 0 ? 'text-green-600' : 'text-red-500'} mt-1">
-                            ${h.amount > 0 ? '+' : ''}${h.amount ? h.amount.toLocaleString() : 0} แต้ม
-                        </div>
-                    </div>
+                </td>
+                <td class="px-4 py-3 text-right text-base">${amountHtml}</td>
+                <td class="px-4 py-3 text-center">
+                    <button onclick="deleteHistoryItem('${h.id}')" class="text-gray-300 hover:text-red-500 p-1 transition-colors" title="ลบรายการ">🗑️</button>
+                </td>
+            </tr>
+            `;
+        }).join('');
 
-                    <div class="shrink-0">
-                        ${actionBtn}
-                    </div>
-                </div>
-                `;
-            }).join('');
-
-        } catch (e) {
-            console.error(e);
-            container.innerHTML = `<div class="text-center text-red-400 py-10">โหลดข้อมูลไม่สำเร็จ (${e.message})</div>`;
-        }
+        document.getElementById('pagination-history').innerHTML = renderPaginationControls(filtered.length, 'history');
     };
 
-    // ✅ ฟังก์ชันคืนสินค้า (Refund)
-    window.refundItem = async (historyId, studentId, rewardId, qty, cost) => {
-        if(!confirm(`ยืนยันการ "คืนสินค้า"?\n\n- คืนแต้ม ${cost} แต้ม\n- คืนโควตา ${qty} ชิ้น\n- ลบประวัติการซื้อ`)) return;
-
-        try {
-            const batch = writeBatch(db);
-            
-            // 1. คืนแต้มให้นักเรียน + คืนโควตา (ลดจำนวนใน redeemed_history)
-            const sRef = doc(db, 'artifacts', appId, 'public', 'data', 'students', studentId);
-            const redeemedKey = `redeemed_history.${rewardId}`;
-            
-            const updateData = { 
-                points: increment(cost) // คืนเงิน
-            };
-            // ลบจำนวนที่เคยแลกออก (increment ติดลบ)
-            updateData[redeemedKey] = increment(-qty); 
-            
-            batch.update(sRef, updateData);
-
-            // 2. คืนสต็อกให้ร้านค้า (ถ้าสินค้ายังมีอยู่และไม่ใช่ Unlimited)
-            // เช็คก่อนว่า rewardId นี้ยังมีตัวตนไหม
-            const rRef = doc(db, 'artifacts', appId, 'public', 'data', 'rewards', rewardId);
-            // เราอาจจะ Update แบบ Blind ไปเลยก็ได้ หรือจะเช็คก่อนก็ได้ แต่เพื่อความเร็ว Update ไปเลย
-            // (ถ้าสินค้าถูกลบไปแล้ว การ update นี้อาจจะ error หรือไม่ทำงาน แต่ไม่กระทบส่วนอื่น)
-            // สมมติว่าสินค้ายังอยู่ (หรือถ้าเป็น Unlimited ก็ไม่มีผลอะไร)
-            batch.update(rRef, { stock: increment(qty) }); // บวกสต็อกกลับ
-
-            // 3. ลบประวัติ (History) ทิ้ง
-            const hRef = doc(db, 'artifacts', appId, 'public', 'data', 'history', historyId);
-            batch.delete(hRef);
-
-            await batch.commit();
-
-            // ✅ อัปเดตตัวแปร Local ทันที (เพื่อให้หน้าจอรื่น)
-            const s = students.find(x => x.id === studentId);
-            if (s) {
-                s.points += cost; // คืนแต้ม
-                if (s.redeemed_history && s.redeemed_history[rewardId]) {
-                    s.redeemed_history[rewardId] -= qty; // คืนโควตา
-                    if (s.redeemed_history[rewardId] < 0) s.redeemed_history[rewardId] = 0;
-                }
-            }
-            
-            const r = rewards.find(x => x.id === rewardId);
-            if (r && r.stock !== -1) {
-                r.stock += qty; // คืนสต็อก
-            }
-
-            showToast('✅ คืนสินค้าเรียบร้อย! (คืนแต้ม+โควตา)');
-            renderHistory(); // รีเฟรชรายการประวัติ
-
-        } catch (e) {
-            console.error(e);
-            // กรณี Error ส่วนใหญ่คือสินค้าถูกลบไปแล้ว -> ให้แจ้งเตือนแต่ยังฝืนลบประวัติได้ไหม? 
-            // เอาแบบง่ายก่อนคือแจ้ง error
-            alert('ไม่สามารถคืนสินค้าได้ (อาจเป็นเพราะสินค้าถูกลบไปแล้ว หรือข้อมูลไม่ครบถ้วน)');
-        }
-    };
     // --- HELPER: CUSTOM CONFIRM MODAL ---
     let pendingConfirmAction = null;
     let pendingCancelAction = null;
@@ -4364,27 +4263,20 @@ const appId = 'activeredpoint';
         document.getElementById('student-redeem-modal').classList.remove('hidden');
     };
     
-    function renderShopGrid() {
+   function renderShopGrid() {
         const grid = document.getElementById('shop-grid');
         
-        // ⚠️ เช็คว่ามีตัวแปร ID ไหม
+        // 1. ตรวจสอบว่ามีนักเรียนที่ถูกเลือกหรือไม่
         if (typeof selectedStudentForRedeem === 'undefined' || !selectedStudentForRedeem) {
             grid.innerHTML = '<p class="text-center text-gray-500 w-full col-span-3">ไม่พบข้อมูลนักเรียน</p>';
             return;
         }
 
-        // ✅✅✅ [แก้ตรงนี้] ดึงข้อมูลสดใหม่จาก Array กลางเสมอ (แก้ปัญหาซื้อแล้วโควตาไม่ลด)
-        // เราจะไม่ใช้ selectedStudentForRedeem ตัวเดิม เพราะมันอาจจะเป็นค่าเก่าที่ไม่อัปเดต
-        const s = students.find(x => x.id === selectedStudentForRedeem.id);
+        const s = selectedStudentForRedeem;
 
-        if (!s) { // กันเหนียวเผื่อหาไม่เจอ
-             grid.innerHTML = '<p class="text-center text-gray-500 w-full col-span-3">ข้อมูลนักเรียนไม่อัปเดต โปรดลองใหม่</p>';
-             return;
-        }
-
-        // 2. เตรียมข้อมูล + คำนวณราคา
+        // 2. เตรียมข้อมูล + คำนวณราคา (Map & Pre-calculate)
         let items = rewards.map(r => {
-            // --- ส่วนลด ---
+            // --- คำนวณส่วนลด ---
             let guildDiscount = 0;
             let pDiscount = 0;
 
@@ -4404,32 +4296,21 @@ const appId = 'activeredpoint';
             }
             
             const totalDiscount = Math.min(100, guildDiscount + pDiscount);
+
+            // --- คำนวณราคาสุทธิ ---
             let finalPoints = r.points;
             if (r.points > 0 && totalDiscount > 0) {
                 finalPoints = Math.ceil(r.points * (100 - totalDiscount) / 100);
             }
 
-            // --- ✅ [Logic ตามที่คุณออฟต้องการ] เช็คจากประวัติการซื้อจริง ---
-            let isQuotaFull = false;
-            let remainingQuota = -1;
-
-            if (r.quota > 0) {
-                // ดึงจากประวัติ redeemed_history ของคนนั้นโดยตรง
-                const currentRedeemed = (s.redeemed_history && s.redeemed_history[r.id]) || 0;
-                remainingQuota = r.quota - currentRedeemed;
-                
-                if (remainingQuota <= 0) {
-                    isQuotaFull = true;
-                    remainingQuota = 0;
-                }
-            }
-
-            const isGain = r.points < 0;
+            // --- เช็คสิทธิ์การซื้อ ---
+            const isGain = r.points < 0; // ของแจกแต้ม
             const canAfford = s.points >= finalPoints;
             const isUnlimited = (r.stock === -1 || r.stock === '-1');
             const hasStock = isUnlimited || parseInt(r.stock) > 0;
             
-            const available = (canAfford || isGain) && hasStock && !isQuotaFull;
+            // สถานะพร้อมแลกหรือไม่ (มีเงินพอ หรือเป็นของแจก และมีของในสต็อก)
+            const available = (canAfford || isGain) && hasStock;
 
             return {
                 ...r,
@@ -4439,26 +4320,26 @@ const appId = 'activeredpoint';
                 canAfford,
                 hasStock,
                 isUnlimited,
-                isQuotaFull,
-                remainingQuota,
-                available 
+                available // ตัวแปรสำหรับใช้เรียงลำดับ
             };
         });
-        
-        // กรองเฉพาะที่ Active
         items = items.filter(r => r.is_active !== false);
 
-        // 3. จัดเรียง (Smart Sorting)
+        // 3. 🔥 จัดเรียงลำดับ (Smart Sorting)
         items.sort((a, b) => {
+            // กฎข้อ 1: เอาที่ "แลกได้" ขึ้นก่อน
             if (a.available && !b.available) return -1;
             if (!a.available && b.available) return 1;
+
+            // กฎข้อ 2: เรียงตามราคา (ถูก -> แพง)
             return a.finalPoints - b.finalPoints;
         });
 
-        // 4. แสดงผล
+        // 4. แสดงผล (Render)
         grid.innerHTML = items.map(r => {
             const disabled = !r.available;
             
+            // สร้างป้ายราคา
             let pointsDisplay = '';
             let discountBadge = '';
 
@@ -4477,37 +4358,10 @@ const appId = 'activeredpoint';
                 }
             }
 
-            // Logic ปุ่ม
-            let btnText = r.isGain ? '🎁 รับเลย' : '💰 แลกเลย';
-            let btnClass = r.isGain ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-green-500 hover:bg-green-600';
-
-            if (disabled) {
-                btnClass = 'bg-gray-300 cursor-not-allowed';
-                if (r.isQuotaFull) {
-                    btnText = '❌ ครบโควตา';
-                } else if (!r.hasStock) {
-                    btnText = '❌ สินค้าหมด';
-                } else if (!r.canAfford && !r.isGain) {
-                    btnText = '🔒 แต้มไม่พอ';
-                }
-            }
-
-            // Logic ป้ายโควตา
-            let quotaLabel = '';
-            if (r.quota > 0) {
-                if (r.isQuotaFull) {
-                    quotaLabel = `<div class="text-[10px] text-red-500 font-bold bg-red-50 px-2 py-0.5 rounded-full border border-red-100">เต็มแล้ว (${r.quota}/${r.quota})</div>`;
-                } else {
-                    quotaLabel = `<div class="text-[10px] text-blue-500 font-bold bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">เหลือ ${r.remainingQuota} สิทธิ์</div>`;
-                }
-            } else {
-                 quotaLabel = `<div class="text-[10px] text-gray-400">ไม่จำกัดโควตา</div>`;
-            }
-
             return `
-            <div class="border rounded-xl p-3 flex flex-col justify-between bg-white shadow-sm transition-all ${disabled ? 'opacity-70 bg-gray-50' : 'hover:shadow-md hover:border-amber-300'}">
+            <div class="border rounded-xl p-3 flex flex-col justify-between bg-white shadow-sm transition-all ${disabled ? 'opacity-60 bg-gray-50' : 'hover:shadow-md hover:border-amber-300'}">
                 <div class="h-24 bg-gray-50 rounded-lg flex items-center justify-center mb-2 overflow-hidden border border-gray-100 relative">
-                     ${r.image ? `<img src="${r.image}" class="w-full h-full object-cover ${disabled ? 'grayscale' : ''}">` : `<span class="text-2xl">🎁</span>`}
+                     ${r.image ? `<img src="${r.image}" class="w-full h-full object-cover">` : `<span class="text-2xl">🎁</span>`}
                      ${!r.hasStock ? '<div class="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-bold text-xs">หมด</div>' : ''}
                 </div>
                 <div>
@@ -4515,18 +4369,13 @@ const appId = 'activeredpoint';
                     <div class="mt-1 mb-1">
                         ${pointsDisplay}
                     </div>
-                    
-                    <div class="flex justify-between items-center mt-2 mb-2">
-                        <div class="text-[10px] text-gray-500 flex items-center gap-1">
-                            📦 ${r.isUnlimited ? '∞' : r.stock}
-                        </div>
-                        ${quotaLabel}
-                    </div>
+                    <p class="text-[10px] text-gray-500">คงเหลือ: ${r.isUnlimited ? 'ไม่จำกัด' : r.stock}</p>
                 </div>
                 
-                <button onclick="selectRewardForRedeem('${r.id}', ${r.finalPoints})" ${disabled ? 'disabled' : ''} 
-                    class="mt-auto w-full py-2 rounded-lg text-xs font-bold text-white transition-colors shadow-sm ${btnClass}">
-                    ${btnText}
+                <button onclick="selectRewardForRedeem('${r.id}')" ${disabled ? 'disabled' : ''} 
+                    class="mt-2 w-full py-1.5 rounded-lg text-xs font-bold text-white transition-colors 
+                    ${disabled ? 'bg-gray-300 cursor-not-allowed' : (r.isGain ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-green-500 hover:bg-green-600')}">
+                    ${r.isGain ? '🎁 รับเลย' : '💰 แลกเลย'}
                 </button>
             </div>`;
         }).join('');
@@ -4747,30 +4596,8 @@ const appId = 'activeredpoint';
 
         try {
             await batch.commit();
-            // ✅✅✅ [ส่วนที่เพิ่ม] อัปเดตข้อมูลในหน้าเว็บทันที (ไม่ต้องรอโหลดใหม่)
-            
-            // 1. ตัดแต้มในตัวแปร Local ทันที
-            student.points -= totalCost;
-            
-            // 2. เพิ่มประวัติการแลกในตัวแปร Local ทันที (แก้ปัญหาโควตาไม่ลด)
-            if (!student.redeemed_history) student.redeemed_history = {};
-            
-            // เอาจำนวนที่เคยแลก (ถ้ามี) + จำนวนที่เพิ่งแลกเข้าไป
-            const oldQty = student.redeemed_history[reward.id] || 0;
-            student.redeemed_history[reward.id] = oldQty + qty;
-
-            // 3. ตัดสต็อกในตัวแปร Local (ถ้ามีจำกัด)
-            if (!isUnlimited) {
-                reward.stock -= qty;
-            }
-
-            if(typeof renderShopGrid === 'function') renderShopGrid(); 
-            if(typeof renderStudentList === 'function') renderStudentList(false);
-
             hideRedeemQuantityModal();
             showToast(`แลกรางวัลสำเร็จ!`);
-            // รีเฟรชหน้าจอร้านค้า (เพื่อให้เห็นว่าแต้มลด หรือของหมดทันที)
-           
         } catch (e) {
             console.error(e);
             alert('เกิดข้อผิดพลาด: ' + e.message);
@@ -7457,64 +7284,25 @@ window.calculateQuestPointsWithBuffs = (student, basePoints) => {
         }
     };
 
-   // ==========================================
-    // ⏰ SCHEDULED INTEREST (ระบบตั้งเวลาดอกเบี้ยแบบปฏิทิน)
-    // ==========================================
+    // --- ⏳ SCHEDULED INTEREST SYSTEM FUNCTIONS ---
+
+    // 1. บันทึกกำหนดการ
     window.saveScheduledInterest = async () => {
-        // 1. รับค่าจากช่อง Input
-        const rateInput = document.getElementById('sched-rate');
-        const dateInput = document.getElementById('sched-date'); // ✅ ใช้ ID ใหม่ที่เป็น Date Picker
+        const newRate = parseFloat(document.getElementById('sched-rate').value);
+        const days = parseInt(document.getElementById('sched-days').value);
 
-        if (!rateInput || !dateInput) return alert("ไม่พบช่องกรอกข้อมูล (กรุณาเช็ค ID ใน HTML)");
+        if (isNaN(newRate) || isNaN(days) || days < 1) return alert('กรุณากรอกข้อมูลให้ครบถ้วน');
 
-        const rate = parseFloat(rateInput.value);
-        const dateStr = dateInput.value; // ค่าจะได้เป็น "2023-10-25" (YYYY-MM-DD)
-
-        // 2. ตรวจสอบความถูกต้อง
-        if (isNaN(rate)) return alert("กรุณากรอกอัตราดอกเบี้ยให้ถูกต้อง");
-        if (!dateStr) return alert("กรุณาเลือกวันที่จากปฏิทิน");
-
-        // 3. 🕒 สร้างวันที่และเซ็ตเวลาเป็นเที่ยงคืน (ตามที่ตกลงกัน)
-        const targetDate = new Date(dateStr);
-        targetDate.setHours(0, 0, 0, 0); 
-
-        // 4. ป้องกันการเลือกย้อนหลัง
-        const today = new Date();
-        today.setHours(0, 0, 0, 0); // ตัดเวลาทิ้ง เหลือแค่เที่ยงคืนวันนี้
+        // คำนวณเวลาเป้าหมาย (Current + Days)
+        const targetDate = new Date();
+        targetDate.setDate(targetDate.getDate() + days); // บวกวัน
         
-        if (targetDate.getTime() <= today.getTime()) {
-            // ถ้าเลือกวันนี้ หรือ วันก่อนหน้า -> ห้าม (เพราะถ้าเลือกวันนี้ มันควรเปลี่ยนเลย ไม่ต้องตั้งล่วงหน้า)
-            return alert("❌ กรุณาเลือกวันที่ล่วงหน้า (ตั้งแต่วันพรุ่งนี้เป็นต้นไป)");
-        }
-
-        // 5. บันทึกลง Database
         try {
-            await setDoc(doc(db, 'artifacts', appId, 'public', 'config'), {
-                scheduled_interest: {
-                    rate: rate,
-                    date: Timestamp.fromDate(targetDate), // 🔥 Firebase จะเก็บเวลา 00:00:00 ให้เป๊ะๆ
-                    active: true
-                }
-            }, { merge: true }
-        );
-            
-            // แปลงวันที่ให้แสดงผลสวยๆ (เช่น 25 ต.ค. 66)
-            const dateShow = targetDate.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
-            
-            showToast(`⏰ ตั้งเวลาเปลี่ยนเป็น ${rate}% ในวันที่ ${dateShow} (เที่ยงคืน) เรียบร้อย!`, 'success');
-            
-            // รีเฟรชหน้าจอเพื่อแสดงสถานะรอเวลา
-            if(typeof checkAndRenderScheduledInterest === 'function') {
-                checkAndRenderScheduledInterest();
-            }
-
-            // เคลียร์ค่าในฟอร์ม
-            rateInput.value = '';
-            dateInput.value = '';
-
+            await saveConfig('scheduled_rate', newRate);
+            await saveConfig('scheduled_time', targetDate); // Firestore จะแปลงเป็น Timestamp ให้เอง
+            showToast(`📅 ตั้งเวลาเปลี่ยนเป็น ${newRate}% ในวันที่ ${targetDate.toLocaleDateString('th-TH')} เรียบร้อย`);
         } catch (e) {
-            console.error(e);
-            alert("Error: " + e.message);
+            alert('Error: ' + e.message);
         }
     };
 
@@ -7544,11 +7332,7 @@ window.calculateQuestPointsWithBuffs = (student, basePoints) => {
     };
 
     // 3. แสดงผล UI (Banner & Status)
-   // ==========================================
-    // 🕒 CHECK & RENDER SCHEDULED INTEREST (ตรวจสอบและแสดงผล)
-    // ==========================================
-    window.checkAndRenderScheduledInterest = async () => {
-        // 1. เตรียม Element ที่ต้องใช้แสดงผล
+    window.checkAndRenderScheduledInterest = () => {
         const banner = document.getElementById('interest-announce-banner');
         const bannerText = document.getElementById('interest-announce-text');
         
@@ -7556,134 +7340,35 @@ window.calculateQuestPointsWithBuffs = (student, basePoints) => {
         const formDiv = document.getElementById('sched-input-form');
         const statusText = document.getElementById('sched-status-text');
 
-        // 2. เช็คว่ามีข้อมูลการตั้งค่าหรือไม่? (ดูที่ scheduled_interest)
-        if (!config || !config.scheduled_interest || !config.scheduled_interest.active) {
-            // ❌ ไม่มีข้อมูล -> ซ่อน Banner, โชว์ฟอร์มให้ครูกรอกใหม่
-            if (banner) banner.classList.add('hidden');
-            if (statusDiv) statusDiv.classList.add('hidden');
-            if (formDiv) formDiv.classList.remove('hidden');
-            return;
-        }
+        if (config.scheduled_rate && config.scheduled_time) {
+            // แปลงเวลา
+            let targetTime = config.scheduled_time;
+            if (typeof targetTime.toMillis === 'function') targetTime = targetTime.toDate();
+            else targetTime = new Date(targetTime);
 
-        // 3. ✅ มีข้อมูล -> ดึงออกมาใช้งาน
-        const sch = config.scheduled_interest;
-        const targetDate = sch.date.toDate(); // แปลง Timestamp เป็น Date
-        const now = new Date();
+            const dateStr = targetTime.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
+            const rateStr = config.scheduled_rate;
 
-        // ----------------------------------------------------
-        // 🔄 กรณีที่ 1: "ถึงเวลาแล้ว!" (เลยเที่ยงคืนมาแล้ว)
-        // ----------------------------------------------------
-        if (now >= targetDate) {
-            console.log("⏰ ถึงเวลาเปลี่ยนดอกเบี้ยแล้ว! กำลังดำเนินการ...");
-            
-            try {
-                const batch = writeBatch(db);
-                let count = 0;
-
-                // A. วนลูปตัดยอดดอกเบี้ยเก่าให้นักเรียนทุกคน
-                students.forEach(s => {
-                    // (เงื่อนไข: มีเงินฝาก + ไม่โดนแบน + ฝากมาก่อนเวลาเปลี่ยน)
-                    if (s.bank_points > 0 && s.bank_deposit_time) {
-                        let depositTime = s.bank_deposit_time;
-                        if (typeof depositTime.toMillis === 'function') depositTime = depositTime.toMillis();
-                        else depositTime = new Date(depositTime).getTime();
-
-                        // ถ้าเวลาฝาก เก่ากว่า เวลาเป้าหมาย (แสดงว่ามีช่วงดอกเบี้ยเก่าค้างอยู่)
-                        if (depositTime < targetDate.getTime()) {
-                            // คำนวณดอกเบี้ยช่วงเก่า (Deposit -> Midnight)
-                            const hours = (targetDate.getTime() - depositTime) / (36e5);
-                            
-                            // ใช้เรท "เก่า" (config.interest_rate ปัจจุบัน)
-                            let rate = config.interest_rate || 0;
-                            
-                            // บวกบัฟกิลด์
-                            if (s.guild_id && typeof getGuildActiveBuffs === 'function') {
-                                const buffs = getGuildActiveBuffs(s.guild_id);
-                                if(buffs.interest) rate += parseFloat(buffs.interest);
-                            }
-
-                            if (hours > 0 && rate > 0 && (s.warning_cards||0) === 0) {
-                                const interestEarned = s.bank_points * (rate / 100) * hours;
-                                
-                                const sRef = doc(db, 'artifacts', appId, 'public', 'data', 'students', s.id);
-                                batch.update(sRef, {
-                                    bank_points: increment(interestEarned), // ดอกเบี้ยเข้าต้น
-                                    bank_deposit_time: Timestamp.fromDate(targetDate) // รีเซ็ตเวลาเป็นเที่ยงคืน
-                                });
-                                count++;
-                            } else {
-                                // ไม่ได้ดอกเบี้ย แต่อัปเดตเวลาให้เป็นปัจจุบัน
-                                const sRef = doc(db, 'artifacts', appId, 'public', 'data', 'students', s.id);
-                                batch.update(sRef, { bank_deposit_time: Timestamp.fromDate(targetDate) });
-                            }
-                        }
-                    }
-                });
-
-                // B. เปลี่ยนค่า Config กลาง
-                const configRef = doc(db, 'artifacts', appId, 'public', 'config');
-                batch.update(configRef, {
-                    interest_rate: sch.rate,        // เปลี่ยนเรทจริง
-                    scheduled_interest: deleteField() // ลบกำหนดการทิ้ง
-                });
-
-                await batch.commit();
-                
-                showToast(`✅ ระบบเปลี่ยนดอกเบี้ยเป็น ${sch.rate}% และตัดยอดให้ ${count} คนแล้วครับ!`, 'success');
-                
-                // รีเฟรชหน้าจอ
-                setTimeout(() => window.location.reload(), 2000);
-                return;
-
-            } catch (e) {
-                console.error("Auto update failed:", e);
-                // ถ้า Error ให้แสดงผลแบบปกติไปก่อน กันหน้าจอพัง
+            // A. แสดง Banner ให้นักเรียน (และครู) เห็น
+            if (banner && bannerText) {
+                banner.classList.remove('hidden');
+                bannerText.textContent = `เตรียมพบกับดอกเบี้ยใหม่ ${rateStr}% เริ่มวันที่ ${dateStr} นี้!`;
             }
-        }
 
-        // ----------------------------------------------------
-        // ⏳ กรณีที่ 2: "ยังไม่ถึงเวลา" (รอเปลี่ยน)
-        // ----------------------------------------------------
-        const dateFmt = targetDate.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
+            // B. ปรับหน้า Settings ของครู (ซ่อนฟอร์ม โชว์สถานะ)
+            if (statusDiv && formDiv && statusText) {
+                statusDiv.classList.remove('hidden');
+                formDiv.classList.add('hidden');
+                statusText.innerHTML = `<span class="text-lg">${rateStr}%</span> <span class="text-gray-400 font-normal">ภายในวันที่ ${dateStr}</span>`;
+            }
 
-        // แสดงผลฝั่งนักเรียน (Banner)
-        if (banner && bannerText) {
-            banner.classList.remove('hidden');
-            bannerText.textContent = `เตรียมพบกับดอกเบี้ยใหม่ ${sch.rate}% เริ่มวันที่ ${dateFmt} นี้!`;
-        }
-
-        // แสดงผลฝั่งครู (Status)
-        if (statusDiv && formDiv && statusText) {
-            statusDiv.classList.remove('hidden');
-            formDiv.classList.add('hidden'); // ซ่อนฟอร์มกรอก
-            
-            statusText.innerHTML = `
-                <div class="flex items-center justify-between w-full">
-                    <div>
-                        <div class="text-[10px] text-gray-400 font-normal">เปลี่ยนเป็น</div>
-                        <span class="text-2xl font-bold text-indigo-600">${sch.rate}%</span> 
-                    </div>
-                    <div class="text-right">
-                        <div class="text-[10px] text-gray-400 font-normal">วันที่ (00:00 น.)</div>
-                        <span class="text-sm font-bold text-gray-700">${dateFmt}</span>
-                    </div>
-                </div>
-            `;
-        }
-    };
-
-    // แถม: ฟังก์ชันยกเลิก (Cancel) ที่ถูกต้อง
-    window.cancelScheduledInterest = async () => {
-        if(!confirm('ต้องการยกเลิกการตั้งเวลาล่วงหน้า?')) return;
-        try {
-            await updateDoc(doc(db, 'artifacts', appId, 'public', 'config'), {
-                scheduled_interest: deleteField() // ลบฟิลด์ทิ้ง
-            });
-            showToast('ยกเลิกเรียบร้อย', 'success');
-            // รีเฟรชหน้า UI ทันที (จะกลับไปเข้าเคส "ไม่มีข้อมูล")
-            checkAndRenderScheduledInterest();
-        } catch(e) {
-            alert('Error: ' + e.message);
+        } else {
+            // ไม่มีกำหนดการ -> ซ่อน Banner, โชว์ฟอร์มปกติ
+            if (banner) banner.classList.add('hidden');
+            if (statusDiv && formDiv) {
+                statusDiv.classList.add('hidden');
+                formDiv.classList.remove('hidden');
+            }
         }
     };
 
@@ -8107,6 +7792,9 @@ window.getGuildActiveBuffs = (guildId) => {
     };
 
     
+   
+
+   
     // ==========================================
     // 🎁 BULK GIVE GACHA SYSTEM (ระบบแจกกล่องสุ่มฟรี)
     // ==========================================
