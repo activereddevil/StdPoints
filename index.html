@@ -3,7 +3,7 @@
  <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ระบบจัดเก็บแต้มนักเรียน (Admin Centralized) V 6.1</title>
+  <title>ระบบจัดเก็บแต้มนักเรียน (Admin Centralized)</title>
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#4f46e5">
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
@@ -186,7 +186,7 @@
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
         </div>
         <div>
-            <h1 id="system-title" class="text-xl font-bold text-gray-800">ระบบจัดเก็บแต้มนักเรียน</h1>
+            <h1 id="system-title" class="text-xl font-bold text-gray-800">StdPoints V6.13</h1>
             <p id="user-role-display" class="text-xs text-gray-500">สถานะ: แขก</p>
         </div>
      </div>
@@ -275,11 +275,11 @@
                                    <span id="std-dash-bank" class="text-3xl font-bold text-green-700">0</span>
                                    <span class="text-xs text-green-500 font-medium">(ดอกเบี้ยสะสม <span id="std-dash-interest">0</span>)</span>
                                 </div>
-                                <div class="flex gap-2 mt-4 relative z-10 pt-2 border-t border-white/10">
+                                <div class="flex gap-8 mt-4 relative z-10 pt-2 border-t border-white/10">
                                     <button onclick="openStudentBankModal('deposit')" class="flex-1 bg-white/20 hover:bg-white/30 text-green-500 py-1.5 rounded-lg font-bold text-sm transition-all border border-white/10 flex items-center justify-center gap-1 active:scale-95">
                                         📥 ฝากแต้ม
                                     </button>
-                                    <button onclick="openStudentBankModal('withdraw')" class="flex-1 bg-white/20 hover:bg-white/30 text-green-500 py-1.5 rounded-lg font-bold text-sm transition-all border border-white/10 flex items-center justify-center gap-1 active:scale-95">
+                                    <button onclick="openStudentBankModal('withdraw')" class="flex-2 bg-white/20 hover:bg-white/30 text-green-500 py-1.5 rounded-lg font-bold text-sm transition-all border border-white/10 flex items-center justify-center gap-1 active:scale-95">
                                         📤 ถอนแต้ม
                                     </button>
                                 </div>
@@ -416,7 +416,7 @@
                 🎒 <span class="hidden lg:inline">ไอเทม</span>
             </button>
             <button onclick="handleStickySingleAction('edit')" class="btn-single bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-2 rounded-md font-bold shadow-sm flex items-center gap-2 transition-all">
-                ✏️ <span class="hidden lg:inline">แก้ไข</span>
+                ✏️ 
             </button>
             
         </div>
@@ -441,7 +441,7 @@
                                 </th>
                                 <th class="px-2 py-4 text-left font-bold cursor-pointer hover:text-red-600" onclick="sortStudents('student_id')">เลขที่ ↕</th>
                                 <th class="px-2 py-4 text-left font-bold cursor-pointer hover:text-red-600" onclick="sortStudents('full_name')">ชื่อ-สกุล (บัฟ) ↕</th>
-                                <th class="px-2 py-4 text-center font-bold cursor-pointer hover:text-red-600" onclick="sortStudents('points')">แต้มตัว ↕</th>
+                                <th class="px-2 py-4 text-center font-bold cursor-pointer hover:text-red-600" onclick="sortStudents('points')">แต้มในมือ ↕</th>
                                 
                                 <th class="px-2 py-4 text-center font-bold text-indigo-700 cursor-pointer" onclick="sortStudents('bank_points')">ฝาก ↕</th>
                                 <th class="px-2 py-4 text-center font-bold text-green-600">ดอกเบี้ย</th>
@@ -468,7 +468,7 @@
                     ⚠️ รายชื่อนักเรียนที่ถูกคุมประพฤติ
                     <span id="punishment-count" class="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded-full">0</span>
                 </h2>
-                <p class="text-sm text-gray-500">นักเรียนเหล่านี้จะถอนเงินไม่ได้ และแต้มใหม่จะถูกอายัดไว้จนกว่าจะหมดโทษ</p>
+                <p class="text-sm text-gray-500">นักเรียนเหล่านี้จะทำธุรกรรมไม่ได้ ดอกเบี้ยจะหยุดคำนวณ และแต้มใหม่จะถูกอายัดไว้จนกว่าจะหมดโทษ</p>
             </div>
             
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex-1">
@@ -711,7 +711,9 @@
             <div class="bg-white rounded-xl shadow-sm p-6 max-w-2xl mx-auto border border-gray-200">
                 <h2 class="text-xl font-bold text-gray-800 mb-6">ตั้งค่าระบบ</h2>
                 
+
                 <div class="space-y-6">
+                    
                     <div>
                         <label class="block text-gray-700 font-medium mb-2">อัตราดอกเบี้ยธนาคาร (% ต่อชั่วโมง)</label>
                         <div class="flex gap-4 items-center">
@@ -742,8 +744,8 @@
                                     <input type="number" id="sched-rate" step="0.01" class="w-full border border-blue-200 rounded-lg p-2 text-center font-bold text-blue-600 focus:ring-2 focus:ring-blue-400" placeholder="เช่น 2.5">
                                 </div>
                                 <div>
-                                    <label class="text-xs text-blue-700 font-bold">เปลี่ยนในอีก (วัน)</label>
-                                    <input type="number" id="sched-days" min="1" class="w-full border border-blue-200 rounded-lg p-2 text-center font-bold" placeholder="1">
+                                    <label class="text-xs text-blue-700 font-bold">เลือกวันที่</label>
+                                    <input type="date" id="sched-date" class="flex-1 px-4 py-2 border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 text-gray-700 bg-white" placeholder="เลือกวันที่">
                                 </div>
                             </div>
                             <button onclick="saveScheduledInterest()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-bold shadow-sm transition-colors text-sm">
@@ -847,27 +849,27 @@
                 <div class="grid grid-cols-12 gap-2 items-center text-sm">
                         <div class="col-span-1 font-bold text-gray-500 text-center">#1</div>
                         <div class="col-span-4 flex items-center gap-2">ครบ <input type="number" id="conf-streak-d1" class="w-16 border rounded px-1 text-center" value="7"> วัน</div>
-                        <div class="col-span-7 flex items-center gap-2">รับเพิ่ม <input type="number" id="conf-streak-p1" class="flex-1 border rounded px-1 text-center font-bold text-indigo-600" value="100"> แต้ม</div>
+                        <div class="col-span-7 flex items-center gap-2">รับเพิ่ม <input type="number" id="conf-streak-p1" class="w-16 border rounded px-1 text-center font-bold text-indigo-600" value="100"> แต้ม</div>
                 </div>
                 <div class="grid grid-cols-12 gap-2 items-center text-sm">
                         <div class="col-span-1 font-bold text-gray-500 text-center">#2</div>
                         <div class="col-span-4 flex items-center gap-2">ครบ <input type="number" id="conf-streak-d2" class="w-16 border rounded px-1 text-center" value="14"> วัน</div>
-                        <div class="col-span-7 flex items-center gap-2">รับเพิ่ม <input type="number" id="conf-streak-p2" class="flex-1 border rounded px-1 text-center font-bold text-indigo-600" value="300"> แต้ม</div>
+                        <div class="col-span-7 flex items-center gap-2">รับเพิ่ม <input type="number" id="conf-streak-p2" class="w-16 border rounded px-1 text-center font-bold text-indigo-600" value="300"> แต้ม</div>
                 </div>
                 <div class="grid grid-cols-12 gap-2 items-center text-sm">
                         <div class="col-span-1 font-bold text-gray-500 text-center">#3</div>
                         <div class="col-span-4 flex items-center gap-2">ครบ <input type="number" id="conf-streak-d3" class="w-16 border rounded px-1 text-center" value="21"> วัน</div>
-                        <div class="col-span-7 flex items-center gap-2">รับเพิ่ม <input type="number" id="conf-streak-p3" class="flex-1 border rounded px-1 text-center font-bold text-indigo-600" value="500"> แต้ม</div>
+                        <div class="col-span-7 flex items-center gap-2">รับเพิ่ม <input type="number" id="conf-streak-p3" class="w-16 border rounded px-1 text-center font-bold text-indigo-600" value="500"> แต้ม</div>
                 </div>
                 <div class="grid grid-cols-12 gap-2 items-center text-sm">
                         <div class="col-span-1 font-bold text-gray-500 text-center">#4</div>
                         <div class="col-span-4 flex items-center gap-2">ครบ <input type="number" id="conf-streak-d4" class="w-16 border rounded px-1 text-center" value="30"> วัน</div>
-                        <div class="col-span-7 flex items-center gap-2">รับเพิ่ม <input type="number" id="conf-streak-p4" class="flex-1 border rounded px-1 text-center font-bold text-indigo-600" value="1000"> แต้ม</div>
+                        <div class="col-span-7 flex items-center gap-2">รับเพิ่ม <input type="number" id="conf-streak-p4" class="w-16 border rounded px-1 text-center font-bold text-indigo-600" value="1000"> แต้ม</div>
                 </div>
                 <div class="grid grid-cols-12 gap-2 items-center text-sm">
                         <div class="col-span-1 font-bold text-gray-500 text-center">#5</div>
                         <div class="col-span-4 flex items-center gap-2">ครบ <input type="number" id="conf-streak-d5" class="w-16 border rounded px-1 text-center" value="45"> วัน</div>
-                        <div class="col-span-7 flex items-center gap-2">รับเพิ่ม <input type="number" id="conf-streak-p5" class="flex-1 border rounded px-1 text-center font-bold text-indigo-600" value="3000"> แต้ม</div>
+                        <div class="col-span-7 flex items-center gap-2">รับเพิ่ม <input type="number" id="conf-streak-p5" class="w-16 border rounded px-1 text-center font-bold text-indigo-600" value="3000"> แต้ม</div>
                 </div>
             </div>
         </div>
@@ -996,7 +998,7 @@
                             <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 text-[9px] bg-gray-800 text-white px-1.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">ไอคอน</span>
                         </div>
                         <div class="flex-1">
-                            <input type="text" id="edit-guild-name" class="w-full h-full px-4 text-lg font-bold text-gray-800 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 bg-gray-50 focus:bg-white transition-colors" placeholder="ระบุชื่อกิลด์...">
+                            <input type="text" id="edit-guild-name" class="w-full h-12 px-4 text-lg font-bold text-gray-800 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 bg-gray-50 focus:bg-white transition-colors" placeholder="ระบุชื่อกิลด์...">
                         </div>
                     </div>
                     
@@ -1012,14 +1014,14 @@
                             📝 สัญญากิลด์ (Contract)
                         </h4>
                         <div class="space-y-2">
-                            <div class="flex items-center justify-end gap-2">
-                                <span class="text-[10px] text-red-400 w-16">สัญญา</span>
-                                <input type="number" id="edit-guild-cooldown" class="w-20 h-8 px-1 border border-red-200 rounded text-center text-sm font-bold text-red-600 focus:border-red-500" placeholder="0">
+                            <div class="flex items-center justify-start gap-3">
+                                <span class="text-[10px] text-red-400 w-20">ติดสัญญา</span>
+                                <input type="number" id="edit-guild-cooldown" class="w-20 h-6 px-1 border border-red-200 rounded text-center text-sm font-bold text-red-600 focus:border-red-500" placeholder="0">
                                 <span class="text-[10px] text-red-400 w-6">ชม.</span>
                             </div>
-                            <div class="flex items-center justify-end gap-2">
-                                <span class="text-[10px] text-red-400 w-16">ค่าปรับออก</span>
-                                <input type="number" id="edit-guild-fee" class="w-20 h-8 px-1 border border-red-200 rounded text-center text-sm font-bold text-red-600 focus:border-red-500" placeholder="0">
+                            <div class="flex items-center justify-start gap-3">
+                                <span class="text-[10px] text-red-400 w-20">ค่าปรับออก</span>
+                                <input type="number" id="edit-guild-fee" class="w-20 h-6 px-1 border border-red-200 rounded text-center text-sm font-bold text-red-600 focus:border-red-500" placeholder="0">
                                 <span class="text-[10px] text-red-400 w-6">แต้ม</span>
                             </div>
                         </div>
@@ -1030,14 +1032,14 @@
                             ✨ พลังแฝง (Guild Buffs)
                         </h4>
                         <div class="space-y-2">
-                            <div class="flex items-center justify-end gap-2">
-                                <span class="text-[10px] text-amber-500 w-16">ดอกเบี้ย</span>
-                                <input type="number" id="guild-buff-interest" step="0.01" class="w-20 h-8 px-2 border border-amber-200 rounded text-center text-sm font-bold text-green-600 focus:border-amber-500" placeholder="0.0">
+                            <div class="flex items-center justify-start gap-2">
+                                <span class="text-[10px] text-amber-500 w-20">ดอกเบี้ย</span>
+                                <input type="number" id="guild-buff-interest" step="0.01" class="w-20 h-6 px-2 border border-amber-200 rounded text-center text-sm font-bold text-green-600 focus:border-amber-500" placeholder="0.0">
                                 <span class="text-[10px] text-amber-500 w-6">%</span>
                             </div>
-                            <div class="flex items-center justify-end gap-2">
-                                <span class="text-[10px] text-amber-500 w-16">ส่วนลดของ</span>
-                                <input type="number" id="guild-buff-discount" class="w-20 h-8 px-2 border border-amber-200 rounded text-center text-sm font-bold text-red-500 focus:border-amber-500" placeholder="0">
+                            <div class="flex items-center justify-start gap-2">
+                                <span class="text-[10px] text-amber-500 w-20">ส่วนลดของ</span>
+                                <input type="number" id="guild-buff-discount" class="w-20 h-6 px-2 border border-amber-200 rounded text-center text-sm font-bold text-red-500 focus:border-amber-500" placeholder="0">
                                 <span class="text-[10px] text-amber-500 w-6">%</span>
                             </div>
                         </div>
@@ -1074,6 +1076,7 @@
         
     </div>
 </div>
+
 
 
     </div>
@@ -2063,7 +2066,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-    import { getFirestore, collection, addDoc, setDoc, updateDoc, deleteDoc, doc, getDoc, onSnapshot, query, where, getDocs, increment, serverTimestamp, writeBatch, arrayUnion, arrayRemove, deleteField, runTransaction } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";    // --- Firebase Config (Auto-injected by Canvas) ---
+    import { getFirestore, collection, addDoc, setDoc, updateDoc, deleteDoc, doc, getDoc, onSnapshot, query, where, getDocs, increment, serverTimestamp, writeBatch, arrayUnion, arrayRemove, deleteField, runTransaction, Timestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";    // --- Firebase Config (Auto-injected by Canvas) ---
    const firebaseConfig = {
   apiKey: "AIzaSyCt1hOqcgf8fGmPVtvrPztwzMQZvlrETfY",
   authDomain: "pointmgmt-b8b87.firebaseapp.com",
@@ -2394,6 +2397,7 @@ const appId = 'activeredpoint';
         loadQuestCategories();
         loadRewardCategories();
         loadStreakConfig(); // โหลดค่าตั้งค่าเช็คชื่อ
+       
         
         // Clear previous intervals if any
         if (window.interestInterval) clearInterval(window.interestInterval);
@@ -2634,9 +2638,9 @@ const appId = 'activeredpoint';
                 <button onclick="switchTab('home')" id="tab-home" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-red-500 text-red-600">รายชื่อนักเรียน</button>
                 <button onclick="switchTab('punishment')" id="tab-punishment" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">⚠️ คุมประพฤติ</button>
                 <button onclick="switchTab('guilds')" id="tab-guilds" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">🏰 กิลด์</button>
-                <button onclick="switchTab('groups')" id="tab-btn-groups" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700"><span>👥</span> จัดกลุ่ม</button>
+                <button onclick="switchTab('groups')" id="tab-btn-groups" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">👥 จัดกลุ่ม</button>
                 <button onclick="switchTab('quests')" id="tab-quests" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">ภารกิจ</button>
-                
+
                 <button onclick="switchTab('history')" id="tab-history" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">ประวัติ</button>
                 <button onclick="switchTab('rewards')" id="tab-rewards" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">รางวัล</button>
                 
@@ -2655,6 +2659,7 @@ const appId = 'activeredpoint';
                 <button onclick="switchTab('student-dashboard')" id="tab-student-dashboard" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-red-500 text-red-600">หน้าหลัก</button>
                 <button onclick="switchTab('rewards')" id="tab-rewards" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">ของรางวัล</button>
                 <button onclick="switchTab('student-guild')" id="tab-student-guild" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">🏰 กิลด์</button>
+                
             `;
             document.getElementById('teacher-reward-controls').classList.add('hidden');
             document.getElementById('teacher-history-controls').classList.add('hidden');
@@ -7314,25 +7319,64 @@ window.calculateQuestPointsWithBuffs = (student, basePoints) => {
         }
     };
 
-    // --- ⏳ SCHEDULED INTEREST SYSTEM FUNCTIONS ---
-
-    // 1. บันทึกกำหนดการ
+   // ==========================================
+    // ⏰ SCHEDULED INTEREST (ระบบตั้งเวลาดอกเบี้ยแบบปฏิทิน)
+    // ==========================================
     window.saveScheduledInterest = async () => {
-        const newRate = parseFloat(document.getElementById('sched-rate').value);
-        const days = parseInt(document.getElementById('sched-days').value);
+        // 1. รับค่าจากช่อง Input
+        const rateInput = document.getElementById('sched-rate');
+        const dateInput = document.getElementById('sched-date'); // ✅ ใช้ ID ใหม่ที่เป็น Date Picker
 
-        if (isNaN(newRate) || isNaN(days) || days < 1) return alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+        if (!rateInput || !dateInput) return alert("ไม่พบช่องกรอกข้อมูล (กรุณาเช็ค ID ใน HTML)");
 
-        // คำนวณเวลาเป้าหมาย (Current + Days)
-        const targetDate = new Date();
-        targetDate.setDate(targetDate.getDate() + days); // บวกวัน
+        const rate = parseFloat(rateInput.value);
+        const dateStr = dateInput.value; // ค่าจะได้เป็น "2023-10-25" (YYYY-MM-DD)
+
+        // 2. ตรวจสอบความถูกต้อง
+        if (isNaN(rate)) return alert("กรุณากรอกอัตราดอกเบี้ยให้ถูกต้อง");
+        if (!dateStr) return alert("กรุณาเลือกวันที่จากปฏิทิน");
+
+        // 3. 🕒 สร้างวันที่และเซ็ตเวลาเป็นเที่ยงคืน (ตามที่ตกลงกัน)
+        const targetDate = new Date(dateStr);
+        targetDate.setHours(0, 0, 0, 0); 
+
+        // 4. ป้องกันการเลือกย้อนหลัง
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // ตัดเวลาทิ้ง เหลือแค่เที่ยงคืนวันนี้
         
+        if (targetDate.getTime() <= today.getTime()) {
+            // ถ้าเลือกวันนี้ หรือ วันก่อนหน้า -> ห้าม (เพราะถ้าเลือกวันนี้ มันควรเปลี่ยนเลย ไม่ต้องตั้งล่วงหน้า)
+            return alert("❌ กรุณาเลือกวันที่ล่วงหน้า (ตั้งแต่วันพรุ่งนี้เป็นต้นไป)");
+        }
+
+        // 5. บันทึกลง Database
         try {
-            await saveConfig('scheduled_rate', newRate);
-            await saveConfig('scheduled_time', targetDate); // Firestore จะแปลงเป็น Timestamp ให้เอง
-            showToast(`📅 ตั้งเวลาเปลี่ยนเป็น ${newRate}% ในวันที่ ${targetDate.toLocaleDateString('th-TH')} เรียบร้อย`);
+            await setDoc(doc(db, 'artifacts', appId, 'public', 'config'), {
+                scheduled_interest: {
+                    rate: rate,
+                    date: Timestamp.fromDate(targetDate), // 🔥 Firebase จะเก็บเวลา 00:00:00 ให้เป๊ะๆ
+                    active: true
+                }
+            }, { merge: true }
+        );
+            
+            // แปลงวันที่ให้แสดงผลสวยๆ (เช่น 25 ต.ค. 66)
+            const dateShow = targetDate.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
+            
+            showToast(`⏰ ตั้งเวลาเปลี่ยนเป็น ${rate}% ในวันที่ ${dateShow} (เที่ยงคืน) เรียบร้อย!`, 'success');
+            
+            // รีเฟรชหน้าจอเพื่อแสดงสถานะรอเวลา
+            if(typeof checkAndRenderScheduledInterest === 'function') {
+                checkAndRenderScheduledInterest();
+            }
+
+            // เคลียร์ค่าในฟอร์ม
+            rateInput.value = '';
+            dateInput.value = '';
+
         } catch (e) {
-            alert('Error: ' + e.message);
+            console.error(e);
+            alert("Error: " + e.message);
         }
     };
 
@@ -7362,7 +7406,11 @@ window.calculateQuestPointsWithBuffs = (student, basePoints) => {
     };
 
     // 3. แสดงผล UI (Banner & Status)
-    window.checkAndRenderScheduledInterest = () => {
+   // ==========================================
+    // 🕒 CHECK & RENDER SCHEDULED INTEREST (ตรวจสอบและแสดงผล)
+    // ==========================================
+    window.checkAndRenderScheduledInterest = async () => {
+        // 1. เตรียม Element ที่ต้องใช้แสดงผล
         const banner = document.getElementById('interest-announce-banner');
         const bannerText = document.getElementById('interest-announce-text');
         
@@ -7370,35 +7418,134 @@ window.calculateQuestPointsWithBuffs = (student, basePoints) => {
         const formDiv = document.getElementById('sched-input-form');
         const statusText = document.getElementById('sched-status-text');
 
-        if (config.scheduled_rate && config.scheduled_time) {
-            // แปลงเวลา
-            let targetTime = config.scheduled_time;
-            if (typeof targetTime.toMillis === 'function') targetTime = targetTime.toDate();
-            else targetTime = new Date(targetTime);
-
-            const dateStr = targetTime.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
-            const rateStr = config.scheduled_rate;
-
-            // A. แสดง Banner ให้นักเรียน (และครู) เห็น
-            if (banner && bannerText) {
-                banner.classList.remove('hidden');
-                bannerText.textContent = `เตรียมพบกับดอกเบี้ยใหม่ ${rateStr}% เริ่มวันที่ ${dateStr} นี้!`;
-            }
-
-            // B. ปรับหน้า Settings ของครู (ซ่อนฟอร์ม โชว์สถานะ)
-            if (statusDiv && formDiv && statusText) {
-                statusDiv.classList.remove('hidden');
-                formDiv.classList.add('hidden');
-                statusText.innerHTML = `<span class="text-lg">${rateStr}%</span> <span class="text-gray-400 font-normal">ภายในวันที่ ${dateStr}</span>`;
-            }
-
-        } else {
-            // ไม่มีกำหนดการ -> ซ่อน Banner, โชว์ฟอร์มปกติ
+        // 2. เช็คว่ามีข้อมูลการตั้งค่าหรือไม่? (ดูที่ scheduled_interest)
+        if (!config || !config.scheduled_interest || !config.scheduled_interest.active) {
+            // ❌ ไม่มีข้อมูล -> ซ่อน Banner, โชว์ฟอร์มให้ครูกรอกใหม่
             if (banner) banner.classList.add('hidden');
-            if (statusDiv && formDiv) {
-                statusDiv.classList.add('hidden');
-                formDiv.classList.remove('hidden');
+            if (statusDiv) statusDiv.classList.add('hidden');
+            if (formDiv) formDiv.classList.remove('hidden');
+            return;
+        }
+
+        // 3. ✅ มีข้อมูล -> ดึงออกมาใช้งาน
+        const sch = config.scheduled_interest;
+        const targetDate = sch.date.toDate(); // แปลง Timestamp เป็น Date
+        const now = new Date();
+
+        // ----------------------------------------------------
+        // 🔄 กรณีที่ 1: "ถึงเวลาแล้ว!" (เลยเที่ยงคืนมาแล้ว)
+        // ----------------------------------------------------
+        if (now >= targetDate) {
+            console.log("⏰ ถึงเวลาเปลี่ยนดอกเบี้ยแล้ว! กำลังดำเนินการ...");
+            
+            try {
+                const batch = writeBatch(db);
+                let count = 0;
+
+                // A. วนลูปตัดยอดดอกเบี้ยเก่าให้นักเรียนทุกคน
+                students.forEach(s => {
+                    // (เงื่อนไข: มีเงินฝาก + ไม่โดนแบน + ฝากมาก่อนเวลาเปลี่ยน)
+                    if (s.bank_points > 0 && s.bank_deposit_time) {
+                        let depositTime = s.bank_deposit_time;
+                        if (typeof depositTime.toMillis === 'function') depositTime = depositTime.toMillis();
+                        else depositTime = new Date(depositTime).getTime();
+
+                        // ถ้าเวลาฝาก เก่ากว่า เวลาเป้าหมาย (แสดงว่ามีช่วงดอกเบี้ยเก่าค้างอยู่)
+                        if (depositTime < targetDate.getTime()) {
+                            // คำนวณดอกเบี้ยช่วงเก่า (Deposit -> Midnight)
+                            const hours = (targetDate.getTime() - depositTime) / (36e5);
+                            
+                            // ใช้เรท "เก่า" (config.interest_rate ปัจจุบัน)
+                            let rate = config.interest_rate || 0;
+                            
+                            // บวกบัฟกิลด์
+                            if (s.guild_id && typeof getGuildActiveBuffs === 'function') {
+                                const buffs = getGuildActiveBuffs(s.guild_id);
+                                if(buffs.interest) rate += parseFloat(buffs.interest);
+                            }
+
+                            if (hours > 0 && rate > 0 && (s.warning_cards||0) === 0) {
+                                const interestEarned = s.bank_points * (rate / 100) * hours;
+                                
+                                const sRef = doc(db, 'artifacts', appId, 'public', 'data', 'students', s.id);
+                                batch.update(sRef, {
+                                    bank_points: increment(interestEarned), // ดอกเบี้ยเข้าต้น
+                                    bank_deposit_time: Timestamp.fromDate(targetDate) // รีเซ็ตเวลาเป็นเที่ยงคืน
+                                });
+                                count++;
+                            } else {
+                                // ไม่ได้ดอกเบี้ย แต่อัปเดตเวลาให้เป็นปัจจุบัน
+                                const sRef = doc(db, 'artifacts', appId, 'public', 'data', 'students', s.id);
+                                batch.update(sRef, { bank_deposit_time: Timestamp.fromDate(targetDate) });
+                            }
+                        }
+                    }
+                });
+
+                // B. เปลี่ยนค่า Config กลาง
+                const configRef = doc(db, 'artifacts', appId, 'public', 'config');
+                batch.update(configRef, {
+                    interest_rate: sch.rate,        // เปลี่ยนเรทจริง
+                    scheduled_interest: deleteField() // ลบกำหนดการทิ้ง
+                });
+
+                await batch.commit();
+                
+                showToast(`✅ ระบบเปลี่ยนดอกเบี้ยเป็น ${sch.rate}% และตัดยอดให้ ${count} คนแล้วครับ!`, 'success');
+                
+                // รีเฟรชหน้าจอ
+                setTimeout(() => window.location.reload(), 2000);
+                return;
+
+            } catch (e) {
+                console.error("Auto update failed:", e);
+                // ถ้า Error ให้แสดงผลแบบปกติไปก่อน กันหน้าจอพัง
             }
+        }
+
+        // ----------------------------------------------------
+        // ⏳ กรณีที่ 2: "ยังไม่ถึงเวลา" (รอเปลี่ยน)
+        // ----------------------------------------------------
+        const dateFmt = targetDate.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
+
+        // แสดงผลฝั่งนักเรียน (Banner)
+        if (banner && bannerText) {
+            banner.classList.remove('hidden');
+            bannerText.textContent = `เตรียมพบกับดอกเบี้ยใหม่ ${sch.rate}% เริ่มวันที่ ${dateFmt} นี้!`;
+        }
+
+        // แสดงผลฝั่งครู (Status)
+        if (statusDiv && formDiv && statusText) {
+            statusDiv.classList.remove('hidden');
+            formDiv.classList.add('hidden'); // ซ่อนฟอร์มกรอก
+            
+            statusText.innerHTML = `
+                <div class="flex items-center justify-between w-full">
+                    <div>
+                        <div class="text-[10px] text-gray-400 font-normal">เปลี่ยนเป็น</div>
+                        <span class="text-2xl font-bold text-indigo-600">${sch.rate}%</span> 
+                    </div>
+                    <div class="text-right">
+                        <div class="text-[10px] text-gray-400 font-normal">วันที่ (00:00 น.)</div>
+                        <span class="text-sm font-bold text-gray-700">${dateFmt}</span>
+                    </div>
+                </div>
+            `;
+        }
+    };
+
+    // แถม: ฟังก์ชันยกเลิก (Cancel) ที่ถูกต้อง
+    window.cancelScheduledInterest = async () => {
+        if(!confirm('ต้องการยกเลิกการตั้งเวลาล่วงหน้า?')) return;
+        try {
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'config'), {
+                scheduled_interest: deleteField() // ลบฟิลด์ทิ้ง
+            });
+            showToast('ยกเลิกเรียบร้อย', 'success');
+            // รีเฟรชหน้า UI ทันที (จะกลับไปเข้าเคส "ไม่มีข้อมูล")
+            checkAndRenderScheduledInterest();
+        } catch(e) {
+            alert('Error: ' + e.message);
         }
     };
 
@@ -9840,4 +9987,3 @@ window.getGuildActiveBuffs = (guildId) => {
   
  </body>
 </html>
-
